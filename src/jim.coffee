@@ -2,7 +2,7 @@ commandMode =
   regex: ///
     ^
     (\d*)       # multiplier
-    ([hjklbe]?) # movement
+    ([hjkl]?) # movement
     $
   ///
   execute: (match) ->
