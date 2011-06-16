@@ -2,7 +2,7 @@ modes =
   normal:
     regex: ///
       ^
-      ([i])         # insert mode transition
+      ([i])       # insert mode transition
       |(?:
         (\d*)     # number prefix (multiplier, line number, ...)
         ([hjkl]?) # movement
