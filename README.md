@@ -1,4 +1,4 @@
 Jim
 ===
 
-Vim's kid brother
+This is Vim's brain on JavaScript
