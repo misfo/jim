@@ -1,20 +1,23 @@
 commandMode =
   regex: ///
     ^
-    (\d*)       # multiplier
+    (\d*)     # multiplier
     ([hjkl]?) # movement
     $
   ///
   execute: (match) ->
     console.log 'execute', match
-    times = parseInt(match[1]) if match[1].length > 0
-    movement = switch match[2]
+    [fullMatch, multiplier, movement] = match
+    args = {}
+
+    times = parseInt(multiplier) if multiplier.length > 0
+    method = switch movement
       when "h" then 'navigateLeft'
       when "j" then 'navigateDown'
       when "k" then 'navigateUp'
       when "l" then 'navigateRight'
-    if movement
-      [movement, times: times]
+    if method
+      [method, args]
     
 
 class Jim
