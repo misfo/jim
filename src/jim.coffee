@@ -10,7 +10,7 @@ commandMode =
     [fullMatch, multiplier, movement] = match
     args = {}
 
-    times = parseInt(multiplier) if multiplier.length > 0
+    args.times = parseInt(multiplier) if multiplier.length > 0
     method = switch movement
       when "h" then 'navigateLeft'
       when "j" then 'navigateDown'
