@@ -41,7 +41,7 @@ class Jim
 
 jim = new Jim()
 
-class AceAdaptor
+aceAdaptor =
   doNothing: ->
 
   navigateUp:    (env, args, request) -> env.editor.navigateUp args.times
@@ -57,5 +57,5 @@ class AceAdaptor
       args: result[1]
 
 define (require, exports, module) ->
-  exports.Vim = new AceAdaptor()
+  exports.Vim = aceAdaptor
   console.log 'exports.Vim', exports.Vim
