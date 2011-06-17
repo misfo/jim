@@ -5,10 +5,17 @@
     <script type="text/javascript" src="../vendor/qunit.js"></script>
     <script type="text/javascript" src="../vendor/coffee-script.js"></script>
 
+    <script type="text/javascript" src="../lib/jim-bare.js"></script>
+
     <script type="text/coffeescript">
-      test "that something can be asserted", ->
-        ok true, "this should pass"
-        ok false, "this should fail"
+      @eq = strictEqual
+
+      run = (name) ->
+        CoffeeScript.load "#{name}.coffee"
+
+      run name for name in names = [
+        'modes'
+      ]
     </script>
   </head>
   <body>
