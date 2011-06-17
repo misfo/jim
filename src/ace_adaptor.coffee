@@ -14,6 +14,8 @@ aceAdaptor =
   navigateLineEnd:   (env, args, request) -> env.editor.navigateLineEnd()
   navigateLineStart: (env, args, request) -> env.editor.navigateLineStart()
 
+  removeToLineEnd: (env, args, request) -> env.editor.removeToLineEnd()
+
 
   handleKeyboard: (data, hashId, key) ->
     return if hashId isnt 0 and (key is "" or key is String.fromCharCode 0) # do nothing if it's just a modifier key

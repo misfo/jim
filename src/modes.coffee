@@ -2,7 +2,8 @@ modes =
   normal:
     regex: ///
       ^
-      ([iIA])|      # insert mode transition
+      ([iIAC])|     # insert mode transition
+      ([D])|        # delete command
       (?:
         (\d*)       # number prefix (multiplier, line number, ...)
         (?:
@@ -18,7 +19,7 @@ modes =
         console.log "unrecognized command: #{buffer}"
         return method: 'doNothing'
       console.log 'parse match', match
-      [fullMatch, insertTransition, numberPrefix, movement, go] = match
+      [fullMatch, insertTransition, deleteCommand, numberPrefix, movement, go] = match
 
       method = 'doNothing'
       args = {}
@@ -27,8 +28,12 @@ modes =
       if insertTransition
         switch insertTransition
           when "A" then method = 'navigateLineEnd'
+          when "C" then method = 'removeToLineEnd'
           when "I" then method = 'navigateLineStart'
         changeToMode = 'insert'
+      else if deleteCommand
+        switch deleteCommand
+          when "D" then method = 'removeToLineEnd'
       else if movement
         args.times = parseInt(numberPrefix) if numberPrefix
         method = switch movement

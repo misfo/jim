@@ -19,6 +19,10 @@ test 'normal mode insert transition parsing', ->
   eq r.method, 'navigateLineEnd'
   eq r.changeToMode, 'insert'
 
+  r = normal.parse "C"
+  eq r.method, 'removeToLineEnd'
+  eq r.changeToMode, 'insert'
+
 test 'normal mode movement parsing', ->
   eq normal.parse("j").method, 'navigateDown'
 
@@ -32,3 +36,7 @@ test 'normal mode jump parsing', ->
   r = normal.parse "13G"
   eq r.method, 'gotoLine'
   deepEqual r.args, lineNumber: 13
+
+test 'normal mode delete parsing', ->
+  r = normal.parse "D"
+  eq r.method, 'removeToLineEnd'
