@@ -10,10 +10,7 @@
     <script type="text/coffeescript">
       @eq = strictEqual
 
-      run = (name) ->
-        CoffeeScript.load "#{name}.coffee"
-
-      run name for name in names = [
+      CoffeeScript.load "#{name}.coffee" for name in [
         'modes'
       ]
     </script>
