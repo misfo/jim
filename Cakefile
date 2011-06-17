@@ -18,9 +18,13 @@ task 'build', 'Build single application file from source files', ->
   process = ->
     fs.writeFile 'lib/jim.coffee', appContents.join('\n\n'), 'utf8', (err) ->
       throw err if err
-      exec 'coffee --compile lib/jim.coffee', (err, stdout, stderr) ->
+      filesCompiled = 0
+      handleCompilation = (err, stdout, stderr) ->
         throw err if err
         console.log stdout + stderr
-        fs.unlink 'lib/jim.coffee', (err) ->
-          throw err if err
-          console.log 'Done.'
+        if ++filesCompiled is 2
+          fs.unlink 'lib/jim.coffee', (err) ->
+            throw err if err
+            console.log 'Done.'
+      exec 'coffee --compile lib/jim.coffee', handleCompilation
+      exec 'coffee --compile --bare --print lib/jim.coffee > lib/jim-bare.js', handleCompilation
