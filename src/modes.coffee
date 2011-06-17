@@ -12,8 +12,12 @@ modes =
       )
     ///
 
-    execute: (match) ->
-      console.log 'execute', match
+    parse: (buffer) ->
+      match = buffer.match(@regex)
+      if not match? or match[0] is ""
+        console.log "unrecognized command: #{buffer}"
+        return method: 'doNothing'
+      console.log 'parse match', match
       [fullMatch, insertTransition, numberPrefix, movement, go] = match
 
       method = 'doNothing'
@@ -32,10 +36,10 @@ modes =
       else if go
         args.lineNumber = parseInt(numberPrefix) if numberPrefix
         method = if numberPrefix then 'gotoLine' else 'navigateFileEnd'
+      else
+        return 'continueBuffering'
 
       {method, args, changeToMode}
 
   insert:
-    #FIXME this shouldn't be needed
-    regex: /.*/
-    execute: ->
+    parse: ->

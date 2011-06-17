@@ -1,26 +1,26 @@
-test 'normal mode regex parses commands correctly', ->
-  regex = modes.normal.regex
+{normal} = modes
 
-  m = "i".match regex
-  eq "i", m[0]
-  eq "i", m[1]
+test 'normal mode invalid command parsing', ->
+  deepEqual normal.parse("e"), method: 'doNothing'
 
-  m = "j".match regex
-  eq "j", m[0]
-  eq "j", m[3]
+test 'normal mode partial command parsing', ->
+  eq normal.parse("2"), 'continueBuffering'
 
-  m = "2".match(regex)
-  eq "2", m[0]
-  eq "2", m[2]
-  m = "2k".match(regex)
-  eq "2k", m[0]
-  eq "2",  m[2]
-  eq "k",  m[3]
+test 'normal mode insert transition parsing', ->
+  r = normal.parse "i"
+  eq r.method, 'doNothing'
+  eq r.changeToMode, 'insert'
 
-  m = "G".match(regex)
-  eq "G", m[0]
-  eq "G", m[4]
-  m = "13G".match(regex)
-  eq "13G", m[0]
-  eq "13",  m[2]
-  eq "G",   m[4]
+test 'normal mode movement parsing', ->
+  eq normal.parse("j").method, 'navigateDown'
+
+  r = normal.parse "2k"
+  eq r.method, 'navigateUp'
+  deepEqual r.args, {times: 2}
+
+test 'normal mode jump parsing', ->
+  eq normal.parse("G").method, 'navigateFileEnd'
+
+  r = normal.parse "13G"
+  eq r.method, 'gotoLine'
+  deepEqual r.args, lineNumber: 13

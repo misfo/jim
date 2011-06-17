@@ -14,13 +14,9 @@ class Jim
       return
     @buffer += key
     console.log '@buffer', @buffer
-    match = @buffer.match(@mode.regex)
-    result = null
-    if match?
-      result = @mode.execute(match)
-      @buffer = '' if result? and result.method isnt 'doNothing'
+    result = @mode.parse(@buffer)
+    if result is 'continueBuffering'
+      method: 'doNothing'
     else
-      console.log "unrecognized command: #{@buffer}"
       @buffer = ''
-    
-    result
+      result
