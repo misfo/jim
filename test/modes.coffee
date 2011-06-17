@@ -15,6 +15,10 @@ test 'normal mode insert transition parsing', ->
   eq r.method, 'navigateLineStart'
   eq r.changeToMode, 'insert'
 
+  r = normal.parse "A"
+  eq r.method, 'navigateLineEnd'
+  eq r.changeToMode, 'insert'
+
 test 'normal mode movement parsing', ->
   eq normal.parse("j").method, 'navigateDown'
 

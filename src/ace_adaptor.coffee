@@ -11,6 +11,7 @@ aceAdaptor =
   navigateRight: (env, args, request) -> env.editor.navigateRight args.times
 
   navigateFileEnd:   (env, args, request) -> env.editor.navigateFileEnd()
+  navigateLineEnd:   (env, args, request) -> env.editor.navigateLineEnd()
   navigateLineStart: (env, args, request) -> env.editor.navigateLineStart()
 
 

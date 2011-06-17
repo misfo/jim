@@ -2,7 +2,7 @@ modes =
   normal:
     regex: ///
       ^
-      ([iI])|        # insert mode transition
+      ([iIA])|      # insert mode transition
       (?:
         (\d*)       # number prefix (multiplier, line number, ...)
         (?:
@@ -26,6 +26,7 @@ modes =
 
       if insertTransition
         switch insertTransition
+          when "A" then method = 'navigateLineEnd'
           when "I" then method = 'navigateLineStart'
         changeToMode = 'insert'
       else if movement
