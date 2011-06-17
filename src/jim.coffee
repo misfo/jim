@@ -8,10 +8,10 @@ class Jim
     @buffer = ''
     @mode = modes[modeName]
 
-  keypress: (key) ->
-    if key is "esc"
+  onEscape: ->
       @setMode 'normal'
-      return
+
+  onKeypress: (key) ->
     @buffer += key
     console.log '@buffer', @buffer
     result = @mode.parse(@buffer)

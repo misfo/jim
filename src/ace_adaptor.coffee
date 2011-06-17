@@ -17,10 +17,19 @@ aceAdaptor =
   removeToLineEnd: (env, args, request) -> env.editor.removeToLineEnd()
 
 
+  isntCharacterKey: (hashId, key) ->
+    (hashId isnt 0 and (key is "" or key is String.fromCharCode 0)) or key.length > 1
+
   handleKeyboard: (data, hashId, key) ->
-    return if hashId isnt 0 and (key is "" or key is String.fromCharCode 0) # do nothing if it's just a modifier key
+    if key is "esc"
+      jim.onEscape()
+      return command: exec: @doNothing
+    else if @isntCharacterKey(hashId, key)
+      # do nothing if it's just a modifier key
+      return
+
     key = key.toUpperCase() if hashId & 4 and key.match /^[a-z]$/
-    result = jim.keypress key
+    result = jim.onKeypress key
     if result?
       jim.setMode result.changeToMode if result.changeToMode?
       command:
