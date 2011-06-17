@@ -2,7 +2,7 @@ modes =
   normal:
     regex: ///
       ^
-      ([i])|        # insert mode transition
+      ([iI])|        # insert mode transition
       (?:
         (\d*)       # number prefix (multiplier, line number, ...)
         (?:
@@ -25,6 +25,8 @@ modes =
       changeToMode = null
 
       if insertTransition
+        switch insertTransition
+          when "I" then method = 'navigateLineStart'
         changeToMode = 'insert'
       else if movement
         args.times = parseInt(numberPrefix) if numberPrefix

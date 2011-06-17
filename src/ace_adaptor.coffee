@@ -10,7 +10,8 @@ aceAdaptor =
   navigateLeft:  (env, args, request) -> env.editor.navigateLeft args.times
   navigateRight: (env, args, request) -> env.editor.navigateRight args.times
 
-  navigateFileEnd: (env, args, request) -> env.editor.navigateFileEnd()
+  navigateFileEnd:   (env, args, request) -> env.editor.navigateFileEnd()
+  navigateLineStart: (env, args, request) -> env.editor.navigateLineStart()
 
 
   handleKeyboard: (data, hashId, key) ->
