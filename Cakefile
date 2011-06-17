@@ -1,17 +1,16 @@
 fs     = require 'fs'
 {exec} = require 'child_process'
 
-appFiles  = [
-  # omit src/ and .coffee to make the below lines a little shorter
+appFiles  = ("src/#{name}.coffee" for name in [
   'modes'
   'jim'
   'ace_adaptor'
-]
+])
 
-task 'build', 'Build single application file from source files', ->
+build = ->
   appContents = new Array remaining = appFiles.length
   for file, index in appFiles then do (file, index) ->
-    fs.readFile "src/#{file}.coffee", 'utf8', (err, fileContents) ->
+    fs.readFile file, 'utf8', (err, fileContents) ->
       throw err if err
       appContents[index] = fileContents
       process() if --remaining is 0
@@ -28,3 +27,13 @@ task 'build', 'Build single application file from source files', ->
             console.log 'Done.'
       exec 'coffee --compile lib/jim.coffee', handleCompilation
       exec 'coffee --compile --bare --print lib/jim.coffee > lib/jim-bare.js', handleCompilation
+
+task 'build', 'Build single application file from source files (jim.js and jim-bare.js)', ->
+  build()
+
+task 'watch', 'Run build wheneven an app file changes', ->
+  build()
+  for file in appFiles then do (file) ->
+    fs.watchFile file, (curr, prev) ->
+      if "#{curr.mtime}" != "#{prev.mtime}"
+        build()
