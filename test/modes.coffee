@@ -40,3 +40,9 @@ test 'normal mode jump parsing', ->
 test 'normal mode delete parsing', ->
   r = normal.parse "D"
   eq r.method, 'removeToLineEnd'
+
+  r = normal.parse "x"
+  eq r.method, 'removeRight'
+
+  r = normal.parse "X"
+  eq r.method, 'removeLeft'

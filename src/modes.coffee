@@ -2,13 +2,13 @@ modes =
   normal:
     regex: ///
       ^
-      ([iIAC])|     # insert mode transition
-      ([D])|        # delete command
+      ([iIAC])|       # insert mode transition
+      (D)|            # delete to end of line command
       (?:
-        (\d*)       # number prefix (multiplier, line number, ...)
+        (\d*)         # number prefix (multiplier, line number, ...)
         (?:
-          ([hjkl])| # movement
-          (G)       # go!
+          ([hjklxX])| # multipliable command (movements, deletions)
+          (G)         # go!
         )?
       )
     ///
@@ -19,7 +19,7 @@ modes =
         console.log "unrecognized command: #{buffer}"
         return method: 'doNothing'
       console.log 'parse match', match
-      [fullMatch, insertTransition, deleteCommand, numberPrefix, movement, go] = match
+      [fullMatch, insertTransition, deleteCommand, numberPrefix, multipliable, go] = match
 
       method = 'doNothing'
       args = {}
@@ -34,13 +34,15 @@ modes =
       else if deleteCommand
         switch deleteCommand
           when "D" then method = 'removeToLineEnd'
-      else if movement
+      else if multipliable
         args.times = parseInt(numberPrefix) if numberPrefix
-        method = switch movement
+        method = switch multipliable
           when "h" then 'navigateLeft'
           when "j" then 'navigateDown'
           when "k" then 'navigateUp'
           when "l" then 'navigateRight'
+          when "x" then 'removeRight'
+          when "X" then 'removeLeft'
       else if go
         args.lineNumber = parseInt(numberPrefix) if numberPrefix
         method = if numberPrefix then 'gotoLine' else 'navigateFileEnd'
