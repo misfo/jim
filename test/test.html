@@ -3,12 +3,12 @@
   <head>
     <link rel="stylesheet" href="../vendor/qunit.css" type="text/css" media="screen" />
     <script type="text/javascript" src="../vendor/qunit.js"></script>
+    <script type="text/javascript" src="../vendor/coffee-script.js"></script>
 
-    <script>
-      test("that something can be asserted", function() {
-        ok(true, "this should pass");
-        ok(false, "this should fail");
-      });
+    <script type="text/coffeescript">
+      test "that something can be asserted", ->
+        ok true, "this should pass"
+        ok false, "this should fail"
     </script>
   </head>
   <body>
