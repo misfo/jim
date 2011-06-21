@@ -41,5 +41,12 @@ aceAdaptor =
       args: result.args
 
 define (require, exports, module) ->
-  exports.Vim = aceAdaptor
-  console.log 'exports.Vim', exports.Vim
+  console.log 'defining startup'
+  startup = (data, reason) ->
+    if not data.env.editor
+      setTimeout startup, 0, data, reason
+      return
+    console.log 'executing startup'
+    env.editor.setKeyboardHandler aceAdaptor
+  exports.startup = startup
+  return
