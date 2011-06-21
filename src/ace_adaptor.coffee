@@ -41,12 +41,21 @@ aceAdaptor =
       args: result.args
 
 define (require, exports, module) ->
+  require('pilot/dom').importCssString """
+    .jim-normal-mode div.ace_cursor {
+      border: 0;
+      background-color: #91FF00;
+      opacity: 0.5;
+    }
+  """
+
   console.log 'defining startup'
   startup = (data, reason) ->
     if not data.env.editor
       setTimeout startup, 0, data, reason
       return
     console.log 'executing startup'
-    env.editor.setKeyboardHandler aceAdaptor
+    data.env.editor.setKeyboardHandler aceAdaptor
+    data.env.editor.setStyle 'jim-normal-mode'
   exports.startup = startup
   return
