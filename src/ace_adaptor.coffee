@@ -55,7 +55,15 @@ define (require, exports, module) ->
       setTimeout startup, 0, data, reason
       return
     console.log 'executing startup'
-    data.env.editor.setKeyboardHandler aceAdaptor
-    data.env.editor.setStyle 'jim-normal-mode'
+    {editor} = data.env
+    editor.setKeyboardHandler aceAdaptor
+
+    jim.onModeChange = (state) ->
+      if state is 'normal'
+        editor.setStyle 'jim-normal-mode'
+      else
+        editor.unsetStyle 'jim-normal-mode'
+
+    jim.onModeChange 'normal'
   exports.startup = startup
   return

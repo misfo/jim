@@ -6,7 +6,9 @@ class Jim
   setMode: (modeName) ->
     console.log 'setMode', modeName
     @buffer = ''
+    prevMode = @mode
     @mode = modes[modeName]
+    @onModeChange?(modeName) if @mode isnt prevMode
 
   onEscape: ->
       @setMode 'normal'
