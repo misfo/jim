@@ -20,6 +20,11 @@ aceAdaptor =
     env.editor.removeRight() for i in [1..(args.times or 1)]
   removeToLineEnd: (env, args, request) -> env.editor.removeToLineEnd()
 
+  selectUp:    (env, args, request) -> env.editor.selection.selectUp args.times
+  selectDown:  (env, args, request) -> env.editor.selection.selectDown args.times
+  selectLeft:  (env, args, request) -> env.editor.selection.selectLeft args.times
+  selectRight: (env, args, request) -> env.editor.selection.selectRight args.times
+
 
   isntCharacterKey: (hashId, key) ->
     (hashId isnt 0 and (key is "" or key is String.fromCharCode 0)) or key.length > 1
@@ -63,6 +68,11 @@ define (require, exports, module) ->
         editor.setStyle 'jim-normal-mode'
       else
         editor.unsetStyle 'jim-normal-mode'
+
+      if state is 'visual'
+        editor.selection.selectRight()
+      else
+        editor.clearSelection()
 
     jim.onModeChange 'normal'
   exports.startup = startup

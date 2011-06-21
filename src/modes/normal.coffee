@@ -1,13 +1,15 @@
 Jim.modes.normal =
   regex: ///
     ^
-    ([iIAC])|       # insert mode transition
-    (D)|            # delete to end of line command
+    ([iIAC])|            # insert mode transition
+    (v)|                 # visual mode transition
+    (D)|                 # delete to end of line command
     (?:
-      (\d*)         # number prefix (multiplier, line number, ...)
+      (\d*)              # number prefix (multiplier, line number, ...)
       (?:
-        ([hjklxX])| # multipliable command (movements, deletions)
-        (G)         # go!
+        (#{Jim.movements.source})|
+        ([xX])|          # deletions
+        (G)              # go!
       )?
     )
   ///
@@ -18,7 +20,8 @@ Jim.modes.normal =
       console.log "unrecognized command: #{buffer}"
       return method: 'doNothing'
     console.log 'parse match', match
-    [fullMatch, insertTransition, deleteCommand, numberPrefix, multipliable, go] = match
+    [fullMatch, insertTransition, visualTransition, deleteCommand, numberPrefix, movement, deletion, go] = match
+    numberPrefix = parseInt(numberPrefix) if numberPrefix
 
     method = 'doNothing'
     args = {}
@@ -30,23 +33,29 @@ Jim.modes.normal =
         when "C" then method = 'removeToLineEnd'
         when "I" then method = 'navigateLineStart'
       changeToMode = 'insert'
+    else if visualTransition
+      changeToMode = 'visual'
     else if deleteCommand
       switch deleteCommand
         when "D" then method = 'removeToLineEnd'
-    else if multipliable
-      args.times = parseInt(numberPrefix) if numberPrefix
-      method = switch multipliable
+    else if movement
+      args.times = numberPrefix
+      method = switch movement
         when "h" then 'navigateLeft'
         when "j" then 'navigateDown'
         when "k" then 'navigateUp'
         when "l" then 'navigateRight'
+    else if deletion
+      args.times = numberPrefix
+      method = switch deletion
         when "x" then 'removeRight'
         when "X" then 'removeLeft'
     else if go
-      args.lineNumber = parseInt(numberPrefix) if numberPrefix
+      args.lineNumber = numberPrefix
       method = if numberPrefix then 'gotoLine' else 'navigateFileEnd'
     else
       return 'continueBuffering'
 
     {method, args, changeToMode}
 
+console.log Jim.modes.normal.regex.toString()

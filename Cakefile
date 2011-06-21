@@ -3,8 +3,9 @@ fs     = require 'fs'
 
 appFiles  = ("src/#{name}.coffee" for name in [
   'jim'
-  'modes/normal'
   'modes/insert'
+  'modes/normal'
+  'modes/visual'
   'ace_adaptor'
 ])
 
