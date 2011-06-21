@@ -1,4 +1,7 @@
 class Jim
+  # modes are defined in src/modes/*
+  @modes: {}
+
   constructor: ->
     @buffer = ''
     @setMode 'normal'
@@ -7,7 +10,8 @@ class Jim
     console.log 'setMode', modeName
     @buffer = ''
     prevMode = @mode
-    @mode = modes[modeName]
+    #FIXME better way to refer to modes?
+    @mode = Jim.modes[modeName]
     @onModeChange?(modeName) if @mode isnt prevMode
 
   onEscape: ->

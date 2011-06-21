@@ -2,8 +2,9 @@ fs     = require 'fs'
 {exec} = require 'child_process'
 
 appFiles  = ("src/#{name}.coffee" for name in [
-  'modes'
   'jim'
+  'modes/normal'
+  'modes/insert'
   'ace_adaptor'
 ])
 

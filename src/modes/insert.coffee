@@ -1,0 +1,2 @@
+Jim.modes.insert =
+  parse: ->
