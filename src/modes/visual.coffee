@@ -2,7 +2,7 @@ Jim.modes.visual =
   regex: ///
     ^
     (\d*)
-    (#{Jim.movements.source})
+    (#{Jim.movements.source})?
   ///
 
   parse: (buffer) ->
@@ -12,6 +12,7 @@ Jim.modes.visual =
       return method: 'doNothing'
 
     [fullMatch, numberPrefix, movement] = match
+    numberPrefix = parseInt(numberPrefix) if numberPrefix
 
     method = 'doNothing'
     args = {}
@@ -24,5 +25,7 @@ Jim.modes.visual =
         when "j" then 'selectDown'
         when "k" then 'selectUp'
         when "l" then 'selectRight'
+    else
+      return 'continueBuffering'
 
     {method, args, changeToMode}
