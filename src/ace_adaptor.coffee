@@ -20,10 +20,14 @@ aceAdaptor =
     env.editor.removeRight() for i in [1..(args.times or 1)]
   removeToLineEnd: (env, args, request) -> env.editor.removeToLineEnd()
 
-  selectUp:    (env, args, request) -> env.editor.selection.selectUp args.times
-  selectDown:  (env, args, request) -> env.editor.selection.selectDown args.times
-  selectLeft:  (env, args, request) -> env.editor.selection.selectLeft args.times
-  selectRight: (env, args, request) -> env.editor.selection.selectRight args.times
+  selectUp:    (env, args, request) ->
+    env.editor.selection.selectUp() for i in [1..(args.times or 1)]
+  selectDown:  (env, args, request) ->
+    env.editor.selection.selectDown() for i in [1..(args.times or 1)]
+  selectLeft:  (env, args, request) ->
+    env.editor.selection.selectLeft() for i in [1..(args.times or 1)]
+  selectRight: (env, args, request) ->
+    env.editor.selection.selectRight() for i in [1..(args.times or 1)]
 
 
   isntCharacterKey: (hashId, key) ->
