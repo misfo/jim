@@ -76,4 +76,6 @@ define (require, exports, module) ->
 
     jim.onModeChange 'normal'
   exports.startup = startup
+
+  exports.Jim = Jim
   return

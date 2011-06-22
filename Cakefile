@@ -19,18 +19,15 @@ build = ->
   process = ->
     fs.writeFile 'lib/jim.coffee', appContents.join('\n\n'), 'utf8', (err) ->
       throw err if err
-      filesCompiled = 0
       handleCompilation = (err, stdout, stderr) ->
         throw err if err
         console.log stdout + stderr
-        if ++filesCompiled is 2
-          fs.unlink 'lib/jim.coffee', (err) ->
-            throw err if err
-            console.log 'Done.'
+        fs.unlink 'lib/jim.coffee', (err) ->
+          throw err if err
+          console.log 'Done.'
       exec 'coffee --compile lib/jim.coffee', handleCompilation
-      exec 'coffee --compile --bare --print lib/jim.coffee > lib/jim-bare.js', handleCompilation
 
-task 'build', 'Build single application file from source files (jim.js and jim-bare.js)', ->
+task 'build', 'Build single application file from source files', ->
   build()
 
 task 'watch', 'Run build wheneven an app file changes', ->

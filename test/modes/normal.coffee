@@ -1,4 +1,4 @@
-{normal} = Jim.modes
+{normal} = exports.Jim.modes
 
 test 'normal mode invalid command parsing', ->
   deepEqual normal.parse("e"), method: 'doNothing'
