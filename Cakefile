@@ -1,5 +1,6 @@
-fs     = require 'fs'
-{exec} = require 'child_process'
+fs      = require 'fs'
+{print} = require 'sys'
+{spawn} = require 'child_process'
 
 appFiles  = ("src/#{name}.coffee" for name in [
   'jim'
@@ -19,13 +20,13 @@ build = ->
   process = ->
     fs.writeFile 'lib/jim.coffee', appContents.join('\n\n'), 'utf8', (err) ->
       throw err if err
-      handleCompilation = (err, stdout, stderr) ->
-        throw err if err
-        console.log stdout + stderr
-        fs.unlink 'lib/jim.coffee', (err) ->
-          throw err if err
-          console.log 'Done.'
-      exec 'coffee --compile lib/jim.coffee', handleCompilation
+
+      coffee = spawn 'coffee', ['--compile', 'lib/jim.coffee']
+      coffee.stdout.on 'data', (data) -> print data.toString()
+      coffee.stderr.on 'data', (data) -> print data.toString()
+      coffee.on 'exit', ->
+        fs.unlink 'lib/jim.coffee', (err) -> throw err if err
+        console.log "#{new Date()}: compiled lib/jim.js"
 
 task 'build', 'Build single application file from source files', ->
   build()
