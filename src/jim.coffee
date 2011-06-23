@@ -28,7 +28,7 @@ class Jim
     console.log '@buffer', @buffer
     result = @mode.parse(@buffer)
     if result is 'continueBuffering'
-      return method: 'doNothing'
+      return {}
 
     @buffer = ''
     result

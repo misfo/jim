@@ -1,8 +1,6 @@
 jim = new Jim()
 
 aceAdaptor =
-  doNothing: ->
-
   gotoLine: (env, args, request) -> env.editor.gotoLine args.lineNumber
 
   navigateUp:    (env, args, request) -> env.editor.navigateUp args.times
@@ -37,9 +35,10 @@ aceAdaptor =
     (hashId isnt 0 and (key is "" or key is String.fromCharCode 0)) or key.length > 1
 
   handleKeyboard: (data, hashId, key) ->
+    noop = ->
     if key is "esc"
       jim.onEscape()
-      return command: exec: @doNothing
+      return command: exec: noop
     else if @isntCharacterKey(hashId, key)
       # do nothing if it's just a modifier key
       return
@@ -49,7 +48,7 @@ aceAdaptor =
     if result?
       jim.setMode result.changeToMode if result.changeToMode?
       command:
-        exec: this[result.method]
+        exec: this[result.action] or noop
       args: result.args
 
 define (require, exports, module) ->

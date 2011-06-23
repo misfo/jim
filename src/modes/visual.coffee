@@ -13,18 +13,17 @@ Jim.modes.visual =
     console.log 'visual parse match', match
     if not match? or match[0] is ""
       console.log "unrecognized command: #{buffer}"
-      return method: 'doNothing'
+      return {}
 
     [fullMatch, numberPrefix, movement, operator] = match
-    numberPrefix = parseInt(numberPrefix) if numberPrefix
+    numberPrefix = parseInt(numberPrefix) or null
 
-    method = 'doNothing'
-    args = {}
-    changeToMode = null
+    result = {}
 
     if movement
-      args.times = numberPrefix
-      method = switch movement
+      if numberPrefix
+        result.args = {times: numberPrefix}
+      result.action = switch movement
         when "h" then 'selectLeft'
         when "j" then 'selectDown'
         when "k" then 'selectUp'
@@ -32,12 +31,10 @@ Jim.modes.visual =
     else if operator
       switch operator
         when 'c'
-          method = 'removeSelection'
-          changeToMode = 'insert'
+          result = action: 'removeSelection', changeToMode: 'insert'
         when 'd'
-          method = 'removeSelection'
-          changeToMode = 'normal'
+          result = action: 'removeSelection', changeToMode: 'normal'
     else
-      return 'continueBuffering'
+      result = 'continueBuffering'
 
-    {method, args, changeToMode}
+    result

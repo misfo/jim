@@ -1,21 +1,15 @@
 {visual} = exports.Jim.modes
 
 test 'visual mode invalid command parsing', ->
-  deepEqual visual.parse("e"), method: 'doNothing'
+  deepEqual visual.parse("e"), {}
 
 test 'visual mode partial command parsing', ->
   eq visual.parse("2"), 'continueBuffering'
 
 test 'visual mode movement parsing', ->
-  eq visual.parse("j").method, 'selectDown'
-
-  r = visual.parse "2k"
-  eq r.method, 'selectUp'
-  deepEqual r.args, {times: 2}
+  deepEqual visual.parse("j"), action: 'selectDown'
+  deepEqual visual.parse('2k'), action: 'selectUp', args: {times: 2}
 
 test 'visual mode operator parsing', ->
-  eq visual.parse("d").method, 'removeSelection'
-  eq visual.parse("d").changeToMode, 'normal'
-
-  eq visual.parse('c').method, 'removeSelection'
-  eq visual.parse('c').changeToMode, 'insert'
+  deepEqual visual.parse("d"), action: 'removeSelection', changeToMode: 'normal'
+  deepEqual visual.parse('c'), action: 'removeSelection', changeToMode: 'insert'
