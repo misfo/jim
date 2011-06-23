@@ -63,11 +63,11 @@ define (require, exports, module) ->
 
   console.log 'defining startup'
   startup = (data, reason) ->
-    if not data.env.editor
+    {editor} = data.env
+    if not editor
       setTimeout startup, 0, data, reason
       return
     console.log 'executing startup'
-    {editor} = data.env
     editor.setKeyboardHandler aceAdaptor
 
     jim.onModeChange = (prevMode) ->
@@ -76,10 +76,13 @@ define (require, exports, module) ->
       else
         editor.unsetStyle 'jim-normal-mode'
 
-      if @modeName is 'visual'
-        editor.selection.selectRight()
+      if @modeName.match /^visual:/
+        if @modeName is 'visual:linewise'
+          editor.selection.selectLine()
+        else
+          editor.selection.selectRight()
       # we don't want to clear the selection before anything's been done to it
-      else if prevMode isnt 'visual'
+      else if not prevMode?.match /^visual:/
         editor.clearSelection()
 
     jim.onModeChange()

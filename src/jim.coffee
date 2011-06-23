@@ -16,7 +16,8 @@ class Jim
     @modeName = modeName
     @buffer = ''
     #FIXME better way to refer to modes?
-    @mode = Jim.modes[modeName]
+    modeParts = modeName.split ":"
+    @mode = Jim.modes[modeParts[0]]
     @onModeChange? prevModeName if modeName isnt prevModeName
 
   onEscape: ->

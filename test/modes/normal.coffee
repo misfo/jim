@@ -23,6 +23,15 @@ test 'normal mode insert transition parsing', ->
   eq r.method, 'removeToLineEnd'
   eq r.changeToMode, 'insert'
 
+test 'normal mode visual transition parsing', ->
+  r = normal.parse 'v'
+  eq r.method, 'doNothing'
+  eq r.changeToMode, 'visual:characterwise'
+
+  r = normal.parse 'V'
+  eq r.method, 'doNothing'
+  eq r.changeToMode, 'visual:linewise'
+
 test 'normal mode movement parsing', ->
   eq normal.parse("j").method, 'navigateDown'
 
