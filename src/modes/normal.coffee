@@ -2,7 +2,7 @@ Jim.modes.normal =
   regex: ///
     ^
     ([iIAC])|            # insert mode transition
-    (v)|                 # visual mode transition
+    ([vV])|              # visual mode transition
     (D)|                 # delete to end of line command
     (?:
       (\d*)              # number prefix (multiplier, line number, ...)
@@ -34,7 +34,7 @@ Jim.modes.normal =
         when "I" then method = 'navigateLineStart'
       changeToMode = 'insert'
     else if visualTransition
-      changeToMode = 'visual'
+      changeToMode = if visualTransition is 'V' then 'visual:linewise' else 'visual:characterwise'
     else if deleteCommand
       switch deleteCommand
         when "D" then method = 'removeToLineEnd'
@@ -57,5 +57,3 @@ Jim.modes.normal =
       return 'continueBuffering'
 
     {method, args, changeToMode}
-
-console.log Jim.modes.normal.regex.toString()

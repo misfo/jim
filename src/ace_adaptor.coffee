@@ -67,14 +67,17 @@ define (require, exports, module) ->
     console.log 'executing startup'
     editor.setKeyboardHandler aceAdaptor
 
-    jim.onModeChange = (state) ->
-      if state is 'normal'
+    jim.onModeChange = (mode, modeType) ->
+      if mode is 'normal'
         editor.setStyle 'jim-normal-mode'
       else
         editor.unsetStyle 'jim-normal-mode'
 
-      if state is 'visual'
-        editor.selection.selectRight()
+      if mode is 'visual'
+        if modeType is 'linewise'
+          editor.selection.selectLine()
+        else
+          editor.selection.selectRight()
       else
         editor.clearSelection()
 
