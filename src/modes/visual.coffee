@@ -34,6 +34,7 @@ Jim.modes.visual =
           result = action: 'removeSelection', changeToMode: 'insert'
         when 'd'
           result = action: 'removeSelection', changeToMode: 'normal'
+      result.args = register: '"'
     else
       result = 'continueBuffering'
 

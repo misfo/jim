@@ -18,6 +18,7 @@ aceAdaptor =
     env.editor.removeRight() for i in [1..(args.times or 1)]
   removeToLineEnd: (env, args, request) -> env.editor.removeToLineEnd()
   removeSelection: (env, args, request) ->
+    jim.registers[args.register] = env.editor.getCopyText()
     env.editor.session.remove env.editor.getSelectionRange()
     env.editor.clearSelection()
 

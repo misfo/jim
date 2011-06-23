@@ -8,6 +8,7 @@ class Jim
 
   constructor: ->
     @buffer = ''
+    @registers = {}
     @setMode 'normal'
 
   setMode: (modeName) ->
