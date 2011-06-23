@@ -4,7 +4,7 @@ Jim.modes.visual =
     (\d*)
     (?:
       (#{Jim.movements.source})|
-      ([d])                      # operators
+      ([cd])                     # operators
     )?
   ///
 
@@ -30,9 +30,13 @@ Jim.modes.visual =
         when "k" then 'selectUp'
         when "l" then 'selectRight'
     else if operator
-      method = switch operator
-        when 'd' then 'removeSelection'
-      changeToMode = 'normal'
+      switch operator
+        when 'c'
+          method = 'removeSelection'
+          changeToMode = 'insert'
+        when 'd'
+          method = 'removeSelection'
+          changeToMode = 'normal'
     else
       return 'continueBuffering'
 

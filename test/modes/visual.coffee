@@ -16,3 +16,6 @@ test 'visual mode movement parsing', ->
 test 'visual mode operator parsing', ->
   eq visual.parse("d").method, 'removeSelection'
   eq visual.parse("d").changeToMode, 'normal'
+
+  eq visual.parse('c').method, 'removeSelection'
+  eq visual.parse('c').changeToMode, 'insert'
