@@ -12,11 +12,12 @@ class Jim
 
   setMode: (modeName) ->
     console.log 'setMode', modeName
+    prevModeName = @modeName
+    @modeName = modeName
     @buffer = ''
-    prevMode = @mode
     #FIXME better way to refer to modes?
     @mode = Jim.modes[modeName]
-    @onModeChange?(modeName) if @mode isnt prevMode
+    @onModeChange? prevModeName if modeName isnt prevModeName
 
   onEscape: ->
       @setMode 'normal'
@@ -26,7 +27,7 @@ class Jim
     console.log '@buffer', @buffer
     result = @mode.parse(@buffer)
     if result is 'continueBuffering'
-      method: 'doNothing'
-    else
-      @buffer = ''
-      result
+      return method: 'doNothing'
+
+    @buffer = ''
+    result

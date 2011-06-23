@@ -19,6 +19,9 @@ aceAdaptor =
   removeRight: (env, args, request) ->
     env.editor.removeRight() for i in [1..(args.times or 1)]
   removeToLineEnd: (env, args, request) -> env.editor.removeToLineEnd()
+  removeSelection: (env, args, request) ->
+    env.editor.session.remove env.editor.getSelectionRange()
+    env.editor.clearSelection()
 
   selectUp:    (env, args, request) ->
     env.editor.selection.selectUp() for i in [1..(args.times or 1)]
@@ -67,18 +70,19 @@ define (require, exports, module) ->
     {editor} = data.env
     editor.setKeyboardHandler aceAdaptor
 
-    jim.onModeChange = (state) ->
-      if state is 'normal'
+    jim.onModeChange = (prevMode) ->
+      if @modeName is 'normal'
         editor.setStyle 'jim-normal-mode'
       else
         editor.unsetStyle 'jim-normal-mode'
 
-      if state is 'visual'
+      if @modeName is 'visual'
         editor.selection.selectRight()
-      else
+      # we don't want to clear the selection before anything's been done to it
+      else if prevMode isnt 'visual'
         editor.clearSelection()
 
-    jim.onModeChange 'normal'
+    jim.onModeChange()
   exports.startup = startup
 
   exports.Jim = Jim

@@ -12,3 +12,7 @@ test 'visual mode movement parsing', ->
   r = visual.parse "2k"
   eq r.method, 'selectUp'
   deepEqual r.args, {times: 2}
+
+test 'visual mode operator parsing', ->
+  eq visual.parse("d").method, 'removeSelection'
+  eq visual.parse("d").changeToMode, 'normal'

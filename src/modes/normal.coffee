@@ -19,7 +19,7 @@ Jim.modes.normal =
     if not match? or match[0] is ""
       console.log "unrecognized command: #{buffer}"
       return method: 'doNothing'
-    console.log 'parse match', match
+    console.log 'normal parse match', match
     [fullMatch, insertTransition, visualTransition, deleteCommand, numberPrefix, movement, deletion, go] = match
     numberPrefix = parseInt(numberPrefix) if numberPrefix
 
