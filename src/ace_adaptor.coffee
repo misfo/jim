@@ -60,11 +60,11 @@ define (require, exports, module) ->
 
   console.log 'defining startup'
   startup = (data, reason) ->
-    if not data.env.editor
+    {editor} = data.env
+    if not editor
       setTimeout startup, 0, data, reason
       return
     console.log 'executing startup'
-    {editor} = data.env
     editor.setKeyboardHandler aceAdaptor
 
     jim.onModeChange = (state) ->
