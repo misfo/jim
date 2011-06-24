@@ -32,10 +32,10 @@ Jim.modes.normal =
         when "I" then result.action = 'navigateLineStart'
       result.changeToMode = 'insert'
     else if visualTransition
-      result.changeToMode = if visualTransition is 'V'
-        'visual:linewise'
+      result = if visualTransition is 'V'
+        action: 'selectLine', changeToMode: 'visual:linewise'
       else
-        'visual:characterwise'
+        action: 'selectRight', changeToMode: 'visual:characterwise'
     else if deleteCommand
       switch deleteCommand
         when "D" then result.action = 'removeToLineEnd'

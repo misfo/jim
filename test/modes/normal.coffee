@@ -13,8 +13,8 @@ test 'normal mode insert transition parsing', ->
   deepEqual normal.parse('C'), action: 'removeToLineEnd', changeToMode: 'insert'
 
 test 'normal mode visual transition parsing', ->
-  deepEqual normal.parse('v'), changeToMode: 'visual:characterwise'
-  deepEqual normal.parse('V'), changeToMode: 'visual:linewise'
+  deepEqual normal.parse('v'), action: 'selectRight', changeToMode: 'visual:characterwise'
+  deepEqual normal.parse('V'), action: 'selectLine', changeToMode: 'visual:linewise'
 
 test 'normal mode movement parsing', ->
   deepEqual normal.parse('j'), action: 'navigateDown'

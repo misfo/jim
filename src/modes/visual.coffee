@@ -4,7 +4,7 @@ Jim.modes.visual =
     (\d*)
     (?:
       (#{Jim.movements.source})|
-      ([cd])                     # operators
+      ([ydc])                    # operators
     )?
   ///
 
@@ -34,6 +34,8 @@ Jim.modes.visual =
           result = action: 'removeSelection', changeToMode: 'insert'
         when 'd'
           result = action: 'removeSelection', changeToMode: 'normal'
+        when 'y'
+          result = action: 'yankSelection', changeToMode: 'normal'
       result.args = register: '"'
     else
       result = 'continueBuffering'

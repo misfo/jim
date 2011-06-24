@@ -1,6 +1,8 @@
 jim = new Jim()
 
 aceAdaptor =
+  onEscape: (env, args, request) -> env.editor.clearSelection()
+
   gotoLine: (env, args, request) -> env.editor.gotoLine args.lineNumber
 
   navigateUp:    (env, args, request) -> env.editor.navigateUp args.times
@@ -30,6 +32,16 @@ aceAdaptor =
     env.editor.selection.selectLeft() for i in [1..(args.times or 1)]
   selectRight: (env, args, request) ->
     env.editor.selection.selectRight() for i in [1..(args.times or 1)]
+  selectLine: (env, args, request) ->
+    env.editor.selection.selectLine()
+
+  yankSelection: (env, args, request) ->
+    jim.registers[args.register] = env.editor.getCopyText()
+    if env.editor.selection.isBackwards()
+      env.editor.clearSelection()
+    else
+      {start} = env.editor.getSelectionRange()
+      env.editor.navigateTo start.row, start.column
 
 
   isntCharacterKey: (hashId, key) ->
@@ -39,13 +51,13 @@ aceAdaptor =
     noop = ->
     if key is "esc"
       jim.onEscape()
-      return command: exec: noop
+      result = action: 'onEscape'
     else if @isntCharacterKey(hashId, key)
       # do nothing if it's just a modifier key
       return
 
     key = key.toUpperCase() if hashId & 4 and key.match /^[a-z]$/
-    result = jim.onKeypress key
+    result ?= jim.onKeypress key
     if result?
       jim.setMode result.changeToMode if result.changeToMode?
       command:
@@ -75,15 +87,6 @@ define (require, exports, module) ->
         editor.setStyle 'jim-normal-mode'
       else
         editor.unsetStyle 'jim-normal-mode'
-
-      if @modeName.match /^visual:/
-        if @modeName is 'visual:linewise'
-          editor.selection.selectLine()
-        else
-          editor.selection.selectRight()
-      # we don't want to clear the selection before anything's been done to it
-      else if not prevMode?.match /^visual:/
-        editor.clearSelection()
 
     jim.onModeChange()
   exports.startup = startup
