@@ -6,7 +6,7 @@ test 'visual mode invalid command parsing', ->
 test 'visual mode partial command parsing', ->
   eq visual.parse("2"), 'continueBuffering'
 
-test 'visual mode movement parsing', ->
+test 'visual mode motion parsing', ->
   deepEqual visual.parse("j"), action: 'selectDown'
   deepEqual visual.parse('2k'), action: 'selectUp', args: {times: 2}
 

@@ -3,6 +3,7 @@ fs      = require 'fs'
 {spawn} = require 'child_process'
 
 appFiles  = ("src/#{name}.coffee" for name in [
+  'motions'
   'jim'
   'modes/insert'
   'modes/normal'

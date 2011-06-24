@@ -1,8 +1,4 @@
 class Jim
-  @movements: ///
-    [hjkl]
-  ///
-
   # modes are defined in src/modes/*
   @modes: {}
 

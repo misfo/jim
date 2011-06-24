@@ -16,7 +16,7 @@ test 'normal mode visual transition parsing', ->
   deepEqual normal.parse('v'), action: 'selectRight', changeToMode: 'visual:characterwise'
   deepEqual normal.parse('V'), action: 'selectLine', changeToMode: 'visual:linewise'
 
-test 'normal mode movement parsing', ->
+test 'normal mode motion parsing', ->
   deepEqual normal.parse('j'), action: 'navigateDown'
   deepEqual normal.parse('2k'), action: 'navigateUp', args: {times: 2}
 

@@ -7,7 +7,7 @@ Jim.modes.normal =
     (?:
       (\d*)              # number prefix (multiplier, line number, ...)
       (?:
-        (#{Jim.movements.source})|
+        (#{motions.source})|
         ([[pPxX])|       # multipliable commands
         (G)              # go!
       )?

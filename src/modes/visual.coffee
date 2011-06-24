@@ -3,7 +3,7 @@ Jim.modes.visual =
     ^
     (\d*)
     (?:
-      (#{Jim.movements.source})|
+      (#{motions.source})|
       ([ydc])                    # operators
     )?
   ///
