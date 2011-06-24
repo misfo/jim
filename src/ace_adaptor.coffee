@@ -14,15 +14,18 @@ aceAdaptor =
   navigateLineEnd:   (env, args, request) -> env.editor.navigateLineEnd()
   navigateLineStart: (env, args, request) -> env.editor.navigateLineStart()
 
-  removeLeft: (env, args, request) ->
-    env.editor.removeLeft() for i in [1..(args.times or 1)]
-  removeRight: (env, args, request) ->
-    env.editor.removeRight() for i in [1..(args.times or 1)]
-  removeToLineEnd: (env, args, request) -> env.editor.removeToLineEnd()
-  removeSelection: (env, args, request) ->
+  deleteLeft: (env, args, request) ->
+    aceAdaptor.selectLeft(env, args, request)
+    aceAdaptor.deleteSelection(env, args, request)
+  deleteRight: (env, args, request) ->
+    aceAdaptor.selectRight(env, args, request)
+    aceAdaptor.deleteSelection(env, args, request)
+  deleteToLineEnd: (env, args, request) ->
+    env.editor.selection.selectLineEnd()
+    aceAdaptor.deleteSelection(env, args, request)
+  deleteSelection: (env, args, request) ->
     jim.registers[args.register] = env.editor.getCopyText()
     env.editor.session.remove env.editor.getSelectionRange()
-    env.editor.clearSelection()
 
   selectUp:    (env, args, request) ->
     env.editor.selection.selectUp() for i in [1..(args.times or 1)]

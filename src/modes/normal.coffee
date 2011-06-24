@@ -28,7 +28,7 @@ Jim.modes.normal =
     if insertTransition
       switch insertTransition
         when "A" then result.action = 'navigateLineEnd'
-        when "C" then result.action = 'removeToLineEnd'
+        when "C" then result.action = 'deleteToLineEnd'
         when "I" then result.action = 'navigateLineStart'
       result.changeToMode = 'insert'
     else if visualTransition
@@ -38,7 +38,7 @@ Jim.modes.normal =
         action: 'selectRight', changeToMode: 'visual:characterwise'
     else if deleteCommand
       switch deleteCommand
-        when "D" then result.action = 'removeToLineEnd'
+        when "D" then result.action = 'deleteToLineEnd'
     else if movement
       if numberPrefix
         result.args = times: numberPrefix
@@ -51,8 +51,8 @@ Jim.modes.normal =
       if numberPrefix
         result.args = times: numberPrefix
       result.action = switch deletion
-        when "x" then 'removeRight'
-        when "X" then 'removeLeft'
+        when "x" then 'deleteRight'
+        when "X" then 'deleteLeft'
     else if go
       if numberPrefix
         result.args = lineNumber: numberPrefix

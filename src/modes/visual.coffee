@@ -31,9 +31,9 @@ Jim.modes.visual =
     else if operator
       switch operator
         when 'c'
-          result = action: 'removeSelection', changeToMode: 'insert'
+          result = action: 'deleteSelection', changeToMode: 'insert'
         when 'd'
-          result = action: 'removeSelection', changeToMode: 'normal'
+          result = action: 'deleteSelection', changeToMode: 'normal'
         when 'y'
           result = action: 'yankSelection', changeToMode: 'normal'
       result.args = register: '"'
