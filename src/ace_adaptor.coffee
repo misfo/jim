@@ -28,9 +28,11 @@ aceAdaptor =
     env.editor.session.remove env.editor.getSelectionRange()
 
   paste: (env, args) ->
+    #TODO use args.times, p with no buffer shouldn't move cursor
     aceAdaptor.navigateRight(env, args)
     aceAdaptor.pasteBefore(env, args)
   pasteBefore: (env, args) ->
+    #TODO use args.times
     text = jim.registers[args.register]
     env.editor.insert text if text
 
