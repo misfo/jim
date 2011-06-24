@@ -24,7 +24,14 @@ test 'normal mode jump parsing', ->
   deepEqual normal.parse('G'), action: 'navigateFileEnd'
   deepEqual normal.parse('13G'), action: 'gotoLine', args: {lineNumber: 13}
 
-test 'normal mode delete parsing', ->
+test 'normal mode delete to end of line parsing', ->
   deepEqual normal.parse('D'), action: 'deleteToLineEnd'
-  deepEqual normal.parse('x'), action: 'deleteRight'
-  deepEqual normal.parse('X'), action: 'deleteLeft'
+
+test 'normal mode multipliable command parsing', ->
+  deepEqual normal.parse('x'), action: 'deleteRight', args: {register: '"'}
+  deepEqual normal.parse('X'), action: 'deleteLeft', args: {register: '"'}
+  deepEqual normal.parse('p'), action: 'paste', args: {register: '"'}
+  deepEqual normal.parse('P'), action: 'pasteBefore', args: {register: '"'}
+
+  deepEqual normal.parse('3P'), action: 'pasteBefore', args: {register: '"', times: 3}
+  deepEqual normal.parse('12x'), action: 'deleteRight', args: {register: '"', times: 12}

@@ -27,6 +27,13 @@ aceAdaptor =
     jim.registers[args.register] = env.editor.getCopyText()
     env.editor.session.remove env.editor.getSelectionRange()
 
+  paste: (env, args) ->
+    aceAdaptor.navigateRight(env, args)
+    aceAdaptor.pasteBefore(env, args)
+  pasteBefore: (env, args) ->
+    text = jim.registers[args.register]
+    env.editor.insert text if text
+
   selectUp: (env, args) ->
     env.editor.selection.selectUp() for i in [1..(args.times or 1)]
   selectDown: (env, args) ->

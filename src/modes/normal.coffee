@@ -8,7 +8,7 @@ Jim.modes.normal =
       (\d*)              # number prefix (multiplier, line number, ...)
       (?:
         (#{Jim.movements.source})|
-        ([xX])|          # deletions
+        ([[pPxX])|       # multipliable commands
         (G)              # go!
       )?
     )
@@ -20,7 +20,8 @@ Jim.modes.normal =
       console.log "unrecognized command: #{buffer}"
       return {}
     console.log 'normal parse match', match
-    [fullMatch, insertTransition, visualTransition, deleteCommand, numberPrefix, movement, deletion, go] = match
+    [fullMatch, insertTransition, visualTransition, deleteCommand, numberPrefix,
+      movement, multipliableCommand, go] = match
     numberPrefix = parseInt(numberPrefix) if numberPrefix
 
     result = {}
@@ -47,12 +48,15 @@ Jim.modes.normal =
         when "j" then 'navigateDown'
         when "k" then 'navigateUp'
         when "l" then 'navigateRight'
-    else if deletion
-      if numberPrefix
-        result.args = times: numberPrefix
-      result.action = switch deletion
+    else if multipliableCommand
+      result.action = switch multipliableCommand
+        when "p" then 'paste'
+        when "P" then 'pasteBefore'
         when "x" then 'deleteRight'
         when "X" then 'deleteLeft'
+      result.args = register: '"'
+      if numberPrefix
+        result.args.times = numberPrefix
     else if go
       if numberPrefix
         result.args = lineNumber: numberPrefix
