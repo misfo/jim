@@ -3,7 +3,7 @@ Jim.modes.visual =
     ^
     (\d*)
     (?:
-      (#{motions.source})|
+      (#{motions.regex.source})|
       ([ydc])                    # operators
     )?
   ///
@@ -15,19 +15,15 @@ Jim.modes.visual =
       console.log "unrecognized command: #{buffer}"
       return {}
 
-    [fullMatch, numberPrefix, movement, operator] = match
+    [fullMatch, numberPrefix, motion, operator] = match
     numberPrefix = parseInt(numberPrefix) or null
 
     result = {}
 
-    if movement
+    if motion
+      result.action = "select#{motions.map[motion]}"
       if numberPrefix
-        result.args = {times: numberPrefix}
-      result.action = switch movement
-        when "h" then 'selectLeft'
-        when "j" then 'selectDown'
-        when "k" then 'selectUp'
-        when "l" then 'selectRight'
+        result.args = times: numberPrefix
     else if operator
       switch operator
         when 'c'

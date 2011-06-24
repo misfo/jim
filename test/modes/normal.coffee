@@ -19,6 +19,9 @@ test 'normal mode visual transition parsing', ->
 test 'normal mode motion parsing', ->
   deepEqual normal.parse('j'), action: 'navigateDown'
   deepEqual normal.parse('2k'), action: 'navigateUp', args: {times: 2}
+  deepEqual normal.parse('E'), action: 'navigateWORDEnd'
+  deepEqual normal.parse('4W'), action: 'navigateNextWORD', args: {times: 4}
+  deepEqual normal.parse('B'), action: 'navigateBackWORD'
 
 test 'normal mode jump parsing', ->
   deepEqual normal.parse('G'), action: 'navigateFileEnd'

@@ -7,7 +7,7 @@ Jim.modes.normal =
     (?:
       (\d*)              # number prefix (multiplier, line number, ...)
       (?:
-        (#{motions.source})|
+        (#{motions.regex.source})|
         ([[pPxX])|       # multipliable commands
         (G)              # go!
       )?
@@ -21,7 +21,7 @@ Jim.modes.normal =
       return {}
     console.log 'normal parse match', match
     [fullMatch, insertTransition, visualTransition, deleteCommand, numberPrefix,
-      movement, multipliableCommand, go] = match
+      motion, multipliableCommand, go] = match
     numberPrefix = parseInt(numberPrefix) if numberPrefix
 
     result = {}
@@ -40,14 +40,10 @@ Jim.modes.normal =
     else if deleteCommand
       switch deleteCommand
         when "D" then result.action = 'deleteToLineEnd'
-    else if movement
+    else if motion
       if numberPrefix
         result.args = times: numberPrefix
-      result.action = switch movement
-        when "h" then 'navigateLeft'
-        when "j" then 'navigateDown'
-        when "k" then 'navigateUp'
-        when "l" then 'navigateRight'
+      result.action = "navigate#{motions.map[motion]}"
     else if multipliableCommand
       result.action = switch multipliableCommand
         when "p" then 'paste'
