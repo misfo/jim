@@ -1,44 +1,44 @@
 jim = new Jim()
 
 aceAdaptor =
-  onEscape: (env, args, request) -> env.editor.clearSelection()
+  onEscape: (env, args) -> env.editor.clearSelection()
 
-  gotoLine: (env, args, request) -> env.editor.gotoLine args.lineNumber
+  gotoLine: (env, args) -> env.editor.gotoLine args.lineNumber
 
-  navigateUp:    (env, args, request) -> env.editor.navigateUp args.times
-  navigateDown:  (env, args, request) -> env.editor.navigateDown args.times
-  navigateLeft:  (env, args, request) -> env.editor.navigateLeft args.times
-  navigateRight: (env, args, request) -> env.editor.navigateRight args.times
+  navigateUp:    (env, args) -> env.editor.navigateUp args.times
+  navigateDown:  (env, args) -> env.editor.navigateDown args.times
+  navigateLeft:  (env, args) -> env.editor.navigateLeft args.times
+  navigateRight: (env, args) -> env.editor.navigateRight args.times
 
-  navigateFileEnd:   (env, args, request) -> env.editor.navigateFileEnd()
-  navigateLineEnd:   (env, args, request) -> env.editor.navigateLineEnd()
-  navigateLineStart: (env, args, request) -> env.editor.navigateLineStart()
+  navigateFileEnd:   (env, args) -> env.editor.navigateFileEnd()
+  navigateLineEnd:   (env, args) -> env.editor.navigateLineEnd()
+  navigateLineStart: (env, args) -> env.editor.navigateLineStart()
 
-  deleteLeft: (env, args, request) ->
-    aceAdaptor.selectLeft(env, args, request)
-    aceAdaptor.deleteSelection(env, args, request)
-  deleteRight: (env, args, request) ->
-    aceAdaptor.selectRight(env, args, request)
-    aceAdaptor.deleteSelection(env, args, request)
-  deleteToLineEnd: (env, args, request) ->
+  deleteLeft: (env, args) ->
+    aceAdaptor.selectLeft env, args
+    aceAdaptor.deleteSelection env, args
+  deleteRight: (env, args) ->
+    aceAdaptor.selectRight env, args
+    aceAdaptor.deleteSelection env, args
+  deleteToLineEnd: (env, args) ->
     env.editor.selection.selectLineEnd()
-    aceAdaptor.deleteSelection(env, args, request)
-  deleteSelection: (env, args, request) ->
+    aceAdaptor.deleteSelection env, args
+  deleteSelection: (env, args) ->
     jim.registers[args.register] = env.editor.getCopyText()
     env.editor.session.remove env.editor.getSelectionRange()
 
-  selectUp:    (env, args, request) ->
+  selectUp: (env, args) ->
     env.editor.selection.selectUp() for i in [1..(args.times or 1)]
-  selectDown:  (env, args, request) ->
+  selectDown: (env, args) ->
     env.editor.selection.selectDown() for i in [1..(args.times or 1)]
-  selectLeft:  (env, args, request) ->
+  selectLeft: (env, args) ->
     env.editor.selection.selectLeft() for i in [1..(args.times or 1)]
-  selectRight: (env, args, request) ->
+  selectRight: (env, args) ->
     env.editor.selection.selectRight() for i in [1..(args.times or 1)]
-  selectLine: (env, args, request) ->
+  selectLine: (env, args) ->
     env.editor.selection.selectLine()
 
-  yankSelection: (env, args, request) ->
+  yankSelection: (env, args) ->
     jim.registers[args.register] = env.editor.getCopyText()
     if env.editor.selection.isBackwards()
       env.editor.clearSelection()
