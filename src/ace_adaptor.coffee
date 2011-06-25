@@ -10,6 +10,32 @@ aceAdaptor =
   navigateLeft:  (env, args) -> env.editor.navigateLeft args.times
   navigateRight: (env, args) -> env.editor.navigateRight args.times
 
+  navigateWORDEnd: (env, args) ->
+    row = env.editor.selection.selectionLead.row
+    column = env.editor.selection.selectionLead.column
+    line = env.editor.selection.doc.getLine(row)
+    rightOfCursor = line.substring(column)
+
+    if column >= line.length - 1
+      #FIXME this should go to the end of the first WORD on the next line
+      aceAdaptor.navigateRight env, {}
+    else
+      bigWORD = /\S+/g
+      thisMatch = bigWORD.exec rightOfCursor
+      if thisMatch.index > 1 or thisMatch[0].length > 1
+        # go to the end of the WORD we're on top of
+        # or the next WORD if we're in whitespace
+        column += thisMatch[0].length + thisMatch.index - 1
+      else
+        # go to the end of the next WORD
+        nextMatch = bigWORD.exec rightOfCursor
+        column += nextMatch.index + nextMatch[0].length - 1
+
+    env.editor.moveCursorTo(row, column)
+    if args?.times > 1
+      args.times--
+      aceAdaptor.navigateWORDEnd env, args
+
   navigateFileEnd:   (env, args) -> env.editor.navigateFileEnd()
   navigateLineEnd:   (env, args) -> env.editor.navigateLineEnd()
   navigateLineStart: (env, args) -> env.editor.navigateLineStart()
