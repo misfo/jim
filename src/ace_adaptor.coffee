@@ -57,7 +57,7 @@ aceAdaptor =
 
 
   isntCharacterKey: (hashId, key) ->
-    (hashId isnt 0 and (key is "" or key is String.fromCharCode 0)) or key.length > 1
+    hashId isnt 0 and (key is "" or key is String.fromCharCode 0)
 
   handleKeyboard: (data, hashId, key) ->
     noop = ->
@@ -67,6 +67,9 @@ aceAdaptor =
     else if @isntCharacterKey(hashId, key)
       # do nothing if it's just a modifier key
       return
+    else if key.length > 1
+      #TODO handle this better, we're dropping keypresses here
+      key = key.charAt 0
 
     key = key.toUpperCase() if hashId & 4 and key.match /^[a-z]$/
     result ?= jim.onKeypress key
