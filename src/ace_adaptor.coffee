@@ -10,6 +10,32 @@ aceAdaptor =
   navigateLeft:  (env, args) -> env.editor.navigateLeft args.times
   navigateRight: (env, args) -> env.editor.navigateRight args.times
 
+  navigateBackWORD: (env, args) ->
+    row = env.editor.selection.selectionLead.row
+    column = env.editor.selection.selectionLead.column
+    line = env.editor.selection.doc.getLine row
+    leftOfCursor = line.substring 0, column
+
+    lastWORD = /\S+\s*$/
+    match = lastWORD.exec leftOfCursor
+    if match
+      column = match.index
+    else
+      # there are no WORDs left of the cursor
+      # go to the last word on the previous line
+      loop
+        # Vim skips lines that are only whitespace
+        # (but not completely empty lines)
+        line = env.editor.selection.doc.getLine --row
+        break unless /^\s+$/.test line
+      match = lastWORD.exec line
+      column = match?.index or 0
+
+    env.editor.moveCursorTo row, column
+    if args?.times > 1
+      args.times--
+      aceAdaptor.navigateBackWORD env, args
+
   navigateNextWORD: (env, args) ->
     row = env.editor.selection.selectionLead.row
     column = env.editor.selection.selectionLead.column
@@ -31,7 +57,7 @@ aceAdaptor =
       # we're on top of part of a WORD, go to the next one
       column += nextMatch.index
 
-    env.editor.moveCursorTo(row, column)
+    env.editor.moveCursorTo row, column
     if args?.times > 1
       args.times--
       aceAdaptor.navigateNextWORD env, args
@@ -64,7 +90,7 @@ aceAdaptor =
         nextMatch = bigWORD.exec rightOfCursor
         column += nextMatch.index + nextMatch[0].length - 1
 
-    env.editor.moveCursorTo(row, column)
+    env.editor.moveCursorTo row, column
     if args?.times > 1
       args.times--
       aceAdaptor.navigateWORDEnd env, args
