@@ -13,14 +13,22 @@ aceAdaptor =
   navigateWORDEnd: (env, args) ->
     row = env.editor.selection.selectionLead.row
     column = env.editor.selection.selectionLead.column
-    line = env.editor.selection.doc.getLine(row)
-    rightOfCursor = line.substring(column)
+    line = env.editor.selection.doc.getLine row
+    rightOfCursor = line.substring column
 
+    bigWORD = /\S+/g
     if column >= line.length - 1
-      #FIXME this should go to the end of the first WORD on the next line
-      aceAdaptor.navigateRight env, {}
+      loop
+        line = env.editor.selection.doc.getLine ++row
+        firstMatchOnSubsequentLine = bigWORD.exec line
+        if firstMatchOnSubsequentLine
+          column = firstMatchOnSubsequentLine[0].length + firstMatchOnSubsequentLine.index - 1
+          break
+        else if row is env.editor.session.getDocument().getLength() - 1
+          # there are no more non-blank characters, don't move the cursor
+          console.log 'at the end!'
+          return
     else
-      bigWORD = /\S+/g
       thisMatch = bigWORD.exec rightOfCursor
       if thisMatch.index > 1 or thisMatch[0].length > 1
         # go to the end of the WORD we're on top of
