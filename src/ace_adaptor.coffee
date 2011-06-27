@@ -10,6 +10,32 @@ aceAdaptor =
   navigateLeft:  (env, args) -> env.editor.navigateLeft args.times
   navigateRight: (env, args) -> env.editor.navigateRight args.times
 
+  navigateNextWORD: (env, args) ->
+    row = env.editor.selection.selectionLead.row
+    column = env.editor.selection.selectionLead.column
+    line = env.editor.selection.doc.getLine row
+    rightOfCursor = line.substring column
+
+    bigWORD = /\S+/g
+
+    thisMatch = bigWORD.exec rightOfCursor
+    if thisMatch?.index > 0
+      # we've found the next beginning of a WORD, go to it
+      column += thisMatch.index
+    else if not thisMatch or not nextMatch = bigWORD.exec rightOfCursor
+      # the next WORD isn't on this line, find it on the next
+      line = env.editor.selection.doc.getLine ++row
+      nextLineMatch = bigWORD.exec line
+      column = nextLineMatch?.index or 0
+    else
+      # we're on top of part of a WORD, go to the next one
+      column += nextMatch.index
+
+    env.editor.moveCursorTo(row, column)
+    if args?.times > 1
+      args.times--
+      aceAdaptor.navigateNextWORD env, args
+
   navigateWORDEnd: (env, args) ->
     row = env.editor.selection.selectionLead.row
     column = env.editor.selection.selectionLead.column
@@ -26,7 +52,6 @@ aceAdaptor =
           break
         else if row is env.editor.session.getDocument().getLength() - 1
           # there are no more non-blank characters, don't move the cursor
-          console.log 'at the end!'
           return
     else
       thisMatch = bigWORD.exec rightOfCursor
