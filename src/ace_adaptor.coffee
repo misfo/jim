@@ -3,6 +3,11 @@ jim = new Jim()
 aceAdaptor =
   onEscape: (env, args) -> env.editor.clearSelection()
 
+  undo: (env, args) ->
+    undoManager = env.editor.session.getUndoManager()
+    console.log 'undoManager', undoManager
+    undoManager.undo(true) for i in [1..(args?.times or 1)]
+
   gotoLine: (env, args) -> env.editor.gotoLine args.lineNumber
 
   navigateUp:    (env, args) -> env.editor.navigateUp args.times

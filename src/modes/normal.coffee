@@ -8,7 +8,7 @@ Jim.modes.normal =
       (\d*)              # number prefix (multiplier, line number, ...)
       (?:
         (#{motions.regex.source})|
-        ([[pPxX])|       # multipliable commands
+        ([[pPxXu])|      # multipliable commands
         (G)              # go!
       )?
     )
@@ -50,6 +50,7 @@ Jim.modes.normal =
         when "P" then 'pasteBefore'
         when "x" then 'deleteRight'
         when "X" then 'deleteLeft'
+        when "u" then 'undo'
       result.args = register: '"'
       if numberPrefix
         result.args.times = numberPrefix
