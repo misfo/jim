@@ -137,6 +137,11 @@ aceAdaptor =
   selectLine: (env, args) ->
     env.editor.selection.selectLine()
 
+  selectBackWORD: (env, args) -> aceAdaptor.navigateBackWORD(env, args)
+  selectWORDEnd:  (env, args) -> aceAdaptor.navigateWORDEnd(env, args)
+  selectNextWORD: (env, args) -> aceAdaptor.navigateNextWORD(env, args)
+
+
   yankSelection: (env, args) ->
     jim.registers[args.register] = env.editor.getCopyText()
     if env.editor.selection.isBackwards()
