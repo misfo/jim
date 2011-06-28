@@ -5,15 +5,14 @@ class UndoManager
     @reset()
 
   execute: (options) ->
-    console.log 'UndoManager::execute', options
     deltas = options.args[0]
     @$doc = options.args[1]
     @$undoStack.push deltas
     @$redoStack = []
 
   undo: (dontSelect) ->
-    console.log 'UndoManager::undo', dontSelect
     deltas = @$undoStack.pop()
+    return if @isJimMark deltas
     undoSelectionRange = null
     if deltas
       undoSelectionRange = @$doc.undoChanges(deltas, dontSelect)
@@ -21,7 +20,6 @@ class UndoManager
     undoSelectionRange
 
   redo: (dontSelect) ->
-    console.log 'UndoManager::redo', dontSelect
     deltas = @$redoStack.pop()
     redoSelectionRange = null
     if deltas
@@ -30,7 +28,6 @@ class UndoManager
     redoSelectionRange
 
   reset: ->
-    console.log 'UndoManager::reset'
     @$undoStack = []
     @$redoStack = []
 
@@ -38,24 +35,35 @@ class UndoManager
   hasRedo: -> @$redoStack.length > 0
 
   # Jim functions
-  markInsertStartPoint: ->
-    console.log 'UndoManager::markInsertStartPoint'
-    options = args: [{group: 'doc', deltas: [{action: 'jimInsertStart'}]}]
+  isJimMark: (entry, markName) ->
+    deltas = entry?.deltas
+    return false unless typeof deltas is 'string'
+    if markName
+      deltas is markName
+    else
+      /^jim/.test deltas
+
+  markInsertStartPoint: (doc) ->
+    options = args: [{group: 'doc', deltas: 'jimInsertStart'}, doc]
     @execute options
 
   # Jim functions
-  markInsertEndPoint: ->
-    console.log 'UndoManager::markInsertEndPoint'
-    options = args: [{group: 'doc', deltas: 'jimInsertEnd'}]
+  markInsertEndPoint: (doc) ->
+    options = args: [{group: 'doc', deltas: 'jimInsertEnd'}, doc]
     @execute options
 
   jimUndo: ->
-    console.log 'UndoManager::jimUndo'
-    #FIXME
-    deltas = @$undoStack[@$undoStack.length-1]?.deltas
-    console.log 'deltas', deltas
-    if deltas is 'jimInsertEnd'
-      console.log 'roll a bunch of stuff back...'
-      #TODO
+    deltas = @$undoStack[@$undoStack.length-1]
+    if @isJimMark deltas, 'jimInsertEnd'
+      startIndex = null
+      for i in [(@$undoStack.length-1)..0]
+        if @isJimMark @$undoStack[i], 'jimInsertStart'
+          startIndex = i
+          break
+
+      if startIndex?
+        @undo true for i in [(@$undoStack.length-1)..startIndex]
+      else
+        @undo true
     else
       @undo true

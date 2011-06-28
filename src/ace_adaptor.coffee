@@ -201,9 +201,9 @@ define (require, exports, module) ->
         editor.unsetStyle 'jim-normal-mode'
 
       if @modeName is 'insert'
-        undoManager.markInsertStartPoint()
+        undoManager.markInsertStartPoint(editor.session)
       else if prevMode is 'insert'
-        undoManager.markInsertEndPoint()
+        undoManager.markInsertEndPoint(editor.session)
 
     jim.onModeChange()
   exports.startup = startup
