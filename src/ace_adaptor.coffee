@@ -6,6 +6,7 @@ aceAdaptor =
   undo: (env, args) ->
     undoManager = env.editor.session.getUndoManager()
     undoManager.jimUndo() for i in [1..(args?.times or 1)]
+    env.editor.clearSelection()
 
   gotoLine: (env, args) -> env.editor.gotoLine args.lineNumber
 

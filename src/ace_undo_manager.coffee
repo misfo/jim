@@ -62,8 +62,8 @@ class UndoManager
           break
 
       if startIndex?
-        @undo true for i in [(@$undoStack.length-1)..startIndex]
+        @undo() for i in [(@$undoStack.length-1)..startIndex]
       else
-        @undo true
+        @undo()
     else
-      @undo true
+      @undo()
