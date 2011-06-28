@@ -8,8 +8,9 @@ appFiles  = ("src/#{name}.coffee" for name in [
   'modes/insert'
   'modes/normal'
   'modes/visual'
-  'ace_undo_manager'
-  'ace_adaptor'
+  'ace/jim_undo_manager'
+  'ace/adaptor'
+  'ace/module'
 ])
 
 build = ->

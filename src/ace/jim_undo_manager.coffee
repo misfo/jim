@@ -1,6 +1,6 @@
 # this is a port of Ace's undo manager:
 # github.com/ajaxorg/ace/blob/master/lib/ace/undomanager.js
-class UndoManager
+class JimUndoManager
   constructor: (options) ->
     @reset()
 
