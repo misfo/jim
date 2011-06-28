@@ -5,8 +5,7 @@ aceAdaptor =
 
   undo: (env, args) ->
     undoManager = env.editor.session.getUndoManager()
-    console.log 'undoManager', undoManager
-    undoManager.undo(true) for i in [1..(args?.times or 1)]
+    undoManager.jimUndo() for i in [1..(args?.times or 1)]
 
   gotoLine: (env, args) -> env.editor.gotoLine args.lineNumber
 
@@ -191,12 +190,20 @@ define (require, exports, module) ->
       return
     console.log 'executing startup'
     editor.setKeyboardHandler aceAdaptor
+    undoManager = new UndoManager()
+    editor.session.setUndoManager undoManager
 
+    # this is executed before the action is
     jim.onModeChange = (prevMode) ->
       if @modeName is 'normal'
         editor.setStyle 'jim-normal-mode'
       else
         editor.unsetStyle 'jim-normal-mode'
+
+      if @modeName is 'insert'
+        undoManager.markInsertStartPoint()
+      else if prevMode is 'insert'
+        undoManager.markInsertEndPoint()
 
     jim.onModeChange()
   exports.startup = startup
