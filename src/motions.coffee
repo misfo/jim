@@ -1,4 +1,4 @@
-motions =
+define (require, exports, module) ->
   map:
     h: 'Left'
     j: 'Down'

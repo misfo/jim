@@ -1,4 +1,7 @@
 define (require, exports, module) ->
+  {adaptor, jim} = require 'jim/ace/adaptor'
+  JimUndoManager = require 'jim/ace/jim_undo_manager'
+
   require('pilot/dom').importCssString """
     .jim-normal-mode div.ace_cursor {
       border: 0;
@@ -13,7 +16,7 @@ define (require, exports, module) ->
       setTimeout startup, 0, data, reason
       return
     console.log 'executing startup'
-    editor.setKeyboardHandler aceAdaptor
+    editor.setKeyboardHandler adaptor
     undoManager = new JimUndoManager()
     editor.session.setUndoManager undoManager
 
@@ -32,5 +35,4 @@ define (require, exports, module) ->
     jim.onModeChange()
   exports.startup = startup
 
-  exports.Jim = Jim
   return

@@ -1,4 +1,6 @@
-Jim.modes.visual =
+define (require, exports, module) ->
+  motions = require 'jim/motions'
+
   regex: ///
     ^
     (\d*)

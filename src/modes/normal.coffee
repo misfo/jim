@@ -1,4 +1,6 @@
-Jim.modes.normal =
+define (require, exports, module) ->
+  motions = require 'jim/motions'
+
   regex: ///
     ^
     ([iIAC])|            # insert mode transition

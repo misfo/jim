@@ -1,2 +1,2 @@
-Jim.modes.insert =
+define (require, exports, module) ->
   parse: ->

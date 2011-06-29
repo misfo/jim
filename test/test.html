@@ -4,21 +4,11 @@
     <link rel="stylesheet" href="../vendor/qunit.css" type="text/css" media="screen" />
     <script type="text/javascript" src="../vendor/qunit.js"></script>
     <script type="text/javascript" src="../vendor/coffee-script.js"></script>
-
+    <script type="text/javascript" src="../vendor/require.js"></script>
     <script type="text/javascript">
-      // mock out require.js's exports & require which gives us access to exports.Jim for testing
-      var exports = {};
-      var define = function(func) {
-        var require = function() {
-          return {
-            importCssString: function() {}
-          };
-        };
-        func(require, exports);
-      };
+      require({ paths: { jim: "../lib", test: "." } });
     </script>
 
-    <script type="text/javascript" src="../lib/jim.js"></script>
 
     <script type="text/coffeescript">
       @eq = strictEqual
