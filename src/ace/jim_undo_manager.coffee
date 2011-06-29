@@ -1,39 +1,13 @@
 define (require, exports, module) ->
-  class JimUndoManager
-    constructor: (options) ->
-      @reset()
+  {UndoManager} = require 'ace/undomanager'
 
-    execute: (options) ->
-      deltas = options.args[0]
-      @$doc = options.args[1]
-      @$undoStack.push deltas
-      @$redoStack = []
-
+  class JimUndoManager extends UndoManager
+    # override so that the default undo (button and keyboard shortcut)
+    # will skip over Jim's bookmarks and behave as they usually do
     undo: (dontSelect) ->
-      deltas = @$undoStack.pop()
-      return if @isJimMark deltas
-      undoSelectionRange = null
-      if deltas
-        undoSelectionRange = @$doc.undoChanges(deltas, dontSelect)
-        @$redoStack.push deltas
-      undoSelectionRange
+      @silentUndo() if @isJimMark @lastOnUndoStack()
+      super dontSelect
 
-    redo: (dontSelect) ->
-      deltas = @$redoStack.pop()
-      redoSelectionRange = null
-      if deltas
-        redoSelectionRange = @$doc.redoChanges(deltas, dontSelect)
-        @$undoStack.push deltas
-      redoSelectionRange
-
-    reset: ->
-      @$undoStack = []
-      @$redoStack = []
-
-    hasUndo: -> @$undoStack.length > 0
-    hasRedo: -> @$redoStack.length > 0
-
-    # Jim functions
     isJimMark: (entry, markName) ->
       deltas = entry?.deltas
       return false unless typeof deltas is 'string'
@@ -41,6 +15,8 @@ define (require, exports, module) ->
         deltas is markName
       else
         /^jim/.test deltas
+
+    lastOnUndoStack: -> @$undoStack[@$undoStack.length-1]
 
     markInsertStartPoint: (doc) ->
       options = args: [{group: 'doc', deltas: 'jimInsertStart'}, doc]
@@ -51,9 +27,12 @@ define (require, exports, module) ->
       options = args: [{group: 'doc', deltas: 'jimInsertEnd'}, doc]
       @execute options
 
+    silentUndo: ->
+      deltas = @$undoStack.pop()
+      @$redoStack.push deltas if deltas
+
     jimUndo: ->
-      deltas = @$undoStack[@$undoStack.length-1]
-      if @isJimMark deltas, 'jimInsertEnd'
+      if @isJimMark @lastOnUndoStack(), 'jimInsertEnd'
         startIndex = null
         for i in [(@$undoStack.length-1)..0]
           if @isJimMark @$undoStack[i], 'jimInsertStart'
@@ -61,8 +40,10 @@ define (require, exports, module) ->
             break
 
         if startIndex?
-          @undo() for i in [(@$undoStack.length-1)..startIndex]
+          @silentUndo() # pop the end off
+          @undo() for i in [(@$undoStack.length-1)...startIndex]
+          @silentUndo() # pop the start off
         else
-          @undo()
+          console.log "found a jimInsertEnd on the undoStack, but no jimInsertStart'
       else
         @undo()
