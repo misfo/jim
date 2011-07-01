@@ -1,4 +1,4 @@
-define (require, exports, module) ->
+require ['jim/modes/visual'], ->
   visual = require 'jim/modes/visual'
 
   test 'visual mode invalid command parsing', ->

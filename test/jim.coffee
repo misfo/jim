@@ -1,4 +1,4 @@
-define (require, exports, module) ->
+require ['jim/jim'], ->
   Jim = require 'jim/jim'
 
   test 'that Jim modes are loaded', ->

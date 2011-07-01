@@ -1,4 +1,4 @@
-define (require, exports, module) ->
+require ['jim/modes/normal'], ->
   normal = require 'jim/modes/normal'
 
   test 'normal mode invalid command parsing', ->
