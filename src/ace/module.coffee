@@ -22,10 +22,11 @@ define (require, exports, module) ->
 
     # this is executed before the action is
     jim.onModeChange = (prevMode) ->
-      if @modeName is 'normal'
-        editor.setStyle 'jim-normal-mode'
-      else
-        editor.unsetStyle 'jim-normal-mode'
+      for mode in ['insert', 'normal', 'visual']
+        if  ///^#{mode}///.test @modeName
+          editor.setStyle "jim-#{mode}-mode"
+        else
+          editor.unsetStyle "jim-#{mode}-mode"
 
       if @modeName is 'insert'
         undoManager.markInsertStartPoint(editor.session)
