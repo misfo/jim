@@ -10,3 +10,6 @@ require ['ace/ace', 'jim/ace/module', 'ace/theme/idle_fingers'], ->
     editor = require('ace/ace').edit 'editor'
     require('jim/ace/module').startup env: {editor}
     editor.setTheme require('ace/theme/idle_fingers')
+
+    require ['jim/chromeless'], ->
+      console.log 'loaded chromeless open/save stuff'
