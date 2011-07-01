@@ -44,6 +44,6 @@ define (require, exports, module) ->
           @undo() for i in [(@$undoStack.length-1)...startIndex]
           @silentUndo() # pop the start off
         else
-          console.log "found a jimInsertEnd on the undoStack, but no jimInsertStart'
+          console.log "found a jimInsertEnd on the undoStack, but no jimInsertStart'"
       else
         @undo()
