@@ -6,7 +6,15 @@
     <script type="text/javascript" src="../vendor/coffee-script.js"></script>
     <script type="text/javascript" src="../vendor/require.js"></script>
     <script type="text/javascript">
-      require({ paths: { jim: "../lib", test: "." } });
+      require({
+        paths: {
+          jim: "../lib",
+          test: ".",
+
+          ace: "../vendor/ace/lib/ace",
+          pilot: "../vendor/ace/support/pilot/lib/pilot",
+        }
+      });
     </script>
 
 
@@ -15,6 +23,7 @@
 
       CoffeeScript.load "#{name}.coffee" for name in [
         'jim'
+        'ace/motions'
         'modes/normal'
         'modes/visual'
       ]
