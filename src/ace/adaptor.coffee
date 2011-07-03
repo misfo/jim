@@ -3,16 +3,51 @@ define (require, exports, module) ->
 
   jim = new Jim()
 
+  ## these return a new regex each time so that we always get a fresh lastIndex
+  # a string of non-whitespace characters
+  WORDRegex = -> /\S+/g 
+  # a string of word characters (i.e. [A-Za-z0-9_]) OR a string of non-whitespace non-word characters (i.e. special chars)
+  wordRegex = -> /(\w+)|([^\w\s]+)/g
+
+  navigateWordEnd = (editor, bigWORD, times) ->
+    row = editor.selection.selectionLead.row
+    column = editor.selection.selectionLead.column
+    line = editor.selection.doc.getLine row
+    rightOfCursor = line.substring column
+
+    regex = if bigWORD then WORDRegex() else wordRegex()
+    if column >= line.length - 1
+      loop
+        line = editor.selection.doc.getLine ++row
+        firstMatchOnSubsequentLine = regex.exec line
+        if firstMatchOnSubsequentLine
+          column = firstMatchOnSubsequentLine[0].length + firstMatchOnSubsequentLine.index - 1
+          break
+        else if row is editor.session.getDocument().getLength() - 1
+          # there are no more non-blank characters, don't move the cursor
+          return
+    else
+      thisMatch = regex.exec rightOfCursor
+      if thisMatch.index > 1 or thisMatch[0].length > 1
+        # go to the end of the WORD we're on top of
+        # or the next WORD if we're in whitespace
+        column += thisMatch[0].length + thisMatch.index - 1
+      else
+        # go to the end of the next WORD
+        nextMatch = regex.exec rightOfCursor
+        column += nextMatch.index + nextMatch[0].length - 1
+
+    editor.moveCursorTo row, column
+    if times > 1
+      navigateWordEnd editor, bigWORD, times - 1
+
   navigateNextWord = (editor, bigWORD, times) ->
     row = editor.selection.selectionLead.row
     column = editor.selection.selectionLead.column
     line = editor.selection.doc.getLine row
     rightOfCursor = line.substring column
 
-    regex = if bigWORD
-      /\S+/g
-    else
-      /(\w+)|([^\w\s]+)/g
+    regex = if bigWORD then WORDRegex() else wordRegex()
 
     thisMatch = regex.exec rightOfCursor
     if thisMatch?.index > 0
@@ -77,38 +112,8 @@ define (require, exports, module) ->
     navigateNextWord: (env, args) -> navigateNextWord env.editor, false, args.times ? 1
     navigateNextWORD: (env, args) -> navigateNextWord env.editor, true, args.times ? 1
 
-    navigateWORDEnd: (env, args) ->
-      row = env.editor.selection.selectionLead.row
-      column = env.editor.selection.selectionLead.column
-      line = env.editor.selection.doc.getLine row
-      rightOfCursor = line.substring column
-
-      bigWORD = /\S+/g
-      if column >= line.length - 1
-        loop
-          line = env.editor.selection.doc.getLine ++row
-          firstMatchOnSubsequentLine = bigWORD.exec line
-          if firstMatchOnSubsequentLine
-            column = firstMatchOnSubsequentLine[0].length + firstMatchOnSubsequentLine.index - 1
-            break
-          else if row is env.editor.session.getDocument().getLength() - 1
-            # there are no more non-blank characters, don't move the cursor
-            return
-      else
-        thisMatch = bigWORD.exec rightOfCursor
-        if thisMatch.index > 1 or thisMatch[0].length > 1
-          # go to the end of the WORD we're on top of
-          # or the next WORD if we're in whitespace
-          column += thisMatch[0].length + thisMatch.index - 1
-        else
-          # go to the end of the next WORD
-          nextMatch = bigWORD.exec rightOfCursor
-          column += nextMatch.index + nextMatch[0].length - 1
-
-      env.editor.moveCursorTo row, column
-      if args?.times > 1
-        args.times--
-        actions.navigateWORDEnd env, args
+    navigateWordEnd: (env, args) -> navigateWordEnd env.editor, false, args.times ? 1
+    navigateWORDEnd: (env, args) -> navigateWordEnd env.editor, true, args.times ? 1
 
     navigateFileEnd:   (env, args) -> env.editor.navigateFileEnd()
     navigateLineEnd:   (env, args) -> env.editor.navigateLineEnd()

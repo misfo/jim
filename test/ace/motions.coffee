@@ -47,6 +47,20 @@ require ['ace/edit_session', 'ace/editor', 'ace/test/mockrenderer', 'jim/ace/mod
     deepEqual cursorPositionAfter(editor, 'B'), row: 3, column: 14
     deepEqual cursorPositionAfter(editor, '12B'), row: 0, column: 35
 
+  test 'e command', ->
+    editor = new Editor(new MockRenderer(), new EditSession js_code)
+    module.startup env: {editor}
+
+    deepEqual cursorPositionAfter(editor, 'e'), row: 0, column: 1
+    deepEqual cursorPositionAfter(editor, 'e'), row: 0, column: 7
+    deepEqual cursorPositionAfter(editor, 'e'), row: 0, column: 9
+    deepEqual cursorPositionAfter(editor, 'e'), row: 0, column: 18
+    deepEqual cursorPositionAfter(editor, 'e'), row: 0, column: 19
+    deepEqual cursorPositionAfter(editor, 'e'), row: 0, column: 22
+    deepEqual cursorPositionAfter(editor, '6e'), row: 0, column: 44
+    deepEqual cursorPositionAfter(editor, 'e'), row: 1, column: 7
+    deepEqual cursorPositionAfter(editor, '28e'), row: 4, column: 24
+
   test 'w command', ->
     editor = new Editor(new MockRenderer(), new EditSession js_code)
     module.startup env: {editor}
