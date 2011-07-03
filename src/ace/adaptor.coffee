@@ -10,8 +10,8 @@ define (require, exports, module) ->
   wordRegex = -> /(\w+)|([^\w\s]+)/g
 
   # used to find the last instance of the above regexes (there may be a better way of doing this...)
-  lastWORDRegex = -> ///#{WORDRegex().source}\s*$///
-  lastWordRegex = -> ///(#{wordRegex().source})\s*$///
+  lastWORDRegex = ///#{WORDRegex().source}\s*$///
+  lastWordRegex = ///(#{wordRegex().source})\s*$///
 
   navigateWordEnd = (editor, bigWORD, times) ->
     row = editor.selection.selectionLead.row
@@ -77,7 +77,7 @@ define (require, exports, module) ->
     line = editor.selection.doc.getLine row
     leftOfCursor = line.substring 0, column
 
-    regex = if bigWORD then lastWORDRegex() else lastWordRegex()
+    regex = if bigWORD then lastWORDRegex else lastWordRegex
     match = regex.exec leftOfCursor
     if match
       column = match.index
