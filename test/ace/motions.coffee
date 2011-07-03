@@ -55,6 +55,8 @@ require ['ace/edit_session', 'ace/editor', 'ace/test/mockrenderer', 'jim/ace/mod
     deepEqual cursorPositionAfter(editor, 'w'), row: 0, column: 2
     deepEqual cursorPositionAfter(editor, 'w'), row: 0, column: 9
     deepEqual cursorPositionAfter(editor, 'w'), row: 0, column: 11
-    deepEqual cursorPositionAfter(editor, '12w'), row: 1, column: 12
+    deepEqual cursorPositionAfter(editor, '8w'), row: 0, column: 44
+    deepEqual cursorPositionAfter(editor, 'w'), row: 1, column: 2
+    deepEqual cursorPositionAfter(editor, '3w'), row: 1, column: 11
     deepEqual cursorPositionAfter(editor, 'w'), row: 1, column: 16
     deepEqual cursorPositionAfter(editor, 'w'), row: 1, column: 17

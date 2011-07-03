@@ -3,6 +3,36 @@ define (require, exports, module) ->
 
   jim = new Jim()
 
+  navigateNextWord = (editor, bigWORD, times) ->
+    row = editor.selection.selectionLead.row
+    column = editor.selection.selectionLead.column
+    line = editor.selection.doc.getLine row
+    rightOfCursor = line.substring column
+
+    regex = if bigWORD
+      /\S+/g
+    else
+      /(\w+)|([^\w\s]+)/g
+
+    thisMatch = regex.exec rightOfCursor
+    if thisMatch?.index > 0
+      # We've found the next beginning of the next match and it's not already
+      # under the cursor. Go to it
+      column += thisMatch.index
+    else if not thisMatch or not nextMatch = regex.exec rightOfCursor
+      # the next match isn't on this line, find it on the next
+      line = editor.selection.doc.getLine ++row
+      nextLineMatch = regex.exec line
+      column = nextLineMatch?.index or 0
+    else
+      # we're on top of part of a WORD, go to the next one
+      column += nextMatch.index
+
+    editor.moveCursorTo row, column
+    if times > 1
+      navigateNextWord editor, bigWORD, times - 1
+
+
   actions =
     onEscape: (env, args) -> env.editor.clearSelection()
 
@@ -44,31 +74,8 @@ define (require, exports, module) ->
         args.times--
         actions.navigateBackWORD env, args
 
-    navigateNextWORD: (env, args) ->
-      row = env.editor.selection.selectionLead.row
-      column = env.editor.selection.selectionLead.column
-      line = env.editor.selection.doc.getLine row
-      rightOfCursor = line.substring column
-
-      bigWORD = /\S+/g
-
-      thisMatch = bigWORD.exec rightOfCursor
-      if thisMatch?.index > 0
-        # we've found the next beginning of a WORD, go to it
-        column += thisMatch.index
-      else if not thisMatch or not nextMatch = bigWORD.exec rightOfCursor
-        # the next WORD isn't on this line, find it on the next
-        line = env.editor.selection.doc.getLine ++row
-        nextLineMatch = bigWORD.exec line
-        column = nextLineMatch?.index or 0
-      else
-        # we're on top of part of a WORD, go to the next one
-        column += nextMatch.index
-
-      env.editor.moveCursorTo row, column
-      if args?.times > 1
-        args.times--
-        actions.navigateNextWORD env, args
+    navigateNextWord: (env, args) -> navigateNextWord env.editor, false, args.times ? 1
+    navigateNextWORD: (env, args) -> navigateNextWord env.editor, true, args.times ? 1
 
     navigateWORDEnd: (env, args) ->
       row = env.editor.selection.selectionLead.row
