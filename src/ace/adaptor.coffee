@@ -9,6 +9,10 @@ define (require, exports, module) ->
   # a string of word characters (i.e. [A-Za-z0-9_]) OR a string of non-whitespace non-word characters (i.e. special chars)
   wordRegex = -> /(\w+)|([^\w\s]+)/g
 
+  # used to find the last instance of the above regexes (there may be a better way of doing this...)
+  lastWORDRegex = -> ///#{WORDRegex().source}\s*$///
+  lastWordRegex = -> ///(#{wordRegex().source})\s*$///
+
   navigateWordEnd = (editor, bigWORD, times) ->
     row = editor.selection.selectionLead.row
     column = editor.selection.selectionLead.column
@@ -67,6 +71,31 @@ define (require, exports, module) ->
     if times > 1
       navigateNextWord editor, bigWORD, times - 1
 
+  navigateBackWord = (editor, bigWORD, times) ->
+    row = editor.selection.selectionLead.row
+    column = editor.selection.selectionLead.column
+    line = editor.selection.doc.getLine row
+    leftOfCursor = line.substring 0, column
+
+    regex = if bigWORD then lastWORDRegex() else lastWordRegex()
+    match = regex.exec leftOfCursor
+    if match
+      column = match.index
+    else
+      # there are no matches left of the cursor
+      # go to the last word on the previous line
+      loop
+        # Vim skips lines that are only whitespace
+        # (but not completely empty lines)
+        line = editor.selection.doc.getLine --row
+        break unless /^\s+$/.test line
+      match = regex.exec line
+      column = match?.index or 0
+
+    editor.moveCursorTo row, column
+    if times > 1
+      navigateBackWord editor, bigWORD, times - 1
+
 
   actions =
     onEscape: (env, args) -> env.editor.clearSelection()
@@ -83,31 +112,8 @@ define (require, exports, module) ->
     navigateLeft:  (env, args) -> env.editor.navigateLeft args.times
     navigateRight: (env, args) -> env.editor.navigateRight args.times
 
-    navigateBackWORD: (env, args) ->
-      row = env.editor.selection.selectionLead.row
-      column = env.editor.selection.selectionLead.column
-      line = env.editor.selection.doc.getLine row
-      leftOfCursor = line.substring 0, column
-
-      lastWORD = /\S+\s*$/
-      match = lastWORD.exec leftOfCursor
-      if match
-        column = match.index
-      else
-        # there are no WORDs left of the cursor
-        # go to the last word on the previous line
-        loop
-          # Vim skips lines that are only whitespace
-          # (but not completely empty lines)
-          line = env.editor.selection.doc.getLine --row
-          break unless /^\s+$/.test line
-        match = lastWORD.exec line
-        column = match?.index or 0
-
-      env.editor.moveCursorTo row, column
-      if args?.times > 1
-        args.times--
-        actions.navigateBackWORD env, args
+    navigateBackWord: (env, args) -> navigateBackWord env.editor, false, args.times ? 1
+    navigateBackWORD: (env, args) -> navigateBackWord env.editor, true, args.times ? 1
 
     navigateNextWord: (env, args) -> navigateNextWord env.editor, false, args.times ? 1
     navigateNextWORD: (env, args) -> navigateNextWord env.editor, true, args.times ? 1
