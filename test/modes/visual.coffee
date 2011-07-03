@@ -2,7 +2,7 @@ require ['jim/modes/visual'], ->
   visual = require 'jim/modes/visual'
 
   test 'visual mode invalid command parsing', ->
-    deepEqual visual.parse("e"), {}
+    deepEqual visual.parse("m"), {}
 
   test 'visual mode partial command parsing', ->
     eq visual.parse("2"), 'continueBuffering'

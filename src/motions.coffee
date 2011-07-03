@@ -7,6 +7,9 @@ define (require, exports, module) ->
     W: 'NextWORD'
     E: 'WORDEnd'
     B: 'BackWORD'
+    w: 'NextWord'
+    e: 'WordEnd'
+    b: 'BackWord'
 
   #TODO build this from the map
-  regex: /[hjklWEB]/
+  regex: /[hjklWEBweb]/
