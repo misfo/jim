@@ -2,7 +2,7 @@ require ['jim/modes/normal'], ->
   normal = require 'jim/modes/normal'
 
   test 'normal mode invalid command parsing', ->
-    deepEqual normal.parse("e"), {}
+    deepEqual normal.parse("m"), {}
 
   test 'normal mode partial command parsing', ->
     deepEqual normal.parse("2"), 'continueBuffering'
@@ -14,7 +14,7 @@ require ['jim/modes/normal'], ->
     deepEqual normal.parse('C'), action: 'deleteToLineEnd', changeToMode: 'insert'
 
   test 'normal mode visual transition parsing', ->
-    deepEqual normal.parse('v'), action: 'selectRight', changeToMode: 'visual:characterwise'
+    deepEqual normal.parse('v'), changeToMode: 'visual:characterwise'
     deepEqual normal.parse('V'), action: 'selectLine', changeToMode: 'visual:linewise'
 
   test 'normal mode motion parsing', ->
