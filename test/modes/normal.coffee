@@ -24,7 +24,7 @@ require ['jim/modes/normal'], ->
     deepEqual normal.parse('4W'), action: 'navigateNextWORD', args: {times: 4}
     deepEqual normal.parse('B'), action: 'navigateBackWORD'
     deepEqual normal.parse('w'), action: 'navigateNextWord'
-    deepEqual normal.parse('3e'), action: 'navigateWordEnd', args {times: 3}
+    deepEqual normal.parse('3e'), action: 'navigateWordEnd', args: {times: 3}
     deepEqual normal.parse('b'), action: 'navigateBackWord'
 
   test 'normal mode jump parsing', ->
