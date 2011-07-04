@@ -3,6 +3,13 @@ define (require, exports, module) ->
 
   jim = new Jim()
 
+  atLineEnd = (editor, beyond) ->
+    selectionLead = editor.selection.getSelectionLead()
+    lineLength = editor.selection.doc.getLine(selectionLead.row).length
+    selectionLead.column >= lineLength - (if beyond then 0 else 1)
+
+  beyondLineEnd = (editor) -> atLineEnd(editor, true)
+
   # a variation on Ace's $moveSelection in selection.js
   moveSelection = (motionAction, env, args) ->
     if env.editor.selection.isEmpty()
@@ -116,8 +123,14 @@ define (require, exports, module) ->
 
     navigateUp:    (env, args) -> env.editor.navigateUp args.times
     navigateDown:  (env, args) -> env.editor.navigateDown args.times
-    navigateLeft:  (env, args) -> env.editor.navigateLeft args.times
-    navigateRight: (env, args) -> env.editor.navigateRight args.times
+    navigateLeft:  (env, args) ->
+      times = args.times ? 1
+      while times-- and env.editor.selection.selectionLead.getPosition().column > 0
+        env.editor.selection.moveCursorLeft()
+    navigateRight: (env, args) ->
+      times = args.times ? 1
+      while times-- and not atLineEnd(env.editor)
+        env.editor.selection.moveCursorRight()
 
     navigateBackWord: (env, args) -> navigateBackWord env.editor, false, args.times ? 1
     navigateBackWORD: (env, args) -> navigateBackWord env.editor, true, args.times ? 1
@@ -134,7 +147,7 @@ define (require, exports, module) ->
 
     deleteLeft: (env, args) ->
       actions.selectLeft env, args
-      actions.deleteSelection env, args
+      actions.deleteSelection env, args unless env.editor.selection.isEmpty()
     deleteRight: (env, args) ->
       actions.deleteSelection env, args
     deleteToLineEnd: (env, args) ->
@@ -142,13 +155,11 @@ define (require, exports, module) ->
       actions.deleteSelection env, args
     deleteSelection: (env, args) ->
       if env.editor.selection.isEmpty() or not env.editor.selection.isBackwards()
-        selectionLead = env.editor.selection.getSelectionLead()
-        lineLength = env.editor.selection.doc.getLine(selectionLead.row).length
-        atLineEnd = selectionLead.column == lineLength
         # the block cursor should be part of the selection
-        env.editor.selection.selectRight() unless atLineEnd
+        env.editor.selection.selectRight() unless beyondLineEnd(env.editor)
       jim.registers[args.register] = env.editor.getCopyText()
       env.editor.session.remove env.editor.getSelectionRange()
+      env.editor.clearSelection()
 
     paste: (env, args) ->
       #TODO use args.times, p with no buffer shouldn't move cursor
@@ -163,10 +174,8 @@ define (require, exports, module) ->
       env.editor.selection.selectUp() for i in [1..(args.times or 1)]
     selectDown: (env, args) ->
       env.editor.selection.selectDown() for i in [1..(args.times or 1)]
-    selectLeft: (env, args) ->
-      env.editor.selection.selectLeft() for i in [1..(args.times or 1)]
-    selectRight: (env, args) ->
-      env.editor.selection.selectRight() for i in [1..(args.times or 1)]
+    selectLeft: (env, args) -> moveSelection actions.navigateLeft, env, args
+    selectRight: (env, args) -> moveSelection actions.navigateRight, env, args
     selectLine: (env, args) ->
       env.editor.selection.selectLine()
 

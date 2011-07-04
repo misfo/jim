@@ -13,6 +13,44 @@ require ['ace/edit_session', 'ace/editor', 'ace/test/mockrenderer', 'jim/ace/mod
     editor.getCursorPosition()
 
   js_code = require 'text!test/fixtures/sort_by.js'
+  
+  test 'h command', ->
+    editor = new Editor(new MockRenderer(), new EditSession js_code)
+    module.startup env: {editor}
+    editor.navigateTo 1, 14
+
+    deepEqual cursorPositionAfter(editor, 'h'), row: 1, column: 13
+    deepEqual cursorPositionAfter(editor, 'h'), row: 1, column: 12
+    deepEqual cursorPositionAfter(editor, '12h'), row: 1, column: 0
+    deepEqual cursorPositionAfter(editor, 'h'), row: 1, column: 0
+
+  test 'j command', ->
+    editor = new Editor(new MockRenderer(), new EditSession js_code)
+    module.startup env: {editor}
+
+    deepEqual cursorPositionAfter(editor, 'j'), row: 1, column: 0
+    deepEqual cursorPositionAfter(editor, 'j'), row: 2, column: 0
+    deepEqual cursorPositionAfter(editor, '12j'), row: 14, column: 0
+    #deepEqual cursorPositionAfter(editor, 'j'), row: 14, column: 0
+
+  test 'k command', ->
+    editor = new Editor(new MockRenderer(), new EditSession js_code)
+    module.startup env: {editor}
+    editor.navigateTo 5, 0
+
+    deepEqual cursorPositionAfter(editor, 'k'), row: 4, column: 0
+    deepEqual cursorPositionAfter(editor, 'k'), row: 3, column: 0
+    deepEqual cursorPositionAfter(editor, '3k'), row: 0, column: 0
+    deepEqual cursorPositionAfter(editor, 'k'), row: 0, column: 0
+
+  test 'l command', ->
+    editor = new Editor(new MockRenderer(), new EditSession js_code)
+    module.startup env: {editor}
+
+    deepEqual cursorPositionAfter(editor, 'l'), row: 0, column: 1
+    deepEqual cursorPositionAfter(editor, 'l'), row: 0, column: 2
+    deepEqual cursorPositionAfter(editor, '42l'), row: 0, column: 44
+    deepEqual cursorPositionAfter(editor, 'l'), row: 0, column: 44
 
   test 'E command', ->
     editor = new Editor(new MockRenderer(), new EditSession js_code)
@@ -39,9 +77,7 @@ require ['ace/edit_session', 'ace/editor', 'ace/test/mockrenderer', 'jim/ace/mod
   test 'B command', ->
     editor = new Editor(new MockRenderer(), new EditSession js_code)
     module.startup env: {editor}
-
-    # gotta get forward before we can get back...
-    deepEqual cursorPositionAfter(editor, '18W'), row: 4, column: 15
+    editor.navigateTo 4, 15
 
     deepEqual cursorPositionAfter(editor, 'B'), row: 4, column: 6
     deepEqual cursorPositionAfter(editor, 'B'), row: 3, column: 14
@@ -78,9 +114,7 @@ require ['ace/edit_session', 'ace/editor', 'ace/test/mockrenderer', 'jim/ace/mod
   test 'b command', ->
     editor = new Editor(new MockRenderer(), new EditSession js_code)
     module.startup env: {editor}
-
-    # gotta get forward before we can get back...
-    deepEqual cursorPositionAfter(editor, '18W'), row: 4, column: 15
+    editor.navigateTo 4, 15
 
     deepEqual cursorPositionAfter(editor, 'b'), row: 4, column: 6
     deepEqual cursorPositionAfter(editor, 'b'), row: 3, column: 19
