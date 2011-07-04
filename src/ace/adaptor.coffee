@@ -3,6 +3,13 @@ define (require, exports, module) ->
 
   jim = new Jim()
 
+  # a variation on Ace's $moveSelection in selection.js
+  moveSelection = (motionAction, env, args) ->
+    if env.editor.selection.isEmpty()
+      lead = env.editor.selection.selectionLead
+      env.editor.selection.setSelectionAnchor lead.row, lead.column
+    motionAction(env, args)
+
   ## these return a new regex each time so that we always get a fresh lastIndex
   # a string of non-whitespace characters
   WORDRegex = -> /\S+/g 
@@ -129,12 +136,17 @@ define (require, exports, module) ->
       actions.selectLeft env, args
       actions.deleteSelection env, args
     deleteRight: (env, args) ->
-      actions.selectRight env, args
       actions.deleteSelection env, args
     deleteToLineEnd: (env, args) ->
       env.editor.selection.selectLineEnd()
       actions.deleteSelection env, args
     deleteSelection: (env, args) ->
+      if env.editor.selection.isEmpty() or not env.editor.selection.isBackwards()
+        selectionLead = env.editor.selection.getSelectionLead()
+        lineLength = env.editor.selection.doc.getLine(selectionLead.row).length
+        atLineEnd = selectionLead.column == lineLength
+        # the block cursor should be part of the selection
+        env.editor.selection.selectRight() unless atLineEnd
       jim.registers[args.register] = env.editor.getCopyText()
       env.editor.session.remove env.editor.getSelectionRange()
 
@@ -158,9 +170,13 @@ define (require, exports, module) ->
     selectLine: (env, args) ->
       env.editor.selection.selectLine()
 
-    selectBackWORD: (env, args) -> actions.navigateBackWORD(env, args)
-    selectWORDEnd:  (env, args) -> actions.navigateWORDEnd(env, args)
-    selectNextWORD: (env, args) -> actions.navigateNextWORD(env, args)
+    selectBackWORD: (env, args) -> moveSelection actions.navigateBackWORD, env, args
+    selectWORDEnd:  (env, args) -> moveSelection actions.navigateWORDEnd, env, args
+    selectNextWORD: (env, args) -> moveSelection actions.navigateNextWORD, env, args
+
+    selectBackWord: (env, args) -> moveSelection actions.navigateBackWord, env, args
+    selectWordEnd:  (env, args) -> moveSelection actions.navigateWordEnd, env, args
+    selectNextWord: (env, args) -> moveSelection actions.navigateNextWord, env, args
 
 
     yankSelection: (env, args) ->
@@ -169,7 +185,7 @@ define (require, exports, module) ->
         env.editor.clearSelection()
       else
         {start} = env.editor.getSelectionRange()
-        env.editor.navigateTo start.row, start.column
+        env.editor.moveCursorTo start.row, start.column
 
 
   isntCharacterKey = (hashId, key) ->

@@ -21,7 +21,6 @@ define (require, exports, module) ->
     if not match? or match[0] is ""
       console.log "unrecognized command: #{buffer}"
       return {}
-    console.log 'normal parse match', match
     [fullMatch, insertTransition, visualTransition, deleteCommand, numberPrefix,
       motion, multipliableCommand, go] = match
     numberPrefix = parseInt(numberPrefix) if numberPrefix
@@ -38,7 +37,7 @@ define (require, exports, module) ->
       result = if visualTransition is 'V'
         action: 'selectLine', changeToMode: 'visual:linewise'
       else
-        action: 'selectRight', changeToMode: 'visual:characterwise'
+        changeToMode: 'visual:characterwise'
     else if deleteCommand
       switch deleteCommand
         when "D" then result.action = 'deleteToLineEnd'

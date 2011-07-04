@@ -3,7 +3,7 @@ define (require, exports, module) ->
   JimUndoManager = require 'jim/ace/jim_undo_manager'
 
   require('pilot/dom').importCssString """
-    .jim-normal-mode div.ace_cursor {
+    .jim-normal-mode div.ace_cursor, .jim-visual-mode div.ace_cursor {
       border: 0;
       background-color: #91FF00;
       opacity: 0.5;

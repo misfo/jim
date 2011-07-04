@@ -12,7 +12,6 @@ define (require, exports, module) ->
 
   parse: (buffer) ->
     match = buffer.match @regex
-    console.log 'visual parse match', match
     if not match? or match[0] is ""
       console.log "unrecognized command: #{buffer}"
       return {}
