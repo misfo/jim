@@ -1,12 +1,13 @@
 define (require, exports, module) ->
   motions = require 'jim/motions'
 
-  regex: ///
+  regex = ///
     ^
     ([iIAC])|            # insert mode transition
     ([vV])|              # visual mode transition
     (D)|                 # delete to end of line command
     (?:
+      ([cdy])?           # operators
       (\d*)              # number prefix (multiplier, line number, ...)
       (?:
         (#{motions.regex.source})|
@@ -16,50 +17,79 @@ define (require, exports, module) ->
     )
   ///
 
-  parse: (buffer) ->
-    match = buffer.match(@regex)
+  repeatText = (number, string) ->
+    number = 1 if not number? or number is ""
+    new Array(number + 1).join string
+
+  execute: ->
+    match = @buffer.match regex
     if not match? or match[0] is ""
-      console.log "unrecognized command: #{buffer}"
-      return {}
-    [fullMatch, insertTransition, visualTransition, deleteCommand, numberPrefix,
+      console.log "unrecognized command: #{@buffer}"
+      @onEscape()
+      return
+
+    [fullMatch, insertTransition, visualTransition, deleteCommand, @operator, numberPrefix,
       motion, multipliableCommand, go] = match
     numberPrefix = parseInt(numberPrefix) if numberPrefix
 
-    result = {}
+    continueBuffering = false
 
     if insertTransition
       switch insertTransition
-        when "A" then result.action = 'navigateLineEnd'
-        when "C" then result.action = 'deleteToLineEnd'
-        when "I" then result.action = 'navigateLineStart'
-      result.changeToMode = 'insert'
+        when "A"
+          @adaptor.navigateLineEnd()
+        when "C"
+          @adaptor.selectToLineEnd()
+          @deleteSelection()
+        when "I"
+          @adaptor.navigateLineStart()
+      @setMode 'insert'
     else if visualTransition
-      result = if visualTransition is 'V'
-        action: 'selectLine', changeToMode: 'visual:linewise'
+      if visualTransition is 'V'
+        @adaptor.selectLine()
+        @setMode 'visual:linewise'
       else
-        changeToMode: 'visual:characterwise'
+        @adaptor.setSelectionAnchor()
+        @setMode 'visual:characterwise'
     else if deleteCommand
-      switch deleteCommand
-        when "D" then result.action = 'deleteToLineEnd'
+      @adaptor.selectToLineEnd()
+      @deleteSelection()
     else if motion
-      if numberPrefix
-        result.args = times: numberPrefix
-      result.action = "navigate#{motions.map[motion]}"
+      @adaptor.setSelectionAnchor() if @operator
+
+      {exclusive, linewise} = motions.execute.call this, numberPrefix, motion
+
+      switch @operator
+        when 'c', 'd'
+          @deleteSelection exclusive
+          @setMode 'insert' if @operator is 'c'
+        when 'y' then @yankSelection exclusive
     else if multipliableCommand
-      result.action = switch multipliableCommand
-        when "p" then 'paste'
-        when "P" then 'pasteBefore'
-        when "x" then 'deleteRight'
-        when "X" then 'deleteLeft'
-        when "u" then 'undo'
-      result.args = register: '"'
-      if numberPrefix
-        result.args.times = numberPrefix
+      switch multipliableCommand
+        when "p", "P"
+          text = repeatText numberPrefix, @registers['"']
+          after = multipliableCommand is "p"
+          @adaptor.insert text, after
+        when "x", "X"
+          #TODO delegate to dh and dl?
+          @adaptor.setSelectionAnchor()
+          if multipliableCommand is "x"
+            @times numberPrefix - 1, -> @adaptor.moveRight() unless numberPrefix is ""
+          else
+            @times numberPrefix, -> @adaptor.moveLeft()
+
+          if @adaptor.emptySelection()
+            @adaptor.clearSelection()
+          else
+            @deleteSelection()
+        when "u"
+          @times numberPrefix, -> @adaptor.undo()
     else if go
       if numberPrefix
-        result.args = lineNumber: numberPrefix
-      result.action = if numberPrefix then 'gotoLine' else 'navigateFileEnd'
+        @adaptor.goToLine numberPrefix
+      else
+        @adaptor.navigateFileEnd()
     else
-      return 'continueBuffering'
+      continueBuffering = true
 
-    result
+    @buffer = '' unless continueBuffering

@@ -13,32 +13,29 @@ require ['ace/edit_session', 'ace/editor', 'ace/test/mockrenderer', 'jim/ace/mod
   currentLine = (editor) ->
     editor.selection.doc.getLine editor.selection.selectionLead.row
   
-  test 'C command', ->
+  test 'c operator', ->
     editor = new Editor(new MockRenderer(), new EditSession js_code)
     module.startup env: {editor}
+
+    editor.onTextInput(char) for char in 'cWsorta'
+    editor.onCommandKey {}, 0, 27 # esc
+    eq currentLine(editor), "sorta = function(obj, iterator, context) {"
+
+    editor.navigateTo 0, 21
+    editor.onTextInput(char) for char in 'c4bfunky('
+    eq currentLine(editor), "sorta = funky( iterator, context) {"
+
+  test 'd operator', ->
+    editor = new Editor(new MockRenderer(), new EditSession js_code)
+    module.startup env: {editor}
+
     editor.navigateTo 0, 11
+    editor.onTextInput char for char in 'd11W'
+    eq currentLine(editor), "_.sortBy = {"
 
-    editor.onTextInput(char) for char in 'Cawesomes'.split ''
-    eq currentLine(editor), "_.sortBy = awesomes"
-
-  test 'D command', ->
+  test 'y operator', ->
     editor = new Editor(new MockRenderer(), new EditSession js_code)
-    module.startup env: {editor}
-    editor.navigateTo 0, 11
+    jim = module.startup env: {editor}
 
-    editor.onTextInput 'D'
-    eq currentLine(editor), "_.sortBy = "
-  
-  test 'X command', ->
-    editor = new Editor(new MockRenderer(), new EditSession js_code)
-    module.startup env: {editor}
-    editor.navigateTo 2, 11
-
-    editor.onTextInput 'X'
-    eq currentLine(editor), "    return{"
-    editor.onTextInput 'X'
-    eq currentLine(editor), "    retur{"
-    editor.onTextInput(char) for char in '9X'.split ''
-    eq currentLine(editor), "{"
-    editor.onTextInput 'X'
-    eq currentLine(editor), "{"
+    editor.onTextInput(char) for char in 'y3W'.split ''
+    eq jim.registers['"'], "_.sortBy = function(obj, "

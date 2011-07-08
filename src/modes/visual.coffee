@@ -1,7 +1,7 @@
 define (require, exports, module) ->
   motions = require 'jim/motions'
 
-  regex: ///
+  regex = ///
     ^
     (\d*)
     (?:
@@ -10,31 +10,29 @@ define (require, exports, module) ->
     )?
   ///
 
-  parse: (buffer) ->
-    match = buffer.match @regex
+  execute: ->
+    match = @buffer.match regex
     if not match? or match[0] is ""
-      console.log "unrecognized command: #{buffer}"
-      return {}
+      console.log "unrecognized command: #{@buffer}"
+      @onEscape()
+      return
 
     [fullMatch, numberPrefix, motion, operator] = match
-    numberPrefix = parseInt(numberPrefix) or null
+    numberPrefix = parseInt(numberPrefix) if numberPrefix
 
-    result = {}
+    continueBuffering = false
 
     if motion
-      result.action = "select#{motions.map[motion]}"
-      if numberPrefix
-        result.args = times: numberPrefix
+      @times numberPrefix, motions[motion]
     else if operator
       switch operator
-        when 'c'
-          result = action: 'deleteSelection', changeToMode: 'insert'
-        when 'd'
-          result = action: 'deleteSelection', changeToMode: 'normal'
+        when 'c', 'd'
+          @deleteSelection()
+          @setMode if operator is 'c' then 'insert' else 'normal'
         when 'y'
-          result = action: 'yankSelection', changeToMode: 'normal'
-      result.args = register: '"'
+          @yankSelection()
+          @setMode 'normal'
     else
-      result = 'continueBuffering'
+      continueBuffering = true
 
-    result
+    @buffer = '' unless continueBuffering

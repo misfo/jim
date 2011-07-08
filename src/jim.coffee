@@ -5,7 +5,7 @@ define (require, exports, module) ->
       normal: require 'jim/modes/normal'
       visual: require 'jim/modes/visual'
 
-    constructor: ->
+    constructor: (@adaptor) ->
       @buffer = ''
       @registers = {}
       @setMode 'normal'
@@ -13,24 +13,25 @@ define (require, exports, module) ->
     setMode: (modeName) ->
       console.log 'setMode', modeName
       prevModeName = @modeName
-      @modeName = modeName
       @buffer = ''
-      #FIXME better way to refer to modes?
+      return if modeName is prevModeName
+      @modeName = modeName
       modeParts = modeName.split ":"
       @mode = Jim.modes[modeParts[0]]
-      @onModeChange? prevModeName if modeName isnt prevModeName
+      @onModeChange? prevModeName
 
     onEscape: ->
-        @setMode 'normal'
+      @setMode 'normal'
+      @adaptor.clearSelection()
 
     onKeypress: (key) ->
       @buffer += key
       console.log '@buffer', @buffer
-      result = @mode.parse(@buffer)
-      if result is 'continueBuffering'
-        return {}
+      @mode.execute.call this
 
-      @buffer = ''
-      result
+    deleteSelection: (exclusive) -> @registers['"'] = @adaptor.deleteSelection exclusive
+    yankSelection:   (exclusive) -> @registers['"'] = @adaptor.selectionText exclusive
 
-  Jim
+    times: (number, func) ->
+      number = 1 if not number? or number is ""
+      func.call this while number--
