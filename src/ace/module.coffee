@@ -12,7 +12,7 @@ define (require, exports, module) ->
   """
 
   isntCharacterKey = (hashId, key) ->
-    hashId isnt 0 and (key is "" or key is String.fromCharCode 0)
+    (hashId isnt 0 and hashId isnt 4) or (key is "" or key is String.fromCharCode 0)
 
   startup = (data, reason) ->
     {editor} = data.env
@@ -22,18 +22,16 @@ define (require, exports, module) ->
 
     editor.setKeyboardHandler
       handleKeyboard: (data, hashId, key) ->
-        console.log 'handleKeyboard', data, hashId, key
+        return if isntCharacterKey(hashId, key)
         if key is "esc"
           jim.onEscape()
           return
-        else if isntCharacterKey(hashId, key)
-          # do nothing if it's just a modifier key
-          return
-        else if key.length > 1
+
+        if key.length > 1
           #TODO handle this better, we're dropping keypresses here
           key = key.charAt 0
 
-        key = key.toUpperCase() if hashId & 4 and key.match /^[a-z]$/
+        key = key.toUpperCase() if hashId is 4 and key.match /^[a-z]$/
         passKeypressThrough = jim.onKeypress key
 
         if not passKeypressThrough
