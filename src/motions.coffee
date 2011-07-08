@@ -113,11 +113,19 @@ define (require, exports, module) ->
 
   regex: ///[#{(k for own k, v of keymap).join ''}]///
 
-  execute: (count, motion) ->
-    if @operator is 'c'
+  execute: (operator, count, motion) ->
+    if operator is 'c'
       switch motion
         when 'W' then motion = 'E'
         when 'w' then motion = 'e'
     {func, exclusive, linewise} = keymap[motion]
+
+    @adaptor.setSelectionAnchor() if operator
+
     @times count, func
-    {exclusive, linewise}
+
+    switch operator
+      when 'c', 'd'
+        @deleteSelection exclusive
+        @setMode 'insert' if operator is 'c'
+      when 'y' then @yankSelection exclusive

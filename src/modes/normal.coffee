@@ -55,15 +55,7 @@ define (require, exports, module) ->
       @adaptor.selectToLineEnd()
       @deleteSelection()
     else if motion
-      @adaptor.setSelectionAnchor() if @operator
-
-      {exclusive, linewise} = motions.execute.call this, numberPrefix, motion
-
-      switch @operator
-        when 'c', 'd'
-          @deleteSelection exclusive
-          @setMode 'insert' if @operator is 'c'
-        when 'y' then @yankSelection exclusive
+      motions.execute.call this, @operator, numberPrefix, motion
     else if multipliableCommand
       switch multipliableCommand
         when "p", "P"
@@ -71,17 +63,8 @@ define (require, exports, module) ->
           after = multipliableCommand is "p"
           @adaptor.insert text, after
         when "x", "X"
-          #TODO delegate to dh and dl?
-          @adaptor.setSelectionAnchor()
-          if multipliableCommand is "x"
-            @times numberPrefix - 1, -> @adaptor.moveRight() unless numberPrefix is ""
-          else
-            @times numberPrefix, -> @adaptor.moveLeft()
-
-          if @adaptor.emptySelection()
-            @adaptor.clearSelection()
-          else
-            @deleteSelection()
+          deleteMotion = if multipliableCommand is 'X' then 'h' else 'l'
+          motions.execute.call this, 'd', numberPrefix, deleteMotion
         when "u"
           @times numberPrefix, -> @adaptor.undo()
     else if go
