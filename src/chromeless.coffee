@@ -34,7 +34,7 @@ openFile = ->
   fp.title = "Hi!  Pick some files!"
   fp.mode = "multiple"
   fp.show (x) ->
-    return  unless x
+    return unless x
     console.log "you picked " + x.length + " files"
     i = 0
     
@@ -42,6 +42,17 @@ openFile = ->
       currentFile = "" + x[i]
       stringData = clrequire("file").read(currentFile)
       editor.session.setValue stringData
+      modeName = switch currentFile.match(/[./\\](\w+)$/)?[1]
+        when 'coffee', 'Cakefile'           then 'coffee'
+        when 'css'                          then 'css'
+        when 'html'                         then 'html'
+        when 'js'                           then 'javascript'
+        when 'json'                         then 'json'
+        when 'rb', 'ru', 'rake', 'Rakefile' then 'ruby'
+        else                                     'text'
+      require ["ace/mode/#{modeName}"], (mode) ->
+        editor.session.setMode new mode.Mode()
+
       i++
 
 file = menu.Menu(
