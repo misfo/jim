@@ -23,7 +23,7 @@ define (require, exports, module) ->
     continueBuffering = false
 
     if motion
-      @times numberPrefix, motions[motion]
+      motions.execute.call this, numberPrefix, motion
     else if operator
       switch operator
         when 'c', 'd'

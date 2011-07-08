@@ -9,7 +9,7 @@ require ['ace/edit_session', 'ace/editor', 'ace/test/mockrenderer', 'jim/ace/mod
   MockRenderer::unsetStyle = (->)
 
   cursorPositionAfter = (editor, command) ->
-    editor.onTextInput(char) for char in command.split('')
+    editor.onTextInput(char) for char in command
     editor.getCursorPosition()
 
   js_code = require 'text!test/fixtures/sort_by.js'
