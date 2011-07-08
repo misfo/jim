@@ -6,9 +6,11 @@ define (require, exports, module) ->
       visual: require 'jim/modes/visual'
 
     constructor: (@adaptor) ->
-      @buffer = ''
+      @clearBuffer()
       @registers = {}
       @setMode 'normal'
+
+    clearBuffer: -> @buffer = @operator = ''
 
     setMode: (modeName) ->
       console.log 'setMode', modeName

@@ -35,4 +35,4 @@ define (require, exports, module) ->
     else
       continueBuffering = true
 
-    @buffer = '' unless continueBuffering
+    @clearBuffer() unless continueBuffering
