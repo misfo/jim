@@ -123,3 +123,11 @@ require ['ace/edit_session', 'ace/editor', 'ace/test/mockrenderer', 'jim/ace/mod
     deepEqual cursorPositionAfter(editor, 'b'), row: 3, column: 6
     deepEqual cursorPositionAfter(editor, 'b'), row: 2, column: 11
     deepEqual cursorPositionAfter(editor, '17b'), row: 1, column: 16
+
+  test 'G command', ->
+    editor = new Editor(new MockRenderer(), new EditSession js_code)
+    module.startup env: {editor}
+
+    deepEqual cursorPositionAfter(editor, '3G'), row: 2, column: 4
+    deepEqual cursorPositionAfter(editor, 'G'), row: 14, column: 0
+    deepEqual cursorPositionAfter(editor, '1G'), row: 0, column: 0

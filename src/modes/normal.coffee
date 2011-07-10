@@ -69,10 +69,10 @@ define (require, exports, module) ->
         when "u"
           @times numberPrefix, -> @adaptor.undo()
     else if go
-      if numberPrefix
-        @adaptor.goToLine numberPrefix
-      else
-        @adaptor.navigateFileEnd()
+      lineNumber = if numberPrefix is '' then @adaptor.lastRow() else numberPrefix
+      lineText = @adaptor.lineText lineNumber-1
+      column = /\S/.exec(lineText)?.index or 0
+      @adaptor.goToLine lineNumber, column
     else
       continueBuffering = true
 

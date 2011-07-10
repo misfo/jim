@@ -31,7 +31,7 @@ define (require, exports, module) ->
 
     lastRow: -> @editor.session.getDocument().getLength() - 1
 
-    goToLine: (lineNumber) -> @editor.gotoLine lineNumber
+    goToLine: (lineNumber, column) -> @editor.gotoLine lineNumber, column
 
     lineText: (lineNumber) -> @editor.selection.doc.getLine lineNumber ? @row()
 
