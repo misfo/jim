@@ -31,8 +31,8 @@ define (require, exports, module) ->
       console.log '@buffer', @buffer
       @mode.execute.call this
 
-    deleteSelection: (exclusive, linewise, operator) ->
-      @registers['"'] = @adaptor.deleteSelection exclusive, linewise, operator
+    deleteSelection: (exclusive, linewise) ->
+      @registers['"'] = @adaptor.deleteSelection exclusive, linewise
     yankSelection: (exclusive, linewise) ->
       @registers['"'] = @adaptor.selectionText exclusive, linewise
 

@@ -6,15 +6,6 @@ define (require, exports, module) ->
 
   beyondLineEnd = (editor) -> atLineEnd(editor, true)
 
-  fixSelection = (exclusive, linewise) ->
-    if linewise
-      {selectionAnchor: {row: anchorRow}, selectionLead: {row: leadRow}} = @editor.selection
-      @editor.selection.setSelectionAnchor Math.min(anchorRow, leadRow), 0
-      @editor.selection.moveCursorTo Math.max(anchorRow, leadRow) + 1, 0
-    else if not exclusive and not @editor.selection.isBackwards()
-      # the block cursor should be part of the selection
-      @editor.selection.selectRight() unless beyondLineEnd(@editor)
-
   class Adaptor
     constructor: (@editor) ->
 
@@ -29,11 +20,18 @@ define (require, exports, module) ->
     row:      -> @editor.selection.selectionLead.row
     position: -> [@row(), @column()]
 
+    includeCursorInSelection: ->
+      if not @editor.selection.isBackwards()
+        @editor.selection.selectRight() unless beyondLineEnd(@editor)
+
     lastRow: -> @editor.session.getDocument().getLength() - 1
 
-    goToLine: (lineNumber, column) -> @editor.gotoLine lineNumber, column
-
     lineText: (lineNumber) -> @editor.selection.doc.getLine lineNumber ? @row()
+
+    makeLinewise: ->
+      {selectionAnchor: {row: anchorRow}, selectionLead: {row: leadRow}} = @editor.selection
+      @editor.selection.setSelectionAnchor Math.min(anchorRow, leadRow), 0
+      @editor.selection.moveCursorTo Math.max(anchorRow, leadRow) + 1, 0
 
     moveUp:   -> @editor.selection.moveCursorBy -1, 0
     moveDown: -> @editor.selection.moveCursorBy 1, 0
@@ -46,13 +44,16 @@ define (require, exports, module) ->
 
     moveTo: (row, column) -> @editor.moveCursorTo row, column
 
+    moveToEndOfPreviousLine: ->
+      previousRow = @row() - 1
+      previousRowLength = @editor.session.doc.getLine(previousRow).length
+      @editor.selection.moveCursorTo previousRow, previousRowLength
+
     navigateFileEnd:   -> @editor.navigateFileEnd()
     navigateLineEnd:   -> @editor.navigateLineEnd()
     navigateLineStart: -> @editor.navigateLineStart()
 
-    deleteSelection: (exclusive, linewise, operator) ->
-      fixSelection.call this, exclusive, linewise
-      @editor.selection.moveCursorLeft() if linewise and operator is 'c'
+    deleteSelection: ->
       yank = @editor.getCopyText()
       @editor.session.remove @editor.getSelectionRange()
       @editor.clearSelection()
@@ -68,9 +69,7 @@ define (require, exports, module) ->
 
     emptySelection: -> @editor.selection.isEmpty()
 
-    selectionText: (exclusive, linewise) ->
-      fixSelection.call this, exclusive, linewise
-      @editor.getCopyText()
+    selectionText: -> @editor.getCopyText()
 
     setSelectionAnchor: ->
       lead = @editor.selection.selectionLead

@@ -24,13 +24,15 @@ define (require, exports, module) ->
     continueBuffering = false
 
     if motion
-      motions.execute.call this, '', numberPrefix, motion
+      motions[motion].move this, numberPrefix
     else if operator
       switch operator
         when 'c', 'd'
+          @adaptor.includeCursorInSelection()
           @deleteSelection()
           @setMode if operator is 'c' then 'insert' else 'normal'
         when 'y'
+          @adaptor.includeCursorInSelection()
           @yankSelection()
           @setMode 'normal'
     else

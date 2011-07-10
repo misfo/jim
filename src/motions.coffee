@@ -79,53 +79,80 @@ define (require, exports, module) ->
 
     @adaptor.moveTo row, column
 
+  class Motion
+    constructor: (props) ->
+      this[key] = value for own key, value of props
+      @linewise  ?= false
+      @exclusive ?= false
 
-  keymap =
-    h:
+    move: (jim, count) ->
+      timesLeft = if not count? or count is '' then 1 else count
+      @moveOnce.call jim while timesLeft--
+    change: (jim, count) ->
+      jim.adaptor.setSelectionAnchor()
+      @move jim, count
+      adjustSelection.call this, jim
+      jim.adaptor.moveToEndOfPreviousLine() if @linewise
+      jim.deleteSelection @exclusive, @linewise
+      jim.setMode 'insert'
+    delete: (jim, count) ->
+      jim.adaptor.setSelectionAnchor()
+      @move jim, count
+      adjustSelection.call this, jim
+      jim.deleteSelection @exclusive, @linewise
+    yank: (jim, count) ->
+      jim.adaptor.setSelectionAnchor()
+      @move jim, count
+      adjustSelection.call this, jim
+      jim.yankSelection @exclusive, @linewise
+
+    adjustSelection = (jim) ->
+      if @linewise
+        jim.adaptor.makeLinewise()
+      else if not @exclusive
+        jim.adaptor.includeCursorInSelection()
+
+  motions =
+    h: new Motion
       exclusive: true
-      func: -> @adaptor.moveLeft()
-    j:
+      moveOnce: -> @adaptor.moveLeft()
+    j: new Motion
       linewise: true
-      func: -> @adaptor.moveDown()
-    k: 
+      moveOnce: -> @adaptor.moveDown()
+    k: new Motion
       linewise: true
-      func: -> @adaptor.moveUp()
-    l:
+      moveOnce: -> @adaptor.moveUp()
+    l: new Motion
       exclusive: true
-      func: -> @adaptor.moveRight()
+      moveOnce: -> @adaptor.moveRight()
 
-    W:
+    W: new Motion
       exclusive: true
-      func: -> moveNextWord.call this, WORDRegex()
-    E:
-      func: -> moveWordEnd.call this, WORDRegex()
-    B:
+      moveOnce: -> moveNextWord.call this, WORDRegex()
+      change: (jim, count) -> motions['E'].change jim, count
+    E: new Motion
+      moveOnce: -> moveWordEnd.call this, WORDRegex()
+    B: new Motion
       exclusive: true
-      func: -> moveBackWord.call this, lastWORDRegex 
-    w:
+      moveOnce: -> moveBackWord.call this, lastWORDRegex 
+    w: new Motion
       exclusive: true
-      func: -> moveNextWord.call this, wordRegex()
-    e:
-      func: -> moveWordEnd.call this, wordRegex()
-    b:
+      moveOnce: -> moveNextWord.call this, wordRegex()
+      change: (jim, count) -> motions['w'].change jim, count
+    e: new Motion
+      moveOnce: -> moveWordEnd.call this, wordRegex()
+    b: new Motion
       exclusive: true
-      func: -> moveBackWord.call this, lastWordRegex
+      moveOnce: -> moveBackWord.call this, lastWordRegex
 
-  regex: ///[#{(k for own k, v of keymap).join ''}]///
+    G: new Motion
+      linewise: true
+      move: (jim, count) ->
+        lineNumber = if count is '' then jim.adaptor.lastRow() else count
+        lineText = jim.adaptor.lineText lineNumber-1
+        column = /\S/.exec(lineText)?.index or 0
+        jim.adaptor.moveTo lineNumber-1, column
 
-  execute: (operator, count, motion) ->
-    if operator is 'c'
-      switch motion
-        when 'W' then motion = 'E'
-        when 'w' then motion = 'e'
-    {func, exclusive, linewise} = keymap[motion]
+  motions.regex = ///[#{(k for own k, v of motions).join ''}]///
 
-    @adaptor.setSelectionAnchor() if operator
-
-    @times count, func
-
-    switch operator
-      when 'c', 'd'
-        @deleteSelection exclusive, linewise, operator
-        @setMode 'insert' if operator is 'c'
-      when 'y' then @yankSelection exclusive, linewise
+  motions

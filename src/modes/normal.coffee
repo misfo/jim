@@ -11,8 +11,7 @@ define (require, exports, module) ->
       (\d*)              # number prefix (multiplier, line number, ...)
       (?:
         (#{motions.regex.source})|
-        ([[pPxXu])|      # multipliable commands
-        (G)              # go!
+        ([[pPxXu])       # multipliable commands
       )?
     )
     $
@@ -30,7 +29,7 @@ define (require, exports, module) ->
       return
 
     [fullMatch, insertTransition, visualTransition, deleteCommand, @operator, numberPrefix,
-      motion, multipliableCommand, go] = match
+      motion, multipliableCommand] = match
     numberPrefix = parseInt(numberPrefix) if numberPrefix
 
     continueBuffering = false
@@ -56,7 +55,12 @@ define (require, exports, module) ->
       @adaptor.selectToLineEnd()
       @deleteSelection()
     else if motion
-      motions.execute.call this, @operator, numberPrefix, motion
+      motionObj = motions[motion]
+      switch @operator
+        when 'c' then motionObj.change this, numberPrefix
+        when 'd' then motionObj.delete this, numberPrefix
+        when 'y' then motionObj.yank   this, numberPrefix
+        else          motionObj.move   this, numberPrefix
     else if multipliableCommand
       switch multipliableCommand
         when "p", "P"
@@ -65,14 +69,9 @@ define (require, exports, module) ->
           @adaptor.insert text, after
         when "x", "X"
           deleteMotion = if multipliableCommand is 'X' then 'h' else 'l'
-          motions.execute.call this, 'd', numberPrefix, deleteMotion
+          motions[deleteMotion].delete this, numberPrefix
         when "u"
           @times numberPrefix, -> @adaptor.undo()
-    else if go
-      lineNumber = if numberPrefix is '' then @adaptor.lastRow() else numberPrefix
-      lineText = @adaptor.lineText lineNumber-1
-      column = /\S/.exec(lineText)?.index or 0
-      @adaptor.goToLine lineNumber, column
     else
       continueBuffering = true
 
