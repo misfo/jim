@@ -126,6 +126,6 @@ define (require, exports, module) ->
 
     switch operator
       when 'c', 'd'
-        @deleteSelection exclusive
+        @deleteSelection exclusive, linewise, operator
         @setMode 'insert' if operator is 'c'
-      when 'y' then @yankSelection exclusive
+      when 'y' then @yankSelection exclusive, linewise

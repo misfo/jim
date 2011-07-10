@@ -6,8 +6,12 @@ define (require, exports, module) ->
 
   beyondLineEnd = (editor) -> atLineEnd(editor, true)
 
-  fixSelection = (exclusive) ->
-    if not exclusive and not @editor.selection.isBackwards()
+  fixSelection = (exclusive, linewise) ->
+    if linewise
+      {selectionAnchor: {row: anchorRow}, selectionLead: {row: leadRow}} = @editor.selection
+      @editor.selection.setSelectionAnchor Math.min(anchorRow, leadRow), 0
+      @editor.selection.moveCursorTo Math.max(anchorRow, leadRow) + 1, 0
+    else if not exclusive and not @editor.selection.isBackwards()
       # the block cursor should be part of the selection
       @editor.selection.selectRight() unless beyondLineEnd(@editor)
 
@@ -46,8 +50,9 @@ define (require, exports, module) ->
     navigateLineEnd:   -> @editor.navigateLineEnd()
     navigateLineStart: -> @editor.navigateLineStart()
 
-    deleteSelection: (exclusive) ->
-      fixSelection.call this, exclusive
+    deleteSelection: (exclusive, linewise, operator) ->
+      fixSelection.call this, exclusive, linewise
+      @editor.selection.moveCursorLeft() if linewise and operator is 'c'
       yank = @editor.getCopyText()
       @editor.session.remove @editor.getSelectionRange()
       @editor.clearSelection()
@@ -63,8 +68,8 @@ define (require, exports, module) ->
 
     emptySelection: -> @editor.selection.isEmpty()
 
-    selectionText: (exclusive) ->
-      fixSelection.call this, exclusive
+    selectionText: (exclusive, linewise) ->
+      fixSelection.call this, exclusive, linewise
       @editor.getCopyText()
 
     setSelectionAnchor: ->
