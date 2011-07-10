@@ -15,6 +15,7 @@ define (require, exports, module) ->
         (G)              # go!
       )?
     )
+    $
   ///
 
   repeatText = (number, string) ->

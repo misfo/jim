@@ -8,6 +8,7 @@ define (require, exports, module) ->
       (#{motions.regex.source})|
       ([ydc])                    # operators
     )?
+    $
   ///
 
   execute: ->
