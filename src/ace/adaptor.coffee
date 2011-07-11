@@ -38,9 +38,8 @@ define (require, exports, module) ->
     moveLeft: ->
       if @editor.selection.selectionLead.getPosition().column > 0
         @editor.selection.moveCursorLeft()
-    moveRight: ->
-      if not atLineEnd(@editor)
-        @editor.selection.moveCursorRight()
+    moveRight: (beyond) ->
+      @editor.selection.moveCursorRight() if beyond or not atLineEnd(@editor)
 
     moveTo: (row, column) -> @editor.moveCursorTo row, column
 

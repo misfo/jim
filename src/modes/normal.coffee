@@ -3,7 +3,7 @@ define (require, exports, module) ->
 
   regex = ///
     ^
-    ([iIAC])|            # insert mode transition
+    ([iaIAC])|           # insert mode transition
     ([vV])|              # visual mode transition
     (D)|                 # delete to end of line command
     (?:
@@ -28,14 +28,16 @@ define (require, exports, module) ->
       @onEscape()
       return
 
-    [fullMatch, insertTransition, visualTransition, deleteCommand, @operator, numberPrefix,
+    [fullMatch, @insertTransition, visualTransition, deleteCommand, @operator, numberPrefix,
       motion, multipliableCommand] = match
     numberPrefix = parseInt(numberPrefix) if numberPrefix
 
     continueBuffering = false
 
-    if insertTransition
-      switch insertTransition
+    if @insertTransition
+      switch @insertTransition
+        when 'a'
+          @adaptor.moveRight true
         when "A"
           @adaptor.navigateLineEnd()
         when "C"

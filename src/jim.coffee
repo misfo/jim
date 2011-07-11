@@ -15,11 +15,12 @@ define (require, exports, module) ->
     setMode: (modeName) ->
       console.log 'setMode', modeName
       prevModeName = @modeName
-      @buffer = ''
+      @clearBuffer()
       return if modeName is prevModeName
       @modeName = modeName
       modeParts = modeName.split ":"
       @mode = Jim.modes[modeParts[0]]
+      @adaptor.moveLeft() if prevModeName is 'insert'
       @onModeChange? prevModeName
 
     onEscape: ->
