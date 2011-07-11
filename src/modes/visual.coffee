@@ -3,7 +3,7 @@ define (require, exports, module) ->
 
   regex = ///
     ^
-    (\d*)
+    ([1-9]\d*)?                  # count (multiplier, line number, ...)
     (?:
       (#{motions.regex.source})|
       ([ydc])                    # operators
@@ -18,13 +18,13 @@ define (require, exports, module) ->
       @onEscape()
       return
 
-    [fullMatch, numberPrefix, motion, operator] = match
-    numberPrefix = parseInt(numberPrefix) if numberPrefix
+    [fullMatch, countMatch, motion, operator] = match
+    count = parseInt(countMatch) or null
 
     continueBuffering = false
 
     if motion
-      motions[motion].move this, numberPrefix
+      motions[motion].move this, count
     else if operator
       switch operator
         when 'c', 'd'

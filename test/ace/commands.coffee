@@ -29,6 +29,13 @@ require ['ace/edit_session', 'ace/editor', 'ace/test/mockrenderer', 'jim/ace/mod
     editor.onTextInput 'D'
     eq currentLine(editor), "_.sortBy = "
   
+  test 'p command', ->
+    editor = new Editor(new MockRenderer(), new EditSession js_code)
+    module.startup env: {editor}
+
+    editor.onTextInput c for c in 'y3l2p'
+    eq currentLine(editor), "__.s_.s.sortBy = function(obj, iterator, context) {"
+
   test 'x command', ->
     editor = new Editor(new MockRenderer(), new EditSession js_code)
     module.startup env: {editor}

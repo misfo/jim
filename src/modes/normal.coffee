@@ -8,7 +8,7 @@ define (require, exports, module) ->
     (D)|                 # delete to end of line command
     (?:
       ([cdy])?           # operators
-      (\d*)              # number prefix (multiplier, line number, ...)
+      ([1-9]\d*)?        # count (multiplier, line number, ...)
       (?:
         (#{motions.regex.source})|
         ([[pPxXu])       # multipliable commands
@@ -17,10 +17,6 @@ define (require, exports, module) ->
     $
   ///
 
-  repeatText = (number, string) ->
-    number = 1 if not number? or number is ""
-    new Array(number + 1).join string
-
   execute: ->
     match = @buffer.match regex
     if not match? or match[0] is ""
@@ -28,9 +24,9 @@ define (require, exports, module) ->
       @onEscape()
       return
 
-    [fullMatch, @insertTransition, visualTransition, deleteCommand, @operator, numberPrefix,
+    [fullMatch, @insertTransition, visualTransition, deleteCommand, @operator, countMatch,
       motion, multipliableCommand] = match
-    numberPrefix = parseInt(numberPrefix) if numberPrefix
+    count = parseInt(countMatch) or null
 
     continueBuffering = false
 
@@ -59,21 +55,22 @@ define (require, exports, module) ->
     else if motion
       motionObj = motions[motion]
       switch @operator
-        when 'c' then motionObj.change this, numberPrefix
-        when 'd' then motionObj.delete this, numberPrefix
-        when 'y' then motionObj.yank   this, numberPrefix
-        else          motionObj.move   this, numberPrefix
+        when 'c' then motionObj.change this, count
+        when 'd' then motionObj.delete this, count
+        when 'y' then motionObj.yank   this, count
+        else          motionObj.move   this, count
     else if multipliableCommand
       switch multipliableCommand
         when "p", "P"
-          text = repeatText numberPrefix, @registers['"']
+          text = new Array((count or 1) + 1).join @registers['"']
           after = multipliableCommand is "p"
           @adaptor.insert text, after
         when "x", "X"
           deleteMotion = if multipliableCommand is 'X' then 'h' else 'l'
-          motions[deleteMotion].delete this, numberPrefix
+          motions[deleteMotion].delete this, count
         when "u"
-          @times numberPrefix, -> @adaptor.undo()
+          timesLeft = count ? 1
+          @adaptor.undo() while timesLeft--
     else
       continueBuffering = true
 

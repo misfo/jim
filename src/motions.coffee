@@ -86,7 +86,7 @@ define (require, exports, module) ->
       @exclusive ?= false
 
     move: (jim, count) ->
-      timesLeft = if not count? or count is '' then 1 else count
+      timesLeft = count ? 1
       @moveOnce.call jim while timesLeft--
     change: (jim, count) ->
       jim.adaptor.setSelectionAnchor()
@@ -144,11 +144,15 @@ define (require, exports, module) ->
     b: new Motion
       exclusive: true
       moveOnce: -> moveBackWord.call this, lastWordRegex
+      
+    0: new Motion
+      exclusive: true
+      move: (jim) -> jim.adaptor.moveTo jim.adaptor.row(), 0
 
     G: new Motion
       linewise: true
       move: (jim, count) ->
-        lineNumber = if count is '' then jim.adaptor.lastRow() else count
+        lineNumber = count ? jim.adaptor.lastRow()
         lineText = jim.adaptor.lineText lineNumber-1
         column = /\S/.exec(lineText)?.index or 0
         jim.adaptor.moveTo lineNumber-1, column

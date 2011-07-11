@@ -36,7 +36,4 @@ define (require, exports, module) ->
       @registers['"'] = @adaptor.deleteSelection exclusive, linewise
     yankSelection: (exclusive, linewise) ->
       @registers['"'] = @adaptor.selectionText exclusive, linewise
-
-    times: (number, func) ->
-      number = 1 if not number? or number is ""
-      func.call this while number--
+      @adaptor.clearSelection true

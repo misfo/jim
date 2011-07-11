@@ -9,7 +9,12 @@ define (require, exports, module) ->
   class Adaptor
     constructor: (@editor) ->
 
-    clearSelection: -> @editor.clearSelection()
+    clearSelection: (beginning) ->
+      if beginning and not @editor.selection.isBackwards()
+        {row, column} = @editor.selection.getSelectionAnchor()
+        @editor.navigateTo row, column
+      else
+        @editor.clearSelection()
 
     undo: ->
       undoManager = @editor.session.getUndoManager()
