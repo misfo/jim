@@ -11,8 +11,7 @@ define (require, exports, module) ->
     }
   """
 
-  isntCharacterKey = (hashId, key) ->
-    (hashId isnt 0 and hashId isnt 4) or (key is "" or key is String.fromCharCode 0)
+  isCharacterKey = (hashId, keyCode) -> hashId is 0 and keyCode is 0
 
   startup = (data, reason) ->
     {editor} = data.env
@@ -21,22 +20,19 @@ define (require, exports, module) ->
       return
 
     editor.setKeyboardHandler
-      handleKeyboard: (data, hashId, key) ->
-        return if isntCharacterKey(hashId, key)
-        if key is "esc"
+      handleKeyboard: (data, hashId, key, keyCode) ->
+        if keyCode is 27 # esc
           jim.onEscape()
-          return
+        else if isCharacterKey(hashId, keyCode)
+          if key.length > 1
+            #TODO handle this better, we're dropping keypresses here
+            key = key.charAt 0
 
-        if key.length > 1
-          #TODO handle this better, we're dropping keypresses here
-          key = key.charAt 0
+          passKeypressThrough = jim.onKeypress key
 
-        key = key.toUpperCase() if hashId is 4 and key.match /^[a-z]$/
-        passKeypressThrough = jim.onKeypress key
-
-        if not passKeypressThrough
-          # this will stop the event
-          command: {exec: (->)}
+          if not passKeypressThrough
+            # this will stop the event
+            command: {exec: (->)}
 
     undoManager = new JimUndoManager()
     editor.session.setUndoManager undoManager
