@@ -138,7 +138,7 @@ define (require, exports, module) ->
     w: new Motion
       exclusive: true
       moveOnce: -> moveNextWord.call this, wordRegex()
-      change: (jim, count) -> motions['w'].change jim, count
+      change: (jim, count) -> motions['e'].change jim, count
     e: new Motion
       moveOnce: -> moveWordEnd.call this, wordRegex()
     b: new Motion
