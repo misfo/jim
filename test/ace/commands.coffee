@@ -58,3 +58,19 @@ require ['ace/edit_session', 'ace/editor', 'ace/test/mockrenderer', 'jim/ace/mod
     eq currentLine(editor), "{"
     editor.onTextInput 'X'
     eq currentLine(editor), "{"
+
+  test 'o,O commands', ->
+    editor = new Editor(new MockRenderer(), new EditSession js_code)
+    jim = module.startup env: {editor}
+
+    editor.onTextInput c for c in 'Onew line'
+    editor.onCommandKey {}, 0, 27 # esc
+    eq currentLine(editor), "new line"
+    eq editor.selection.selectionLead.row, 0
+    eq editor.session.doc.getLength(), 17
+
+    editor.onTextInput c for c in 'oanother line'
+    editor.onCommandKey {}, 0, 27 # esc
+    eq currentLine(editor), 'another line'
+    eq editor.selection.selectionLead.row, 1
+    eq editor.session.doc.getLength(), 18

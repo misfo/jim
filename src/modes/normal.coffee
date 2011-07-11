@@ -3,7 +3,7 @@ define (require, exports, module) ->
 
   regex = ///
     ^
-    ([iaIAC])|           # insert mode transition
+    ([iaoOIAC])|         # insert mode transition
     ([vV])|              # visual mode transition
     (D)|                 # delete to end of line command
     (?:
@@ -39,6 +39,10 @@ define (require, exports, module) ->
         when "C"
           @adaptor.selectToLineEnd()
           @deleteSelection()
+        when 'o', 'O'
+          row = @adaptor.row() + (if @insertTransition is 'o' then 1 else 0)
+          @adaptor.insertNewLine row
+          @adaptor.moveTo row, 0
         when "I"
           @adaptor.navigateLineStart()
       @setMode 'insert'

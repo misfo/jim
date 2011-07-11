@@ -29,6 +29,9 @@ define (require, exports, module) ->
       if not @editor.selection.isBackwards()
         @editor.selection.selectRight() unless beyondLineEnd(@editor)
 
+    insertNewLine: (row) ->
+      @editor.session.doc.insertNewLine row: row, column: 0
+
     lastRow: -> @editor.session.getDocument().getLength() - 1
 
     lineText: (lineNumber) -> @editor.selection.doc.getLine lineNumber ? @row()
