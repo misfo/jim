@@ -29,31 +29,31 @@ saveFile = ->
     stream.close()
 
 openFile = ->
-  filePicker = clrequire("file-picker")
-  fp = filePicker.FilePicker()
-  fp.title = "Hi!  Pick some files!"
-  fp.mode = "multiple"
-  fp.show (x) ->
-    return unless x
-    console.log "you picked " + x.length + " files"
-    i = 0
-    
-    while i < x.length
-      currentFile = "" + x[i]
-      stringData = clrequire("file").read(currentFile)
-      editor.session.setValue stringData
-      modeName = switch currentFile.match(/[./\\](\w+)$/)?[1]
-        when 'coffee', 'Cakefile'           then 'coffee'
-        when 'css'                          then 'css'
-        when 'html'                         then 'html'
-        when 'js'                           then 'javascript'
-        when 'json'                         then 'json'
-        when 'rb', 'ru', 'rake', 'Rakefile' then 'ruby'
-        else                                     'text'
-      require ["ace/mode/#{modeName}"], (mode) ->
-        editor.session.setMode new mode.Mode()
+  filePicker = clrequire 'file-picker'
+  filePicker.FilePicker('Open', 'open').show (filename) ->
+    return unless filename
 
-      i++
+    currentFile = "#{filename}"
+    stringData = clrequire("file").read currentFile
+    editor.session.setValue stringData
+
+    document
+      .getElementsByTagName('head')[0]
+      .getElementsByTagName('title')[0]
+      .innerHTML = currentFile
+
+    modeName = switch currentFile.match(/[./\\](\w+)$/)?[1]
+      when 'coffee', 'Cakefile'           then 'coffee'
+      when 'css'                          then 'css'
+      when 'html'                         then 'html'
+      when 'js'                           then 'javascript'
+      when 'json'                         then 'json'
+      when 'rb', 'ru', 'rake', 'Rakefile' then 'ruby'
+      else                                     'text'
+    require ["ace/mode/#{modeName}"], (mode) ->
+      editor.session.setMode new mode.Mode()
+      editor.session.setUseSoftTabs true
+      editor.session.setTabSize 2
 
 file = menu.Menu(
   parent: ui.getMenu()
