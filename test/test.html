@@ -22,20 +22,37 @@
     <script type="text/coffeescript">
       @eq = strictEqual
 
-      CoffeeScript.load "#{name}.coffee" for name in [
-        'jim'
-        'ace/commands'
-        'ace/motions'
-        'ace/operators'
-        'ace/insert_mode'
-        'ace/visual_mode'
-        'modes/normal'
-        'modes/visual'
-      ]
+      require ['ace/edit_session', 'ace/editor', 'ace/test/mockrenderer', 'jim/ace/module', 'text!test/fixtures/sort_by.js'], ->
+        @EditSession = require('ace/edit_session').EditSession
+        @Editor = require('ace/editor').Editor
+        @MockRenderer = require 'ace/test/mockrenderer'
+        @aceModule = require 'jim/ace/module'
+
+        @MockRenderer::setStyle = (->)
+        @MockRenderer::unsetStyle = (->)
+
+        @js_code = require 'text!test/fixtures/sort_by.js'
+
+        @currentLine = (editor) ->
+          editor.selection.doc.getLine editor.selection.selectionLead.row
+
+        @cursorPositionAfter = (editor, command) ->
+          editor.onTextInput(char) for char in command
+          editor.getCursorPosition()
+
+        CoffeeScript.load "#{name}.coffee" for name in [
+          'ace/commands'
+          'ace/motions'
+          'ace/operators'
+          'ace/insert_mode'
+          'ace/visual_mode'
+          'modes/normal'
+          'modes/visual'
+        ]
     </script>
   </head>
   <body>
-    <h1 id="qunit-header">QUnit example</h1>
+    <h1 id="qunit-header">Jim's tests</h1>
     <h2 id="qunit-banner"></h2>
     <div id="qunit-testrunner-toolbar"></div>
     <h2 id="qunit-userAgent"></h2>
