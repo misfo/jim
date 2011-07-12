@@ -19,6 +19,15 @@ test 'D', ->
   @editor.onTextInput 'D'
   eq currentLine(@editor), "_.sortBy = "
 
+test 'I', ->
+  @editor.onTextInput c for c in 'Istart'
+  @editor.onCommandKey {}, 0, 27 # esc
+  eq currentLine(@editor)[0..5], 'start_'
+
+  @editor.onTextInput c for c in 'jIstart'
+  @editor.onCommandKey {}, 0, 27 # esc
+  eq currentLine(@editor)[0..7], '  startr'
+
 test 'p', ->
   @editor.onTextInput c for c in 'y3l2p'
   eq currentLine(@editor), "__.s_.s.sortBy = function(obj, iterator, context) {"
