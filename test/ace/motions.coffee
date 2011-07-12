@@ -87,6 +87,9 @@ test 'b', ->
   deepEqual cursorPositionAfter(@editor, 'b'), row: 2, column: 11
   deepEqual cursorPositionAfter(@editor, '17b'), row: 1, column: 16
 
+test '$', ->
+  deepEqual cursorPositionAfter(@editor, '$'), row: 0, column: 44
+
 test '0', ->
   @editor.navigateTo 0, 7
   deepEqual cursorPositionAfter(@editor, '0'), row: 0, column: 0

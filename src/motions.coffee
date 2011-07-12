@@ -149,6 +149,9 @@ define (require, exports, module) ->
       exclusive: true
       move: (jim) -> jim.adaptor.moveTo jim.adaptor.row(), 0
 
+    '\$': new Motion
+      move: (jim) -> jim.adaptor.moveToLineEnd()
+
     G: new Motion
       linewise: true
       move: (jim, count) ->

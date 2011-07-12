@@ -51,13 +51,16 @@ define (require, exports, module) ->
 
     moveTo: (row, column) -> @editor.moveCursorTo row, column
 
+    moveToLineEnd: ->
+      {row, column} = @editor.selection.selectionLead
+      position = @editor.session.getDocumentLastRowColumnPosition row, column
+      @moveTo position.row, position.column - 1
     moveToEndOfPreviousLine: ->
       previousRow = @row() - 1
       previousRowLength = @editor.session.doc.getLine(previousRow).length
       @editor.selection.moveCursorTo previousRow, previousRowLength
 
     navigateFileEnd:   -> @editor.navigateFileEnd()
-    navigateLineEnd:   -> @editor.navigateLineEnd()
     navigateLineStart: -> @editor.navigateLineStart()
 
     deleteSelection: ->
