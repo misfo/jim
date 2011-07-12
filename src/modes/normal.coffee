@@ -33,8 +33,10 @@ define (require, exports, module) ->
     if @insertTransition
       switch @insertTransition
         when 'a' then @adaptor.moveRight true
-        when 'A' then @adaptor.moveToLineEnd()
-        when 'C' then motions['\$'].change this
+        when 'A'
+          motions['$'].move this
+          @adaptor.moveRight true
+        when 'C' then motions['$'].change this
         when 'o', 'O'
           row = @adaptor.row() + (if @insertTransition is 'o' then 1 else 0)
           @adaptor.insertNewLine row
@@ -49,7 +51,7 @@ define (require, exports, module) ->
         @adaptor.setSelectionAnchor()
         @setMode 'visual:characterwise'
     else if deleteCommand
-      motions['\$'].delete this
+      motions['$'].delete this
     else if motion
       motionObj = motions[motion]
       switch @operator

@@ -3,10 +3,14 @@ module 'Ace: commands',
     @editor = new Editor(new MockRenderer(), new EditSession js_code)
     @jim = aceModule.startup env: {editor: @editor}
 
+test 'A', ->
+  @editor.onTextInput c for c in 'Aend'
+  eq currentLine(@editor)[-3..-1], 'end'
+
 test 'C', ->
   @editor.navigateTo 0, 11
 
-  @editor.onTextInput(char) for char in 'Cawesomes'.split ''
+  @editor.onTextInput(char) for char in 'Cawesomes'
   eq currentLine(@editor), "_.sortBy = awesomes"
 
 test 'D', ->
@@ -32,7 +36,7 @@ test 'X', ->
   eq currentLine(@editor), "    return{"
   @editor.onTextInput 'X'
   eq currentLine(@editor), "    retur{"
-  @editor.onTextInput(char) for char in '9X'.split ''
+  @editor.onTextInput(char) for char in '9X'
   eq currentLine(@editor), "{"
   @editor.onTextInput 'X'
   eq currentLine(@editor), "{"
