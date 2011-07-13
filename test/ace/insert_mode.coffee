@@ -1,15 +1,10 @@
 module 'Ace: insert mode',
-  setup: ->
-    @editor = new Editor(new MockRenderer(), new EditSession js_code)
-    @jim = aceModule.startup env: {editor: @editor}
+  setup: setupAceTests
   
 test 'leaves the cursor in the right spot', ->
-  @editor.onTextInput c for c in 'Wi'
-  @editor.onCommandKey {}, 0, 27 # esc
-  deepEqual @editor.getCursorPosition(), row: 0, column: 8
-  @editor.onTextInput 'i'
-  @editor.onCommandKey {}, 0, 27 # esc
-  deepEqual @editor.getCursorPosition(), row: 0, column: 7
-  @editor.onTextInput 'a'
-  @editor.onCommandKey {}, 0, 27 # esc
-  deepEqual @editor.getCursorPosition(), row: 0, column: 7
+  @press 'Wi', @esc
+  deepEqual @adaptor.position(), [0, 8]
+  @press 'i', @esc
+  deepEqual @adaptor.position(), [0, 7]
+  @press 'a', @esc
+  deepEqual @adaptor.position(), [0, 7]

@@ -1,38 +1,34 @@
 module 'Ace: operators',
-  setup: ->
-    @editor = new Editor(new MockRenderer(), new EditSession js_code)
-    @jim = aceModule.startup env: {editor: @editor}
+  setup: setupAceTests
   
 test 'c', ->
-  @editor.onTextInput(char) for char in 'cWsorta'
-  @editor.onCommandKey {}, 0, 27 # esc
-  eq currentLine(@editor), "sorta = function(obj, iterator, context) {"
+  @press 'cWsorta', @esc
+  eq @adaptor.lineText(), "sorta = function(obj, iterator, context) {"
 
-  @editor.navigateTo 0, 21
-  @editor.onTextInput(char) for char in 'c4bfunky('
-  @editor.onCommandKey {}, 0, 27 # esc
-  eq currentLine(@editor), "sorta = funky( iterator, context) {"
+  @adaptor.moveTo 0, 21
+  @press 'c4bfunky(', @esc
+  eq @adaptor.lineText(), "sorta = funky( iterator, context) {"
 
-  eq @editor.session.doc.getLength(), 16
-  @editor.navigateTo 6, 0
-  @editor.onTextInput(char) for char in 'ckkablammo!'
-  eq currentLine(@editor), "kablammo!"
-  eq @editor.session.doc.getLength(), 15
+  eq @adaptor.lastRow(), 15
+  @adaptor.moveTo 6, 0
+  @press 'ckkablammo!'
+  eq @adaptor.lineText(), "kablammo!"
+  eq @adaptor.lastRow(), 14
 
 test 'd', ->
-  @editor.navigateTo 0, 11
-  @editor.onTextInput char for char in 'd11W'
-  eq currentLine(@editor), "_.sortBy = {"
+  @adaptor.moveTo 0, 11
+  @press 'd11W'
+  eq @adaptor.lineText(), "_.sortBy = {"
 
-  eq @editor.session.doc.getLength(), 14
-  @editor.onTextInput char for char in 'dj'
-  eq @editor.session.doc.getLength(), 12
+  eq @adaptor.lastRow(), 13
+  @press 'dj'
+  eq @adaptor.lastRow(), 11
 
 test 'y', ->
-  @editor.onTextInput(char) for char in 'y3W'
+  @press 'y3W'
   eq @jim.registers['"'], "_.sortBy = function(obj, "
 
-  @editor.onTextInput(char) for char in 'yj'
+  @press 'yj'
   eq @jim.registers['"'], """
     _.sortBy = function(obj, iterator, context) {
       return _.pluck(_.map(obj, function(value, index, list) {

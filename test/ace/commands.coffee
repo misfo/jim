@@ -1,64 +1,58 @@
 module 'Ace: commands',
-  setup: ->
-    @editor = new Editor(new MockRenderer(), new EditSession js_code)
-    @jim = aceModule.startup env: {editor: @editor}
+  setup: setupAceTests
 
 test 'A', ->
-  @editor.onTextInput c for c in 'Aend'
-  eq currentLine(@editor)[-3..-1], 'end'
+  @press 'Aend'
+  eq @adaptor.lineText()[-3..-1], 'end'
 
 test 'C', ->
-  @editor.navigateTo 0, 11
+  @adaptor.moveTo 0, 11
 
-  @editor.onTextInput(char) for char in 'Cawesomes'
-  eq currentLine(@editor), "_.sortBy = awesomes"
+  @press 'Cawesomes'
+  eq @adaptor.lineText(), "_.sortBy = awesomes"
 
 test 'D', ->
-  @editor.navigateTo 0, 11
+  @adaptor.moveTo 0, 11
 
-  @editor.onTextInput 'D'
-  eq currentLine(@editor), "_.sortBy = "
+  @press 'D'
+  eq @adaptor.lineText(), "_.sortBy = "
 
 test 'I', ->
-  @editor.onTextInput c for c in 'Istart'
-  @editor.onCommandKey {}, 0, 27 # esc
-  eq currentLine(@editor)[0..5], 'start_'
+  @press 'Istart', @esc
+  eq @adaptor.lineText()[0..5], 'start_'
 
-  @editor.onTextInput c for c in 'jIstart'
-  @editor.onCommandKey {}, 0, 27 # esc
-  eq currentLine(@editor)[0..7], '  startr'
+  @press 'jIstart', @esc
+  eq @adaptor.lineText()[0..7], '  startr'
 
 test 'p', ->
-  @editor.onTextInput c for c in 'y3l2p'
-  eq currentLine(@editor), "__.s_.s.sortBy = function(obj, iterator, context) {"
+  @press 'y3l2p'
+  eq @adaptor.lineText(), "__.s_.s.sortBy = function(obj, iterator, context) {"
 
 test 'x', ->
-  @editor.onTextInput 'x'
-  eq currentLine(@editor), ".sortBy = function(obj, iterator, context) {"
-  @editor.onTextInput c for c in '3x'
-  eq currentLine(@editor), "rtBy = function(obj, iterator, context) {"
+  @press 'x'
+  eq @adaptor.lineText(), ".sortBy = function(obj, iterator, context) {"
+  @press '3x'
+  eq @adaptor.lineText(), "rtBy = function(obj, iterator, context) {"
 
 test 'X', ->
-  @editor.navigateTo 2, 11
+  @adaptor.moveTo 2, 11
 
-  @editor.onTextInput 'X'
-  eq currentLine(@editor), "    return{"
-  @editor.onTextInput 'X'
-  eq currentLine(@editor), "    retur{"
-  @editor.onTextInput(char) for char in '9X'
-  eq currentLine(@editor), "{"
-  @editor.onTextInput 'X'
-  eq currentLine(@editor), "{"
+  @press 'X'
+  eq @adaptor.lineText(), "    return{"
+  @press 'X'
+  eq @adaptor.lineText(), "    retur{"
+  @press '9X'
+  eq @adaptor.lineText(), "{"
+  @press 'X'
+  eq @adaptor.lineText(), "{"
 
 test 'o,O', ->
-  @editor.onTextInput c for c in 'Onew line'
-  @editor.onCommandKey {}, 0, 27 # esc
-  eq currentLine(@editor), "new line"
-  eq @editor.selection.selectionLead.row, 0
-  eq @editor.session.doc.getLength(), 17
+  @press 'Onew line', @esc
+  eq @adaptor.lineText(), "new line"
+  eq @adaptor.row(), 0
+  eq @adaptor.lastRow(), 16
 
-  @editor.onTextInput c for c in 'oanother line'
-  @editor.onCommandKey {}, 0, 27 # esc
-  eq currentLine(@editor), 'another line'
-  eq @editor.selection.selectionLead.row, 1
-  eq @editor.session.doc.getLength(), 18
+  @press 'oanother line', @esc
+  eq @adaptor.lineText(), 'another line'
+  eq @adaptor.row(), 1
+  eq @adaptor.lastRow(), 17

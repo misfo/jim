@@ -28,17 +28,23 @@
         @MockRenderer = require 'ace/test/mockrenderer'
         @aceModule = require 'jim/ace/module'
 
-        @MockRenderer::setStyle = (->)
-        @MockRenderer::unsetStyle = (->)
+        MockRenderer::setStyle = (->)
+        MockRenderer::unsetStyle = (->)
 
         @js_code = require 'text!test/fixtures/sort_by.js'
 
-        @currentLine = (editor) ->
-          editor.selection.doc.getLine editor.selection.selectionLead.row
-
-        @cursorPositionAfter = (editor, command) ->
-          editor.onTextInput(char) for char in command
-          editor.getCursorPosition()
+        @setupAceTests = ->
+          editor = new Editor(new MockRenderer(), new EditSession js_code)
+          @jim = aceModule.startup env: {editor}
+          @adaptor = @jim.adaptor
+          @esc = 27
+          @press = (keyGroups...) ->
+            for keys in keyGroups
+              switch typeof keys
+                when 'number'
+                  editor.onCommandKey {}, 0, keys
+                when 'string'
+                  editor.onTextInput char for char in keys
 
         CoffeeScript.load "#{name}.coffee" for name in [
           'ace/commands'
@@ -46,8 +52,6 @@
           'ace/operators'
           'ace/insert_mode'
           'ace/visual_mode'
-          'modes/normal'
-          'modes/visual'
         ]
     </script>
   </head>
