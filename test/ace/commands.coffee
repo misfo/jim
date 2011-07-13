@@ -33,6 +33,8 @@ test 'x', ->
   eq @adaptor.lineText(), ".sortBy = function(obj, iterator, context) {"
   @press '3x'
   eq @adaptor.lineText(), "rtBy = function(obj, iterator, context) {"
+  @press '$x'
+  eq @adaptor.lineText(), "rtBy = function(obj, iterator, context) "
 
 test 'X', ->
   @adaptor.moveTo 2, 11
