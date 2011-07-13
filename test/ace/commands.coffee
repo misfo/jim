@@ -28,6 +28,14 @@ test 'p', ->
   @press 'y3l2p'
   eq @adaptor.lineText(), "__.s_.s.sortBy = function(obj, iterator, context) {"
 
+test 's', ->
+  @press 'sunderscore', @esc
+  eq @adaptor.lineText(), "underscore.sortBy = function(obj, iterator, context) {"
+  @press '3sy', @esc
+  eq @adaptor.lineText(), "yerscore.sortBy = function(obj, iterator, context) {"
+  @press '$sdo', @esc
+  eq @adaptor.lineText(), "yerscore.sortBy = function(obj, iterator, context) do"
+
 test 'x', ->
   @press 'x'
   eq @adaptor.lineText(), ".sortBy = function(obj, iterator, context) {"

@@ -11,7 +11,7 @@ define (require, exports, module) ->
       ([1-9]\d*)?        # count (multiplier, line number, ...)
       (?:
         (#{motions.regex.source})|
-        ([[pPxXu])       # multipliable commands
+        ([[pPsxXu])      # multipliable commands
       )?
     )
     $
@@ -65,6 +65,7 @@ define (require, exports, module) ->
           text = new Array((count or 1) + 1).join @registers['"']
           after = multipliableCommand is "p"
           @adaptor.insert text, after
+        when 's' then motions['l'].change this, count
         when "x", "X"
           deleteMotion = if multipliableCommand is 'X' then 'h' else 'l'
           motions[deleteMotion].delete this, count
