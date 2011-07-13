@@ -23,15 +23,15 @@
       @eq = strictEqual
 
       require ['ace/edit_session', 'ace/editor', 'ace/test/mockrenderer', 'jim/ace/module', 'text!test/fixtures/sort_by.js'], ->
-        @EditSession = require('ace/edit_session').EditSession
-        @Editor = require('ace/editor').Editor
-        @MockRenderer = require 'ace/test/mockrenderer'
-        @aceModule = require 'jim/ace/module'
+        EditSession = require('ace/edit_session').EditSession
+        Editor = require('ace/editor').Editor
+        MockRenderer = require 'ace/test/mockrenderer'
+        aceModule = require 'jim/ace/module'
 
         MockRenderer::setStyle = (->)
         MockRenderer::unsetStyle = (->)
 
-        @js_code = require 'text!test/fixtures/sort_by.js'
+        js_code = require 'text!test/fixtures/sort_by.js'
 
         @setupAceTests = ->
           editor = new Editor(new MockRenderer(), new EditSession js_code)
