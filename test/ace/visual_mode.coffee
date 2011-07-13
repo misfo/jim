@@ -8,5 +8,4 @@ test 'motions', ->
 
   @press 'v2ly'
   eq @jim.registers['"'], 'etu'
-  # this fails, leaves the cursor in the wrong position
-  #deepEqual @adaptor.position(), [0, 0]
+  deepEqual @adaptor.position(), [0, 0]

@@ -20,6 +20,9 @@ test 'j', ->
   deepEqual @adaptor.position(), [2, 0]
   @press '12j'
   deepEqual @adaptor.position(), [14, 0]
+
+  # this will fail, but it seems to be an issue with Ace thinking there's another line
+  # where there shouldn't be...
   #@press 'j'
   #deepEqual @adaptor.position(), [14, 0]
 
