@@ -6,7 +6,7 @@ test 'c', ->
   eq @adaptor.lineText(), "sorta = function(obj, iterator, context) {"
 
   @adaptor.moveTo 0, 21
-  @press 'c4bfunky(', @esc
+  @press '2c2bfunky(', @esc
   eq @adaptor.lineText(), "sorta = funky( iterator, context) {"
 
   eq @adaptor.lastRow(), 15
@@ -34,3 +34,6 @@ test 'y', ->
       return _.pluck(_.map(obj, function(value, index, list) {
 
   """
+
+  @press '$hy4l'
+  eq @jim.registers['"'], ' {'

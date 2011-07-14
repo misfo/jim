@@ -25,8 +25,9 @@ test 'I', ->
   eq @adaptor.lineText()[0..7], '  startr'
 
 test 'p', ->
-  @press 'y3l2p'
-  eq @adaptor.lineText(), "__.s_.s.sortBy = function(obj, iterator, context) {"
+  @jim.registers['"'] = '!?'
+  @press '2p'
+  eq @adaptor.lineText(), "_!?!?.sortBy = function(obj, iterator, context) {"
 
 test 's', ->
   @press 'sunderscore', @esc
