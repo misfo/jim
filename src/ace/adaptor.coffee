@@ -32,6 +32,12 @@ define (require, exports, module) ->
     insertNewLine: (row) ->
       @editor.session.doc.insertNewLine row: row, column: 0
 
+    adjustAnchor: (columnOffset) ->
+      {row, column} = @editor.selection.getSelectionAnchor()
+      @editor.selection.setSelectionAnchor row, column + columnOffset
+
+    isSelectionBackwards: -> @editor.selection.isBackwards()
+
     lastRow: -> @editor.session.getDocument().getLength() - 1
 
     lineText: (lineNumber) -> @editor.selection.doc.getLine lineNumber ? @row()

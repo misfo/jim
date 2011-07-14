@@ -24,7 +24,14 @@ define (require, exports, module) ->
     continueBuffering = false
 
     if motion
+      wasBackwards = @adaptor.isSelectionBackwards()
+
       motions[motion].move this, count
+
+      if wasBackwards
+        @adaptor.adjustAnchor -1 if not @adaptor.isSelectionBackwards()
+      else
+        @adaptor.adjustAnchor 1 if @adaptor.isSelectionBackwards()
     else if operator
       switch operator
         when 'c', 'd'

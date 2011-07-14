@@ -9,3 +9,11 @@ test 'motions', ->
   @press 'v2ly'
   eq @jim.registers['"'], 'etu'
   deepEqual @adaptor.position(), [0, 0]
+
+test 'making a backwards selection', ->
+  @press 'Wvhhy'
+  eq @jim.registers['"'], 'y ='
+
+test 'transition from a backwards selection to forwards', ->
+  @press 'Wvhllly'
+  eq @jim.registers['"'], '= f'
