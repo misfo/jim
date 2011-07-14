@@ -32,9 +32,9 @@ test 's', ->
   @press 'sunderscore', @esc
   eq @adaptor.lineText(), "underscore.sortBy = function(obj, iterator, context) {"
   @press '3sy', @esc
-  eq @adaptor.lineText(), "yerscore.sortBy = function(obj, iterator, context) {"
+  eq @adaptor.lineText(), "underscoryortBy = function(obj, iterator, context) {"
   @press '$sdo', @esc
-  eq @adaptor.lineText(), "yerscore.sortBy = function(obj, iterator, context) do"
+  eq @adaptor.lineText(), "underscoryortBy = function(obj, iterator, context) do"
 
 test 'x', ->
   @press 'x'
