@@ -44,11 +44,10 @@ define (require, exports, module) ->
         when 'I' then @adaptor.navigateLineStart()
       @setMode 'insert'
     else if visualTransition
+      @adaptor.setSelectionAnchor()
       if visualTransition is 'V'
-        @adaptor.selectLine()
         @setMode 'visual:linewise'
       else
-        @adaptor.setSelectionAnchor()
         @setMode 'visual:characterwise'
     else if deleteCommand
       motions['$'].delete this

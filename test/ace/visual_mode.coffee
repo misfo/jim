@@ -17,3 +17,12 @@ test 'making a backwards selection', ->
 test 'transition from a backwards selection to forwards', ->
   @press 'Wvhllly'
   eq @jim.registers['"'], '= f'
+
+test 'linewise selections', ->
+  @press 'lllVjd'
+  eq @adaptor.lastRow(), 13
+  eq @adaptor.lineText(), "    return {"
+
+  @press 'jjjV2kd'
+  eq @adaptor.lastRow(), 10
+  eq @adaptor.row(), 1

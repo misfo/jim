@@ -4,10 +4,16 @@ define (require, exports, module) ->
   JimUndoManager = require 'jim/ace/jim_undo_manager'
 
   require('pilot/dom').importCssString """
-    .jim-normal-mode div.ace_cursor, .jim-visual-mode div.ace_cursor {
+    .jim-normal-mode div.ace_cursor
+    , .jim-visual-characterwise-mode div.ace_cursor
+    , .jim-visual-linewise-mode div.ace_cursor {
       border: 0;
       background-color: #91FF00;
       opacity: 0.5;
+    }
+    .jim-visual-linewise-mode .ace_marker-layer .ace_selection {
+      left: 0 !important;
+      width: 100% !important;
     }
   """
 
@@ -42,11 +48,12 @@ define (require, exports, module) ->
 
     # this is executed before the action is
     jim.onModeChange = (prevMode) ->
-      for mode in ['insert', 'normal', 'visual']
-        if ///^#{mode}///.test @modeName
-          editor.setStyle "jim-#{mode}-mode"
+      for mode in ['insert', 'normal', 'visual:characterwise', 'visual:linewise']
+        className = "jim-#{mode.replace(/\W/, '-')}-mode"
+        if mode is @modeName
+          editor.setStyle className
         else
-          editor.unsetStyle "jim-#{mode}-mode"
+          editor.unsetStyle className
 
       if @modeName is 'insert'
         undoManager.markInsertStartPoint(editor.session)
