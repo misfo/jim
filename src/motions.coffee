@@ -89,16 +89,13 @@ define (require, exports, module) ->
       timesLeft = count ? 1
       @moveOnce.call jim while timesLeft--
     change: (jim, count) ->
-      jim.adaptor.setSelectionAnchor()
-      @move jim, count
-      adjustSelection.call this, jim
-      jim.adaptor.moveToEndOfPreviousLine() if @linewise
-      jim.deleteSelection @exclusive, @linewise
+      @delete jim, count, true
       jim.setMode 'insert'
-    delete: (jim, count) ->
+    delete: (jim, count, change) ->
       jim.adaptor.setSelectionAnchor()
       @move jim, count
       adjustSelection.call this, jim
+      jim.adaptor.moveToEndOfPreviousLine() if change and @linewise
       jim.deleteSelection @exclusive, @linewise
     yank: (jim, count) ->
       jim.adaptor.setSelectionAnchor()
@@ -125,6 +122,11 @@ define (require, exports, module) ->
     l: new Motion
       exclusive: true
       moveOnce: -> @adaptor.moveRight()
+      delete: (jim, count) ->
+        jim.adaptor.setSelectionAnchor()
+        timesLeft = count ? 1
+        jim.adaptor.moveRight true while timesLeft--
+        jim.deleteSelection @exclusive, @linewise
 
     W: new Motion
       exclusive: true
