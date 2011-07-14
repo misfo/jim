@@ -33,14 +33,16 @@ define (require, exports, module) ->
       else
         @adaptor.adjustAnchor 1 if @adaptor.isSelectionBackwards()
     else if operator
-      @adaptor.makeLinewise() if @modeName is 'visual:linewise'
+      if @modeName is 'visual:linewise'
+        @adaptor.makeLinewise()
+      else
+        @adaptor.includeCursorInSelection()
+
       switch operator
         when 'c', 'd'
-          @adaptor.includeCursorInSelection() unless @modeName is 'visual:linewise'
           @deleteSelection()
           @setMode if operator is 'c' then 'insert' else 'normal'
         when 'y'
-          @adaptor.includeCursorInSelection()
           @yankSelection()
           @setMode 'normal'
     else
