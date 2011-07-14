@@ -29,7 +29,7 @@ test 'y', ->
   eq @jim.registers['"'], "_.sortBy = function(obj, "
 
   @press 'yj'
-  eq @jim.registers['"'], """
+  eq @jim.registers['"'].replace(/\r\n/gm, "\n"), """
     _.sortBy = function(obj, iterator, context) {
       return _.pluck(_.map(obj, function(value, index, list) {
 
