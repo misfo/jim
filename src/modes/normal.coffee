@@ -65,10 +65,11 @@ define (require, exports, module) ->
       switch command
         when 'D'
           motions['$'].delete this, count
-        when "p", "P"
-          text = new Array((count or 1) + 1).join @registers['"']
-          after = command is "p"
-          @adaptor.insert text, after
+        when 'p', 'P'
+          if registerValue = @registers['"']
+            text = new Array((count or 1) + 1).join registerValue
+            after = command is "p"
+            @adaptor.insert text, after
         when 's' then motions['l'].change this, count
         when "x", "X"
           deleteMotion = if command is 'X' then 'h' else 'l'
