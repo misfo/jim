@@ -166,6 +166,25 @@ define (require, exports, module) ->
       linewise: true
       move: (jim, count) -> motions['G'].move jim, count ? 1
 
+    '/': new Motion
+      exclusive: true
+      move: (jim, count) ->
+        timesLeft = count ? 1
+        needle = prompt("Find:")
+        jim.adaptor.find(needle) while timesLeft--
+
+    n: new Motion
+      excusive: true
+      move: (jim, count) ->
+        timesLeft = count ? 1
+        jim.adaptor.findNext() while timesLeft--
+
+    N: new Motion
+      excusive: true
+      move: (jim, count) ->
+        timesLeft = count ? 1
+        jim.adaptor.findPrevious() while timesLeft--
+
   singleChar = []
   dualChar = []
   for own k, v of motions
