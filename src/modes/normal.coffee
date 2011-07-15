@@ -5,11 +5,10 @@ define (require, exports, module) ->
     ^
     ([iaoOIAC])|         # insert mode switch
     ([vV])|              # visual mode switch
-    (D)|                 # delete to end of line command
     (?:
       ([1-9]\d*)?        # count (multiplier, line number, ...)
       (?:
-        ([pPsxXu])|      # commands
+        ([DpPsxXu])|     # commands
         ([cdy]{2})|      # linewise commands
         (?:
           ([cdy])?       # operators
@@ -28,7 +27,7 @@ define (require, exports, module) ->
       @onEscape()
       return
 
-    [fullMatch, insertSwitch, visualSwitch, deleteCommand, countMatch, command,
+    [fullMatch, insertSwitch, visualSwitch, countMatch, command,
       linewiseCommand, operator, motionCountMatch, motion] = match
     count       = parseInt(countMatch) or null
     motionCount = parseInt(motionCountMatch) or null
@@ -54,8 +53,6 @@ define (require, exports, module) ->
         @setMode 'visual:linewise'
       else
         @setMode 'visual:characterwise'
-    else if deleteCommand
-      motions['$'].delete this
     else if motion
       motionObj = motions[motion]
       motionCount = (count or 1) * (motionCount or 1) if count or motionCount
@@ -66,6 +63,8 @@ define (require, exports, module) ->
         else          motionObj.move   this, motionCount
     else if command
       switch command
+        when 'D'
+          motions['$'].delete this, count
         when "p", "P"
           text = new Array((count or 1) + 1).join @registers['"']
           after = command is "p"

@@ -158,6 +158,9 @@ test '$', ->
   @press '$'
   deepEqual @adaptor.position(), [0, 44]
 
+  @press '3$'
+  deepEqual @adaptor.position(), [2, 11]
+
 test '0', ->
   @adaptor.moveTo 0, 7
   @press '0'

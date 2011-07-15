@@ -149,7 +149,10 @@ define (require, exports, module) ->
     '^': new Motion
       move: (jim) -> jim.moveToFirstNonBlank()
     $: new Motion
-      move: (jim) -> jim.adaptor.moveToLineEnd()
+      move: (jim, count) ->
+        additionalLines = (count ? 1) - 1
+        motions['j'].move jim, additionalLines if additionalLines
+        jim.adaptor.moveToLineEnd()
 
     G: new Motion
       linewise: true
