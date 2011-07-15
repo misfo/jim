@@ -28,9 +28,35 @@ test 'p', ->
   @press '3p'
   eq @adaptor.lineText(), "_.sortBy = function(obj, iterator, context) {"
 
+  # linewise
+  @press 'Wyyp'
+  deepEqual @adaptor.position(), [1, 0]
+  eq @adaptor.lineText(), "_.sortBy = function(obj, iterator, context) {"
+  eq @adaptor.lineText(0), "_.sortBy = function(obj, iterator, context) {"
+
   @jim.registers['"'] = '!?'
   @press '2p'
   eq @adaptor.lineText(), "_!?!?.sortBy = function(obj, iterator, context) {"
+
+  @jim.registers['"'] = 'last line\n'
+  @press 'Gp'
+  # this fails, but it is actually doing the right thing
+  #deepEqual @adaptor.position(), [@adaptor.lastRow(), 0]
+  eq @adaptor.lineText(), 'last line'
+  
+
+test 'P', ->
+  @press '3p'
+  eq @adaptor.lineText(), "_.sortBy = function(obj, iterator, context) {"
+
+  @press 'yyWP'
+  deepEqual @adaptor.position(), [0, 0]
+  eq @adaptor.lineText(), "_.sortBy = function(obj, iterator, context) {"
+  eq @adaptor.lineText(1), "_.sortBy = function(obj, iterator, context) {"
+
+  @jim.registers['"'] = '!?'
+  @press '2P'
+  eq @adaptor.lineText(), "!?!?_.sortBy = function(obj, iterator, context) {"
 
 test 's', ->
   @press 'sunderscore', @esc

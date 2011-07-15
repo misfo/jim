@@ -69,7 +69,23 @@ define (require, exports, module) ->
           if registerValue = @registers['"']
             text = new Array((count or 1) + 1).join registerValue
             after = command is "p"
-            @adaptor.insert text, after
+            linewiseRegister = /\n$/.test registerValue
+            if linewiseRegister
+              row = @adaptor.row() + (if after then 1 else 0)
+              lastRow = @adaptor.lastRow()
+              if row > lastRow
+                # we have to move the line ending to the begining of the string
+                [wholeString, beforeLineEnding, lineEnding] = /^([\s\S]*)(\r?\n)$/.exec text
+                text = lineEnding + beforeLineEnding
+
+                column = @adaptor.lineText(lastRow).length - 1
+                @adaptor.moveTo row, column
+              else
+                @adaptor.moveTo row, 0
+              @adaptor.insert text
+              @adaptor.moveTo row, 0
+            else
+              @adaptor.insert text, after
         when 's' then motions['l'].change this, count
         when "x", "X"
           deleteMotion = if command is 'X' then 'h' else 'l'
