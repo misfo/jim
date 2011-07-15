@@ -174,13 +174,13 @@ define (require, exports, module) ->
         jim.adaptor.find(needle) while timesLeft--
 
     n: new Motion
-      excusive: true
+      exclusive: true
       move: (jim, count) ->
         timesLeft = count ? 1
         jim.adaptor.findNext() while timesLeft--
 
     N: new Motion
-      excusive: true
+      exclusive: true
       move: (jim, count) ->
         timesLeft = count ? 1
         jim.adaptor.findPrevious() while timesLeft--
