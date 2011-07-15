@@ -157,11 +157,26 @@ define (require, exports, module) ->
     G: new Motion
       linewise: true
       move: (jim, count) ->
-        lineNumber = count ? jim.adaptor.lastRow()
+        lineNumber = count ? jim.adaptor.lastRow() + 1
         lineText = jim.adaptor.lineText lineNumber-1
         column = /\S/.exec(lineText)?.index or 0
         jim.adaptor.moveTo lineNumber-1, column
 
-  motions.regex = ///[#{(k for own k, v of motions).join ''}]///
+    gg: new Motion
+      linewise: true
+      move: (jim, count) -> motions['G'].move jim, count ? 1
+
+  singleChar = []
+  dualChar = []
+  for own k, v of motions
+    switch k.length
+      when 1 then singleChar.push k 
+      # second character is optional (because of partial matches)
+      when 2 then dualChar.push "#{k}?"
+  motions.regex = ///
+    [#{(c for c in singleChar).join ''}]
+    |
+    #{(c for c in dualChar).join '|'}
+  ///
 
   motions

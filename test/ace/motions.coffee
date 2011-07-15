@@ -170,6 +170,12 @@ test 'G', ->
   @press '3G'
   deepEqual @adaptor.position(), [2, 4]
   @press 'G'
-  deepEqual @adaptor.position(), [14, 0]
+  deepEqual @adaptor.position(), [15, 0]
   @press '1G'
+  deepEqual @adaptor.position(), [0, 0]
+
+test 'gg', ->
+  @press '4gg'
+  deepEqual @adaptor.position(), [3, 6]
+  @press 'gg'
   deepEqual @adaptor.position(), [0, 0]

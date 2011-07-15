@@ -53,8 +53,7 @@ define (require, exports, module) ->
         @setMode 'visual:linewise'
       else
         @setMode 'visual:characterwise'
-    else if motion
-      motionObj = motions[motion]
+    else if motion and motionObj = motions[motion]
       motionCount = (count or 1) * (motionCount or 1) if count or motionCount
       switch operator
         when 'c' then motionObj.change this, motionCount
