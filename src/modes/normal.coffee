@@ -3,11 +3,11 @@ define (require, exports, module) ->
 
   regex = ///
     ^
-    ([iaoOIAC])|         # insert mode switch
     ([vV])|              # visual mode switch
     (?:
       ([1-9]\d*)?        # count (multiplier, line number, ...)
       (?:
+        ([iaoOIAC])|     # insert mode switch
         ([DpPsxXu])|     # commands
         ([cdy]{2})|      # linewise commands
         (?:
@@ -27,7 +27,7 @@ define (require, exports, module) ->
       @onEscape()
       return
 
-    [fullMatch, insertSwitch, visualSwitch, countMatch, command,
+    [fullMatch, visualSwitch, countMatch, insertSwitch, command,
       linewiseCommand, operator, motionCountMatch, motion] = match
     count       = parseInt(countMatch) or null
     motionCount = parseInt(motionCountMatch) or null
@@ -40,7 +40,7 @@ define (require, exports, module) ->
         when 'A'
           motions['$'].move this
           @adaptor.moveRight true
-        when 'C' then motions['$'].change this
+        when 'C' then motions['$'].change this, count
         when 'o', 'O'
           row = @adaptor.row() + (if insertSwitch is 'o' then 1 else 0)
           @adaptor.insertNewLine row
