@@ -10,6 +10,7 @@ define (require, exports, module) ->
       ([1-9]\d*)?        # count (multiplier, line number, ...)
       (?:
         ([pPsxXu])|      # commands
+        ([cdy]{2})|      # linewise commands
         (?:
           ([cdy])?       # operators
           ([1-9]\d*)?    # count (multiplier, line number, ...)
@@ -27,22 +28,22 @@ define (require, exports, module) ->
       @onEscape()
       return
 
-    [fullMatch, @insertSwitch, visualSwitch, deleteCommand, countMatch, command,
-      @operator, motionCountMatch, motion] = match
+    [fullMatch, insertSwitch, visualSwitch, deleteCommand, countMatch, command,
+      linewiseCommand, operator, motionCountMatch, motion] = match
     count       = parseInt(countMatch) or null
     motionCount = parseInt(motionCountMatch) or null
 
     continueBuffering = false
 
-    if @insertSwitch
-      switch @insertSwitch
+    if insertSwitch
+      switch insertSwitch
         when 'a' then @adaptor.moveRight true
         when 'A'
           motions['$'].move this
           @adaptor.moveRight true
         when 'C' then motions['$'].change this
         when 'o', 'O'
-          row = @adaptor.row() + (if @insertSwitch is 'o' then 1 else 0)
+          row = @adaptor.row() + (if insertSwitch is 'o' then 1 else 0)
           @adaptor.insertNewLine row
           @adaptor.moveTo row, 0
         when 'I' then @adaptor.navigateLineStart()
@@ -58,7 +59,7 @@ define (require, exports, module) ->
     else if motion
       motionObj = motions[motion]
       motionCount = (count or 1) * (motionCount or 1) if count or motionCount
-      switch @operator
+      switch operator
         when 'c' then motionObj.change this, motionCount
         when 'd' then motionObj.delete this, motionCount
         when 'y' then motionObj.yank   this, motionCount
@@ -76,6 +77,23 @@ define (require, exports, module) ->
         when "u"
           timesLeft = count ? 1
           @adaptor.undo() while timesLeft--
+    else if linewiseCommand
+      startingPosition = @adaptor.position()
+      @adaptor.setSelectionAnchor()
+      additionalLines = (count or 1) - 1
+      motions['j'].move this, additionalLines if additionalLines
+      @adaptor.makeLinewise()
+      switch linewiseCommand
+        when 'cc'
+          @adaptor.moveToEndOfPreviousLine()
+          @deleteSelection()
+          @setMode 'insert'
+        when 'dd'
+          @deleteSelection()
+          @moveToFirstNonBlank()
+        when 'yy'
+          @yankSelection()
+          @adaptor.moveTo startingPosition...
     else
       continueBuffering = true
 

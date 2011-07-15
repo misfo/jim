@@ -22,6 +22,9 @@
     <script type="text/coffeescript">
       @eq = strictEqual
 
+      # makes windows line endings into normal people line endings
+      @endings = (str) -> str.replace(/\r\n/mg, "\n")
+
       require [
         'ace/edit_session'
         'ace/editor'

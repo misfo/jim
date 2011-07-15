@@ -32,6 +32,12 @@ define (require, exports, module) ->
       console.log '@buffer', @buffer
       @mode.execute.call this
 
+    moveToFirstNonBlank: (row) ->
+      row ?= @adaptor.row()
+      line = @adaptor.lineText row
+      column = /\S/.exec(line)?.index or 0
+      @adaptor.moveTo row, column
+
     deleteSelection: (exclusive, linewise) ->
       @registers['"'] = @adaptor.deleteSelection exclusive, linewise
     yankSelection: (exclusive, linewise) ->

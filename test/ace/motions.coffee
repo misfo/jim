@@ -144,6 +144,16 @@ test 'b', ->
   @press '17b'
   deepEqual @adaptor.position(), [1, 16]
 
+test '^', ->
+  @press '^'
+  deepEqual @adaptor.position(), [0, 0]
+
+  @press 'j^'
+  deepEqual @adaptor.position(), [1, 2]
+
+  @press '2W^'
+  deepEqual @adaptor.position(), [1, 2]
+
 test '$', ->
   @press '$'
   deepEqual @adaptor.position(), [0, 44]

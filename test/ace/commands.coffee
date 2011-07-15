@@ -69,3 +69,37 @@ test 'o,O', ->
   eq @adaptor.lineText(), 'another line'
   eq @adaptor.row(), 1
   eq @adaptor.lastRow(), 17
+
+test 'cc', ->
+  @press 'ccdifferent line', @esc
+  eq @adaptor.lineText(), 'different line'
+  deepEqual @adaptor.position(), [0, 13], 'cc should leave the cursor at the end of the insert'
+  eq @adaptor.lastRow(), 15
+
+  @press '2ccbetter', @esc
+  eq @adaptor.lineText(), 'better'
+  deepEqual @adaptor.position(), [0, 5], 'cc should leave the cursor at the end of the insert'
+  eq @adaptor.lineText(1), '    return {'
+  eq @adaptor.lastRow(), 14
+
+test 'dd', ->
+  @press '2Wdd'
+  deepEqual @adaptor.position(), [0, 2], 'dd should leave the cursor on the first non-blank after the deletion'
+  eq @adaptor.lastRow(), 14
+
+  @press '3dd'
+  deepEqual @adaptor.position(), [0, 6], 'dd should leave the cursor on the first non-blank after the deletion'
+  eq @adaptor.lastRow(), 11
+
+test 'yy', ->
+  @press 'Wyy'
+  deepEqual @adaptor.position(), [0, 9], "yy should leave the cursor where it started"
+  eq endings(@jim.registers['"']), "_.sortBy = function(obj, iterator, context) {\n"
+
+  @press '2yy'
+  deepEqual @adaptor.position(), [0, 9], "yy should leave the cursor where it started"
+  eq endings(@jim.registers['"']), """
+    _.sortBy = function(obj, iterator, context) {
+      return _.pluck(_.map(obj, function(value, index, list) {
+
+  """
