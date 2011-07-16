@@ -38,6 +38,29 @@ TODO for first "version"
 
 Known issues
 ------------
-* linewise visual mode's selection can disappear when selecting only one line
-* Jim can get in a weird state when clicking/highlighting (i.e. highlighting
-  something with the mouse should switch Jim to visual mode)
+Take a gander at the [issue tracker](https://github.com/misfo/jim/issues)
+
+Hack
+----
+```
+git clone git://github.com/misfo/jim.git
+git submodule update --init --recursive
+```
+
+Then just open index.html and you're good to go.
+
+Chrome needs a special command line argument to allow XHRs to files:
+`google-chrome --allow-file-access-from-files`
+
+Open test/test.html to run the tests
+
+Chromeless (experimental)
+-------------------------
+Jim can be run as a [Chromeless](https://github.com/mozilla/chromeless)
+app that has (very) basic Open/Save file capabilities.  Once you've
+installed Chromeless just point it at Jim's directory:
+`~/code/chromless/chromeless ~/code/jim/`
+and you're set.  Chromeless is very experimental and the file capabilities
+that Jim has are only kinda tested, so keep any files you're editing in
+Git.  If it eats your file or slaps your grandma, don't say you weren't
+warned...
