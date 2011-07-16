@@ -79,27 +79,45 @@ define (require, exports, module) ->
 
     @adaptor.moveTo row, column
 
+  nextColumnWithChar = (char, count) ->
+    timesLeft = count ? 1
+    [row, column] = @adaptor.position()
+    rightOfCursor = @adaptor.lineText().substring column + 1
+    columnsRight = 0
+    while timesLeft--
+      columnsRight = rightOfCursor.indexOf(char, columnsRight) + 1
+    [row, column + columnsRight] if columnsRight
+
+  lastColumnWithChar = (char, count) ->
+    timesLeft = count ? 1
+    [row, column] = @adaptor.position()
+    leftOfCursor = @adaptor.lineText().substring 0, column
+    targetColumn = column
+    while timesLeft--
+      targetColumn = leftOfCursor.lastIndexOf(char, targetColumn - 1)
+    [row, targetColumn] if 0 <= targetColumn < column
+
   class Motion
     constructor: (props) ->
       this[key] = value for own key, value of props
       @linewise  ?= false
       @exclusive ?= false
 
-    move: (jim, count, operation) ->
+    move: (jim, count, options, operation) ->
       timesLeft = count ? 1
-      @moveOnce.call jim, operation while timesLeft--
-    change: (jim, count) ->
-      @delete jim, count, 'change'
+      @moveOnce.call jim, options, operation while timesLeft--
+    change: (jim, count, options) ->
+      @delete jim, count, options, 'change'
       jim.setMode 'insert'
-    delete: (jim, count, operation) ->
+    delete: (jim, count, options, operation) ->
       jim.adaptor.setSelectionAnchor()
-      @move jim, count, operation ? 'delete'
+      @move jim, count, options, operation ? 'delete'
       adjustSelection.call this, jim
       jim.adaptor.moveToEndOfPreviousLine() if operation is 'change' and @linewise
       jim.deleteSelection @exclusive, @linewise
-    yank: (jim, count) ->
+    yank: (jim, count, options) ->
       jim.adaptor.setSelectionAnchor()
-      @move jim, count, 'yank'
+      @move jim, count, options, 'yank'
       adjustSelection.call this, jim
       jim.yankSelection @exclusive, @linewise
 
@@ -109,7 +127,7 @@ define (require, exports, module) ->
       else if not @exclusive
         jim.adaptor.includeCursorInSelection()
 
-  motions =
+  simpleMotions =
     h: new Motion
       exclusive: true
       moveOnce: -> @adaptor.moveLeft()
@@ -121,12 +139,12 @@ define (require, exports, module) ->
       moveOnce: -> @adaptor.moveUp()
     l: new Motion
       exclusive: true
-      moveOnce: (operation) -> @adaptor.moveRight operation?
+      moveOnce: (options, operation) -> @adaptor.moveRight operation?
 
     W: new Motion
       exclusive: true
       moveOnce: -> moveNextWord.call this, WORDRegex()
-      change: (jim, count) -> motions['E'].change jim, count
+      change: (jim, count) -> simpleMotions['E'].change jim, count
     E: new Motion
       moveOnce: -> moveWordEnd.call this, WORDRegex()
     B: new Motion
@@ -135,7 +153,7 @@ define (require, exports, module) ->
     w: new Motion
       exclusive: true
       moveOnce: -> moveNextWord.call this, wordRegex()
-      change: (jim, count) -> motions['e'].change jim, count
+      change: (jim, count) -> simpleMotions['e'].change jim, count
     e: new Motion
       moveOnce: -> moveWordEnd.call this, wordRegex()
     b: new Motion
@@ -151,7 +169,7 @@ define (require, exports, module) ->
     $: new Motion
       move: (jim, count) ->
         additionalLines = (count ? 1) - 1
-        motions['j'].move jim, additionalLines if additionalLines
+        simpleMotions['j'].move jim, additionalLines if additionalLines
         jim.adaptor.moveToLineEnd()
 
     G: new Motion
@@ -164,7 +182,7 @@ define (require, exports, module) ->
 
     gg: new Motion
       linewise: true
-      move: (jim, count) -> motions['G'].move jim, count ? 1
+      move: (jim, count) -> simpleMotions['G'].move jim, count ? 1
 
     '/': new Motion
       exclusive: true
@@ -185,17 +203,68 @@ define (require, exports, module) ->
         timesLeft = count ? 1
         jim.adaptor.findPrevious() while timesLeft--
 
+  # these motions have their own capture groups in the regex and need to be
+  # handled separately
+  otherMotions =
+    f: new Motion
+      move: (jim, count, options) ->
+        position = nextColumnWithChar.call jim, options.char, count
+        jim.adaptor.moveTo position... if position
+    F: new Motion
+      move: (jim, count, options) ->
+        position = lastColumnWithChar.call jim, options.char, count
+        jim.adaptor.moveTo position... if position
+    t: new Motion
+      move: (jim, count, options) ->
+        position = nextColumnWithChar.call jim, options.char, count
+        jim.adaptor.moveTo position[0], position[1] - 1 if position
+    T: new Motion
+      move: (jim, count, options) ->
+        position = lastColumnWithChar.call jim, options.char, count
+        jim.adaptor.moveTo position[0], position[1] + 1 if position
+
   singleChar = []
   dualChar = []
-  for own k, v of motions
+  for own k, v of simpleMotions
     switch k.length
       when 1 then singleChar.push k 
       # second character is optional (because of partial matches)
       when 2 then dualChar.push "#{k}?"
-  motions.regex = ///
-    [#{(c for c in singleChar).join ''}]
-    |
-    #{(c for c in dualChar).join '|'}
-  ///
 
-  motions
+  regex: ///
+      ([1-9]\d*)?    # count (multiplier, line number, ...)
+      (?:
+        (
+          # simple motions
+          [#{(c for c in singleChar).join ''}]|
+          #{(c for c in dualChar).join '|'}
+        )|
+        ([fFtT])(.)?   # navigate to char
+      )
+    ///
+
+  move: (jim, keys, operatorCount) -> @execute(jim, null, keys, operatorCount)
+
+  execute: (jim, operator, matchOrKeys, operatorCount) ->
+    if typeof matchOrKeys is 'string'
+      simpleMatch = matchOrKeys
+    else
+      [fullMatch, count, simpleMatch, motionToChar, char] = matchOrKeys
+
+    if simpleMatch
+      motion = simpleMotions[simpleMatch]
+    else if char
+      motion = otherMotions[motionToChar]
+      options = {char}
+
+    if motion
+      count = (parseInt(count) or 1) * (operatorCount or 1) if count or operatorCount
+      switch operator
+        when 'c' then motion.change jim, count, options
+        when 'd' then motion.delete jim, count, options
+        when 'y' then motion.yank   jim, count, options
+        else          motion.move   jim, count, options
+
+      false
+    else
+      !!fullMatch

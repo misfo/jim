@@ -18,15 +18,15 @@ define (require, exports, module) ->
       @onEscape()
       return
 
-    [fullMatch, countMatch, motion, operator] = match
+    [fullMatch, countMatch, motionMatch..., operator] = match
     count = parseInt(countMatch) or null
 
     continueBuffering = false
 
-    if motion
+    if motionMatch[0]
       wasBackwards = @adaptor.isSelectionBackwards()
 
-      motions[motion].move this, count
+      motions.move this, motionMatch, count
 
       if wasBackwards
         @adaptor.adjustAnchor -1 if not @adaptor.isSelectionBackwards()

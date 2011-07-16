@@ -12,7 +12,6 @@ define (require, exports, module) ->
         ([cdy]{2})|      # linewise commands
         (?:
           ([cdy])?       # operators
-          ([1-9]\d*)?    # count (multiplier, line number, ...)
           (#{motions.regex.source})?
         )
       )?
@@ -28,9 +27,8 @@ define (require, exports, module) ->
       return
 
     [fullMatch, visualSwitch, countMatch, insertSwitch, command,
-      linewiseCommand, operator, motionCountMatch, motion] = match
-    count       = parseInt(countMatch) or null
-    motionCount = parseInt(motionCountMatch) or null
+      linewiseCommand, operator, motionMatch...] = match
+    count = parseInt(countMatch) or null
 
     continueBuffering = false
 
@@ -38,14 +36,14 @@ define (require, exports, module) ->
       switch insertSwitch
         when 'a' then @adaptor.moveRight true
         when 'A'
-          motions['$'].move this
+          motions.move this, '$'
           @adaptor.moveRight true
-        when 'C' then motions['$'].change this, count
+        when 'C' then motions.execute this, 'c', '$', count
         when 'o', 'O'
           row = @adaptor.row() + (if insertSwitch is 'o' then 1 else 0)
           @adaptor.insertNewLine row
           @adaptor.moveTo row, 0
-        when 'I' then @adaptor.navigateLineStart()
+        when 'I' then motions.move this, '^'
       @setMode 'insert'
     else if visualSwitch
       @adaptor.setSelectionAnchor()
@@ -53,17 +51,12 @@ define (require, exports, module) ->
         @setMode 'visual:linewise'
       else
         @setMode 'visual:characterwise'
-    else if motion and motionObj = motions[motion]
-      motionCount = (count or 1) * (motionCount or 1) if count or motionCount
-      switch operator
-        when 'c' then motionObj.change this, motionCount
-        when 'd' then motionObj.delete this, motionCount
-        when 'y' then motionObj.yank   this, motionCount
-        else          motionObj.move   this, motionCount
+    else if motionMatch[0]
+      continueBuffering = motions.execute this, operator, motionMatch, count
     else if command
       switch command
         when 'D'
-          motions['$'].delete this, count
+          motions.execute this, 'd', '$', count
         when 'p', 'P'
           if registerValue = @registers['"']
             text = new Array((count or 1) + 1).join registerValue
@@ -85,10 +78,10 @@ define (require, exports, module) ->
               @adaptor.moveTo row, 0
             else
               @adaptor.insert text, after
-        when 's' then motions['l'].change this, count
+        when 's' then motions.execute this, 'c', 'l', count
         when "x", "X"
           deleteMotion = if command is 'X' then 'h' else 'l'
-          motions[deleteMotion].delete this, count
+          motions.execute this, 'd', deleteMotion, count
         when "u"
           timesLeft = count ? 1
           @adaptor.undo() while timesLeft--
@@ -96,7 +89,7 @@ define (require, exports, module) ->
       startingPosition = @adaptor.position()
       @adaptor.setSelectionAnchor()
       additionalLines = (count or 1) - 1
-      motions['j'].move this, additionalLines if additionalLines
+      motions.move this, 'j', additionalLines if additionalLines
       @adaptor.makeLinewise()
       switch linewiseCommand
         when 'cc'

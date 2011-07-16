@@ -179,3 +179,55 @@ test 'gg', ->
   deepEqual @adaptor.position(), [3, 6]
   @press 'gg'
   deepEqual @adaptor.position(), [0, 0]
+
+test 'f', ->
+  @press 'fz'
+  deepEqual @adaptor.position(), [0, 0]
+
+  @press '2f('
+  deepEqual @adaptor.position(), [0, 0]
+
+  @press 'fu' # hahaha
+  deepEqual @adaptor.position(), [0, 12]
+
+  @press '2f,'
+  deepEqual @adaptor.position(), [0, 33]
+
+test 't', ->
+  @press 'tz'
+  deepEqual @adaptor.position(), [0, 0]
+
+  @press '2t('
+  deepEqual @adaptor.position(), [0, 0]
+
+  @press 'tu'
+  deepEqual @adaptor.position(), [0, 11]
+
+  @press '2t,'
+  deepEqual @adaptor.position(), [0, 32]
+
+test 'F', ->
+  @press '$Fz'
+  deepEqual @adaptor.position(), [0, 44]
+
+  @press '2F)'
+  deepEqual @adaptor.position(), [0, 44]
+
+  @press 'F)'
+  deepEqual @adaptor.position(), [0, 42]
+
+  @press '2F,'
+  deepEqual @adaptor.position(), [0, 23]
+
+test 'T', ->
+  @press '$Tz'
+  deepEqual @adaptor.position(), [0, 44]
+
+  @press '2T)'
+  deepEqual @adaptor.position(), [0, 44]
+
+  @press 'T)'
+  deepEqual @adaptor.position(), [0, 43]
+
+  @press '2T,'
+  deepEqual @adaptor.position(), [0, 24]
