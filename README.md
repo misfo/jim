@@ -44,6 +44,7 @@ Hack
 ----
 ```
 git clone git://github.com/misfo/jim.git
+cd jim
 git submodule update --init --recursive
 ```
 
@@ -59,8 +60,11 @@ Chromeless (experimental)
 Jim can be run as a [Chromeless](https://github.com/mozilla/chromeless)
 app that has (very) basic Open/Save file capabilities.  Once you've
 installed Chromeless just point it at Jim's directory:
-`~/code/chromless/chromeless ~/code/jim/`
-and you're set.  Chromeless is very experimental and the file capabilities
+```
+~/code/chromless/chromeless ~/code/jim/
+```
+
+Chromeless is very experimental and the file capabilities
 that Jim has are only kinda tested, so keep any files you're editing in
 Git.  If it eats your file or slaps your grandma, don't say you weren't
 warned...
