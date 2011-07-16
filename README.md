@@ -23,6 +23,8 @@ What works so far
 
 TODO for first "version"
 ------------------------
+* `H`, `M`, `L`
+* `?`
 * `p` from visual mode
 * `>`, `<` operators
 * `;`
