@@ -205,7 +205,7 @@ define (require, exports, module) ->
 
   # these motions have their own capture groups in the regex and need to be
   # handled separately
-  otherMotions =
+  toCharMotions =
     f: new Motion
       move: (jim, count, options) ->
         position = nextColumnWithChar.call jim, options.char, count
@@ -254,7 +254,7 @@ define (require, exports, module) ->
     if simpleMatch
       motion = simpleMotions[simpleMatch]
     else if char
-      motion = otherMotions[motionToChar]
+      motion = toCharMotions[motionToChar]
       options = {char}
 
     if motion
