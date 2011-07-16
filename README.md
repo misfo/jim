@@ -10,17 +10,32 @@ same undo stack as Ace so that its Undo/Redo keybindings are left unchanged.
 
 What works so far
 -----------------
-Not a whole lot beyond basic movements and insert mode so far.  This will get
-updated once it's in a more usable state.
+* modes: normal, visual, insert
+* insert switches: `i`, `a`, `o`, `O`, `I`, `A`, and `C`
+* commands: `D`, `p`, `P`, `s`, `x`, `X`, and `u`
+* operators: `c`, `d`, and `y` in normal and visual modes (double operators work
+  as linewise commands in normal mode, too)
+* motions: `h`, `j`, `k`, `l`, `W`, `E`, `B`, `w`, `e`, `b`, `0`, `^`, `$`, `G`,
+  `gg`, `/`, `n`, `N`, `f`, `F`, `t`, and `T` (`/`, `n`, and `N` don't work with
+  operators yet)
+* default register (operations yank text in the the register for pasting)
+* `u` works as it does in Vim (`Cmd-z` and `Cmd-y` still work as they do in Ace)
 
+TODO for first "version"
+------------------------
+* `p` from visual mode
+* `>`, `<` operators
+* `;`
+* `r`, `R`
+* `J`, `gJ`
+* `*`, `#`
+* `ctrl-r`
+* `.` command for non-insert command (inserts are a bit more complicated to
+  implement)
+* fully docco'ed source
 
-TODO
-----
-* linewise visual mode
-* `c`, `d`, `y`, `~`, `g~`, `gu`, `gU`, `>`, and `<` operators (for normal &
-visual modes)
-* registers (including explicit "x registers)
-* more movements (including `w`, `W`, `b`, `B` that is consistent with Vim's
-ideas of words and WORDs)
-* `u`/`ctrl-r` (with a granularity matching Vim's)
-* `.` command
+Known issues
+------------
+* linewise visual mode's selection can disappear when selecting only one line
+* Jim can get in a weird state when clicking/highlighting (i.e. highlighting
+  something with the mouse should switch Jim to visual mode)
