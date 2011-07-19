@@ -26,7 +26,9 @@ define (require, exports, module) ->
     if motionMatch[0]
       wasBackwards = @adaptor.isSelectionBackwards()
 
-      motions.move this, motionMatch, count
+      jim = this
+      @adaptor.moveSelection ->
+        motions.move jim, motionMatch, count
 
       if wasBackwards
         @adaptor.adjustAnchor -1 if not @adaptor.isSelectionBackwards()

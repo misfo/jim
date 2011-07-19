@@ -47,6 +47,8 @@ define (require, exports, module) ->
       @editor.selection.setSelectionAnchor Math.min(anchorRow, leadRow), 0
       @editor.selection.moveCursorTo Math.max(anchorRow, leadRow) + 1, 0
 
+    moveSelection: (mover) -> @editor.selection.$moveSelection mover
+
     moveUp:   -> @editor.selection.moveCursorBy -1, 0
     moveDown: -> @editor.selection.moveCursorBy 1, 0
     moveLeft: ->

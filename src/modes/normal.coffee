@@ -46,7 +46,6 @@ define (require, exports, module) ->
         when 'I' then motions.move this, '^'
       @setMode 'insert'
     else if visualSwitch
-      @adaptor.setSelectionAnchor()
       if visualSwitch is 'V'
         @setMode 'visual:linewise'
       else
