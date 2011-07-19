@@ -1,3 +1,6 @@
 [submodule "vendor/ace"]
 	path = vendor/ace
 	url = git://github.com/ajaxorg/ace.git
+[submodule "vendor/pilot"]
+	path = vendor/pilot
+	url = git://github.com/ajaxorg/pilot.git

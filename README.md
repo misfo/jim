@@ -44,7 +44,7 @@ Hack
 ```
 git clone git://github.com/misfo/jim.git
 cd jim
-git submodule update --init --recursive
+git submodule update --init
 ```
 
 Then just open index.html and you're good to go.

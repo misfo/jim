@@ -3,7 +3,7 @@ require
     root: "."
     jim: "./lib"
     ace: "./vendor/ace/lib/ace"
-    pilot: "./vendor/ace/support/pilot/lib/pilot"
+    pilot: "./vendor/pilot/lib/pilot"
     text: "./vendor/text"
 
 fileToEdit  = 'README.md'
