@@ -83,10 +83,6 @@ define (require, exports, module) ->
       @editor.selection.moveCursorRight() if after and not beyondLineEnd(@editor)
       @editor.insert text if text
 
-    selectLine: -> @editor.selection.selectLine()
-
-    selectToLineEnd: -> @editor.selection.selectLineEnd()
-
     emptySelection: -> @editor.selection.isEmpty()
 
     selectionText: -> @editor.getCopyText()
