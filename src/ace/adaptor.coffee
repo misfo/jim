@@ -70,9 +70,8 @@ define (require, exports, module) ->
     navigateFileEnd:   -> @editor.navigateFileEnd()
     navigateLineStart: -> @editor.navigateLineStart()
 
-    find: (text)  -> @editor.find text
-    findNext:     -> @editor.findNext()
-    findPrevious: -> @editor.findPrevious()
+    findNext:     (pattern) -> @editor.findNext(needle: pattern)
+    findPrevious: (pattern) -> @editor.findPrevious(needle: pattern)
 
     deleteSelection: ->
       yank = @editor.getCopyText()

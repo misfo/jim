@@ -189,8 +189,8 @@ define (require, exports, module) ->
       move: (jim, count) ->
         timesLeft = count ? 1
         pattern = prompt("Find:")
-        jim.search = {pattern}
-        jim.adaptor.find(pattern) while timesLeft--
+        jim.search = {pattern, backwards: false}
+        jim.adaptor.findNext pattern while timesLeft--
 
     '?': new Motion
       exclusive: true
@@ -198,7 +198,7 @@ define (require, exports, module) ->
         timesLeft = count ? 1
         pattern = prompt("Find:")
         jim.search = {pattern, backwards: true}
-        jim.adaptor.find(pattern) while timesLeft--
+        jim.adaptor.findPrevious pattern while timesLeft--
 
     n: new Motion
       exclusive: true
@@ -206,7 +206,7 @@ define (require, exports, module) ->
         return if not jim.search
         timesLeft = count ? 1
         func = if jim.search.backwards then 'findPrevious' else 'findNext'
-        jim.adaptor[func]() while timesLeft--
+        jim.adaptor[func] jim.search.pattern while timesLeft--
 
     N: new Motion
       exclusive: true
@@ -214,7 +214,7 @@ define (require, exports, module) ->
         return if not jim.search
         timesLeft = count ? 1
         func = if jim.search.backwards then 'findNext' else 'findPrevious'
-        jim.adaptor[func]() while timesLeft--
+        jim.adaptor[func] jim.search.pattern while timesLeft--
 
   # these motions have their own capture groups in the regex and need to be
   # handled separately
