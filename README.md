@@ -16,14 +16,13 @@ What works so far
 * operators: `c`, `d`, and `y` in normal and visual modes (double operators work
   as linewise commands in normal mode, too)
 * motions: `h`, `j`, `k`, `l`, `W`, `E`, `B`, `w`, `e`, `b`, `0`, `^`, `$`, `G`,
-  `gg`, `/`, `?`, `n`, `N`, `f`, `F`, `t`, and `T` (`/`, `?`, `n`, and `N` don't
-  work with operators yet)
+  `gg`, `H`, `M`, `L` `/`, `?`, `n`, `N`, `f`, `F`, `t`, and `T` (`/`, `?`, `n`,
+  and `N` don't work with operators yet)
 * default register (operations yank text in the the register for pasting)
 * `u` works as it does in Vim (`Cmd-z` and `Cmd-y` still work as they do in Ace)
 
 TODO for first "version"
 ------------------------
-* `H`, `M`, `L`
 * `p` from visual mode
 * `>`, `<` operators
 * `;`
