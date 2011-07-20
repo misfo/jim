@@ -3,10 +3,13 @@ define (require, exports, module) ->
 
   regex = ///
     ^
-    ([1-9]\d*)?                  # count (multiplier, line number, ...)
+    ([1-9]\d*)?                    # count (multiplier, line number, ...)
     (?:
-      (#{motions.regex.source})|
-      ([ydc])                    # operators
+      ([pP])|                      # commands
+      (?:
+        (#{motions.regex.source})|
+        ([ydc])                    # operators
+      )
     )?
     $
   ///
@@ -18,7 +21,7 @@ define (require, exports, module) ->
       @onEscape()
       return
 
-    [fullMatch, countMatch, motionMatch..., operator] = match
+    [fullMatch, countMatch, command, motionMatch..., operator] = match
     count = parseInt(countMatch) or null
 
     continueBuffering = false
@@ -32,6 +35,18 @@ define (require, exports, module) ->
         @adaptor.adjustAnchor -1 if not @adaptor.isSelectionBackwards()
       else
         @adaptor.adjustAnchor 1 if @adaptor.isSelectionBackwards()
+    else if command
+      switch command
+        when 'p', 'P'
+          registerValue = @registers['"']
+          @adaptor.includeCursorInSelection()
+          if registerValue
+            textToPaste = new Array((count or 1) + 1).join registerValue
+            @deleteSelection()
+            @adaptor.insert textToPaste
+          else
+            @yankSelection()
+          @setMode 'normal'
     else if operator
       if @modeName is 'visual:linewise'
         @adaptor.makeLinewise()

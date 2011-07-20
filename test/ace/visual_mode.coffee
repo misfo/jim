@@ -26,3 +26,11 @@ test 'linewise selections', ->
   @press 'jjjV2kd'
   eq @adaptor.lastRow(), 10
   eq @adaptor.row(), 1
+
+test 'p, P', ->
+  # p and P do the same thing in visual mode
+  @press 'xlvep'
+  eq @adaptor.lineText(), '._ = function(obj, iterator, context) {'
+
+  @press 'wv3P'
+  eq @adaptor.lineText(), '._ sortBysortBysortBy function(obj, iterator, context) {'

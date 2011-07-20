@@ -13,6 +13,7 @@ What works so far
 * modes: normal, visual, insert
 * insert switches: `i`, `a`, `o`, `O`, `I`, `A`, and `C`
 * commands: `D`, `p`, `P`, `s`, `x`, `X`, and `u`
+* visual mode commands: `p` and `P`
 * operators: `c`, `d`, and `y` in normal and visual modes (double operators work
   as linewise commands in normal mode, too)
 * motions: `h`, `j`, `k`, `l`, `W`, `E`, `B`, `w`, `e`, `b`, `0`, `^`, `$`, `G`,
@@ -23,7 +24,6 @@ What works so far
 
 TODO for first "version"
 ------------------------
-* `p` from visual mode
 * `>`, `<` operators
 * `;`
 * `r`, `R`
