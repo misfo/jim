@@ -13,7 +13,7 @@ define (require, exports, module) ->
     clearBuffer: -> @buffer = @operator = ''
 
     setMode: (modeName) ->
-      console.log 'setMode', modeName
+      console.log 'setMode', modeName if @debugMode
       prevModeName = @modeName
       @clearBuffer()
       return if modeName is prevModeName
@@ -29,7 +29,7 @@ define (require, exports, module) ->
 
     onKeypress: (key) ->
       @buffer += key
-      console.log '@buffer', @buffer
+      console.log '@buffer', @buffer if @debugMode
       @mode.execute.call this
 
     moveToFirstNonBlank: (row) ->

@@ -13,7 +13,8 @@ fileRequire = "text!root/#{fileToEdit}"
 require ['ace/ace', 'jim/ace/module', fileRequire, 'ace/theme/idle_fingers'], ->
   require.ready ->
     @editor = require('ace/ace').edit 'editor'
-    require('jim/ace/module').startup env: {editor}
+    jim = require('jim/ace/module').startup env: {editor}
+    jim.debugMode = true
     editor.session.setValue require(fileRequire)
     editor.setTheme require('ace/theme/idle_fingers')
 
