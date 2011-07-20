@@ -231,3 +231,24 @@ test 'T', ->
 
   @press '2T,'
   deepEqual @adaptor.position(), [0, 24]
+
+test ';', ->
+  @press 'fo'
+  deepEqual @adaptor.position(), [0, 3]
+
+  @press ';'
+  deepEqual @adaptor.position(), [0, 17]
+
+  @press '2;'
+  deepEqual @adaptor.position(), [0, 31]
+
+test ',', ->
+  @press '5fo'
+  deepEqual @adaptor.position(), [0, 36]
+
+  @press ','
+  deepEqual @adaptor.position(), [0, 31]
+
+  @press '2,'
+  deepEqual @adaptor.position(), [0, 17]
+
