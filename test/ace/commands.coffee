@@ -132,3 +132,17 @@ test 'yy', ->
       return _.pluck(_.map(obj, function(value, index, list) {
 
   """
+
+test 'r', ->
+  @press 'r$'
+  eq @adaptor.lineText(), '$.sortBy = function(obj, iterator, context) {'
+  deepEqual @adaptor.position(), [0, 0]
+
+  @press '3rz'
+  eq @adaptor.lineText(), 'zzzortBy = function(obj, iterator, context) {'
+  deepEqual @adaptor.position(), [0, 2]
+
+  ok not @jim.registers['"']
+
+  #TODO
+  #@press 'r', @enter

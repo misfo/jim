@@ -12,7 +12,7 @@ What works so far
 -----------------
 * modes: normal, visual, insert
 * insert switches: `i`, `a`, `o`, `O`, `I`, `A`, and `C`
-* commands: `D`, `p`, `P`, `s`, `x`, `X`, and `u`
+* commands: `D`, `p`, `P`, `r`, `s`, `x`, `X`, and `u`
 * visual mode commands: `p` and `P`
 * operators: `c`, `d`, and `y` in normal and visual modes (double operators work
   as linewise commands in normal mode, too)
@@ -25,12 +25,12 @@ What works so far
 TODO for first "version"
 ------------------------
 * `>`, `<` operators
-* `;`
-* `r`, `R`
+* `;`, `,`
+* `R` replace mode (will just switch to Ace's replace mode)
 * `J`, `gJ`
 * `*`, `#`
 * `ctrl-r`
-* `.` command for non-insert command (inserts are a bit more complicated to
+* `.` command for non-insert commands (inserts are a bit more complicated to
   implement)
 * fully docco'ed source
 
