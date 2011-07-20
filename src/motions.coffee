@@ -184,6 +184,26 @@ define (require, exports, module) ->
       linewise: true
       move: (jim, count) -> simpleMotions['G'].move jim, count ? 1
 
+    H: new Motion
+      linewise: true
+      move: (jim, count) ->
+        line = jim.adaptor.firstFullyVisibleRow() + (count ? 1)
+        simpleMotions['G'].move jim, line
+
+    M: new Motion
+      linewise: true
+      move: (jim, count) ->
+        topRow = jim.adaptor.firstFullyVisibleRow()
+        lines = jim.adaptor.lastFullyVisibleRow() - topRow
+        linesFromTop = lines / 2
+        simpleMotions['G'].move jim, topRow + 1 + linesFromTop
+
+    L: new Motion
+      linewise: true
+      move: (jim, count) ->
+        line = jim.adaptor.lastFullyVisibleRow() + 2 - (count ? 1)
+        simpleMotions['G'].move jim, line
+
     '/': new Motion
       exclusive: true
       move: (jim, count) ->

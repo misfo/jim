@@ -25,6 +25,9 @@ define (require, exports, module) ->
     row:      -> @editor.selection.selectionLead.row
     position: -> [@row(), @column()]
 
+    firstFullyVisibleRow: -> @editor.renderer.getFirstFullyVisibleRow()
+    lastFullyVisibleRow:  -> @editor.renderer.getLastFullyVisibleRow()
+
     includeCursorInSelection: ->
       if not @editor.selection.isBackwards()
         @editor.selection.selectRight() unless beyondLineEnd(@editor)
