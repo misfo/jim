@@ -25,7 +25,6 @@ What works so far
 TODO for first "version"
 ------------------------
 * `>`, `<` operators
-* `;`, `,`
 * `R` replace mode (will just switch to Ace's replace mode)
 * `J`, `gJ`
 * `*`, `#`
