@@ -142,7 +142,15 @@ test 'r', ->
   eq @adaptor.lineText(), 'zzzortBy = function(obj, iterator, context) {'
   deepEqual @adaptor.position(), [0, 2]
 
-  ok not @jim.registers['"']
+  @press 'r\n'
+  eq @adaptor.lineText(0), 'zz'
+  eq @adaptor.lineText(), 'ortBy = function(obj, iterator, context) {'
+  deepEqual @adaptor.position(), [1, 0]
 
-  #TODO
-  #@press 'r', @enter
+  @press '3r\n'
+  # three chars should be replaced with only one newline
+  eq @adaptor.lineText(1), ''
+  eq @adaptor.lineText(), 'By = function(obj, iterator, context) {'
+  deepEqual @adaptor.position(), [2, 0]
+
+  ok not @jim.registers['"']

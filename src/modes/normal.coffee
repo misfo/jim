@@ -9,7 +9,7 @@ define (require, exports, module) ->
       (?:
         ([iaoOIAC])|     # insert mode switch
         ([DpPsxXu])|     # commands
-        (?:r(.)?)|       # replace char command
+        (?:r([\s\S])?)|  # replace char command
         ([cdy]{2})|      # linewise commands
         (?:
           ([cdy])?       # operators
@@ -91,7 +91,10 @@ define (require, exports, module) ->
       @adaptor.setSelectionAnchor()
       motions.move this, 'l', count or 1
       @adaptor.deleteSelection() # don't yank
-      replacementText = new Array((count or 1) + 1).join replacementChar
+      replacementText = if /^\r?\n$/.test replacementChar
+        replacementChar
+      else
+        new Array((count or 1) + 1).join replacementChar
       @adaptor.insert replacementText
       motions.move this, 'h'
     else if linewiseCommand
