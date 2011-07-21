@@ -10,7 +10,7 @@ define (require, exports, module) ->
         ([iaoOIAC])|     # insert mode switch
         ([DpPsxXu])|     # commands
         (?:r([\s\S])?)|  # replace char command
-        ([cdy]{2})|      # linewise commands
+        (cc|dd|yy)|      # linewise commands
         (?:
           ([cdy])?       # operators
           (#{motions.regex.source})?
