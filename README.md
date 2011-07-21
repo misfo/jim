@@ -10,13 +10,13 @@ same undo stack as Ace so that its Undo/Redo keybindings are left unchanged.
 
 What works so far
 -----------------
-* modes: normal, visual, insert
+* modes: normal, visual (characterwise and linewise), insert
 * insert switches: `i`, `a`, `o`, `O`, `I`, `A`, and `C`
 * commands: `D`, `p`, `P`, `r`, `s`, `x`, `X`, and `u`
 * visual mode commands: `p` and `P`
 * operators: `c`, `d`, and `y` in normal and visual modes (double operators work
   as linewise commands in normal mode, too)
-* motions
+* motions (can be used with counts and/or operators, and in visual mode)
   * `h`, `j`, `k`, `l`
   * `W`, `E`, `B`, `w`, `e`, `b`
   * `0`, `^`, `$`
