@@ -9,6 +9,7 @@ define (require, exports, module) ->
       (?:
         ([iaoOIAC])|     # insert mode switch
         ([DpPsxXu])|     # commands
+        (g?J)|           # join command
         (?:r([\s\S])?)|  # replace char command
         (cc|dd|yy)|      # linewise commands
         (?:
@@ -28,7 +29,7 @@ define (require, exports, module) ->
       return
 
     [fullMatch, visualSwitch, countMatch, insertSwitch, command,
-      replacementChar, linewiseCommand, operator,
+      joinCommand, replacementChar, linewiseCommand, operator,
       motionMatch...] = match
     count = parseInt(countMatch) or null
 
@@ -87,6 +88,15 @@ define (require, exports, module) ->
         when "u"
           timesLeft = count ? 1
           @adaptor.undo() while timesLeft--
+    else if joinCommand
+      timesLeft = (count or 2) - 1
+      normalizeWhitespace = joinCommand is 'J'
+      while timesLeft--
+        @adaptor.selectLineEnding normalizeWhitespace
+        @adaptor.deleteSelection()
+        if normalizeWhitespace
+          @adaptor.insert ' '
+          @adaptor.moveLeft()
     else if replacementChar
       @adaptor.setSelectionAnchor()
       motions.move this, 'l', count or 1

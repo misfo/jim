@@ -93,3 +93,10 @@ define (require, exports, module) ->
     setSelectionAnchor: ->
       lead = @editor.selection.selectionLead
       @editor.selection.setSelectionAnchor lead.row, lead.column
+
+    selectLineEnding: (andFollowingWhitespace) ->
+      @editor.selection.moveCursorLineEnd()
+      @editor.selection.selectRight()
+      if andFollowingWhitespace
+        firstNonBlank = /\S/.exec(@lineText())?.index or 0
+        @moveTo @row(), firstNonBlank

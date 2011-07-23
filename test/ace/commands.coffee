@@ -154,3 +154,23 @@ test 'r', ->
   deepEqual @adaptor.position(), [2, 0]
 
   ok not @jim.registers['"']
+
+test 'J', ->
+  @press 'J'
+  eq @adaptor.lineText(), '_.sortBy = function(obj, iterator, context) { return _.pluck(_.map(obj, function(value, index, list) {'
+  deepEqual @adaptor.position(), [0, 45]
+
+  @press 'j4J'
+  eq @adaptor.lineText(), '    return { value : value, criteria : iterator.call(context, value, index, list) };'
+  deepEqual @adaptor.position(), [1, 81]
+
+  #TODO special case for lines starting with ")"?!?!?!
+
+test 'gJ', ->
+  @press 'gJ'
+  eq @adaptor.lineText(), '_.sortBy = function(obj, iterator, context) {  return _.pluck(_.map(obj, function(value, index, list) {'
+  deepEqual @adaptor.position(), [0, 45]
+
+  @press 'j4gJ'
+  eq @adaptor.lineText(), '    return {      value : value,      criteria : iterator.call(context, value, index, list)    };'
+  deepEqual @adaptor.position(), [1, 91]
