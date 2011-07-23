@@ -32,6 +32,17 @@ define (require, exports, module) ->
       console.log '@buffer', @buffer if @debugMode
       @mode.execute.call this
 
+    joinLines: (rowStart, lines, replaceWithSpace) ->
+      @adaptor.clearSelection()
+      @adaptor.moveTo rowStart, 0
+      timesLeft = Math.max(lines, 2) - 1
+      while timesLeft--
+        @adaptor.selectLineEnding replaceWithSpace
+        @adaptor.deleteSelection()
+        if replaceWithSpace
+          @adaptor.insert ' '
+          @adaptor.moveLeft()
+
     moveToFirstNonBlank: (row) ->
       row ?= @adaptor.row()
       line = @adaptor.lineText row

@@ -89,14 +89,7 @@ define (require, exports, module) ->
           timesLeft = count ? 1
           @adaptor.undo() while timesLeft--
     else if joinCommand
-      timesLeft = (count or 2) - 1
-      normalizeWhitespace = joinCommand is 'J'
-      while timesLeft--
-        @adaptor.selectLineEnding normalizeWhitespace
-        @adaptor.deleteSelection()
-        if normalizeWhitespace
-          @adaptor.insert ' '
-          @adaptor.moveLeft()
+      @joinLines @adaptor.row(), count or 2, joinCommand is 'J'
     else if replacementChar
       @adaptor.setSelectionAnchor()
       motions.move this, 'l', count or 1

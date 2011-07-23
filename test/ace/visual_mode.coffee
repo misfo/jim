@@ -34,3 +34,23 @@ test 'p, P', ->
 
   @press 'wv3P'
   eq @adaptor.lineText(), '._ sortBysortBysortBy function(obj, iterator, context) {'
+
+test 'J', ->
+  @press 'vjJ'
+  eq @adaptor.lineText(), '_.sortBy = function(obj, iterator, context) { return _.pluck(_.map(obj, function(value, index, list) {'
+  deepEqual @adaptor.position(), [0, 45]
+
+  @press 'jVjjjJ'
+  eq @adaptor.lineText(), '    return { value : value, criteria : iterator.call(context, value, index, list) };'
+  deepEqual @adaptor.position(), [1, 81]
+
+  #TODO special case for lines starting with ")"?!?!?!
+
+test 'gJ', ->
+  @press 'vlgJ'
+  eq @adaptor.lineText(), '_.sortBy = function(obj, iterator, context) {  return _.pluck(_.map(obj, function(value, index, list) {'
+  deepEqual @adaptor.position(), [0, 45]
+
+  @press 'jv3jgJ'
+  eq @adaptor.lineText(), '    return {      value : value,      criteria : iterator.call(context, value, index, list)    };'
+  deepEqual @adaptor.position(), [1, 91]

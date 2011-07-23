@@ -5,7 +5,7 @@ define (require, exports, module) ->
     ^
     ([1-9]\d*)?                    # count (multiplier, line number, ...)
     (?:
-      ([pP])|                      # commands
+      ([pPJ]|gJ?)|                 # commands
       (?:
         (#{motions.regex.source})|
         ([ydc])                    # operators
@@ -37,6 +37,10 @@ define (require, exports, module) ->
         @adaptor.adjustAnchor 1 if @adaptor.isSelectionBackwards()
     else if command
       switch command
+        when 'J', 'gJ'
+          [rowStart, rowEnd] = @adaptor.selectionRowRange()
+          @joinLines rowStart, rowEnd - rowStart + 1, command is 'J'
+          @setMode 'normal'
         when 'p', 'P'
           registerValue = @registers['"']
           @adaptor.includeCursorInSelection()
@@ -47,6 +51,8 @@ define (require, exports, module) ->
           else
             @yankSelection()
           @setMode 'normal'
+        else
+          continueBuffering = true
     else if operator
       if @modeName is 'visual:linewise'
         @adaptor.makeLinewise()

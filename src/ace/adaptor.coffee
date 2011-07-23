@@ -100,3 +100,8 @@ define (require, exports, module) ->
       if andFollowingWhitespace
         firstNonBlank = /\S/.exec(@lineText())?.index or 0
         @moveTo @row(), firstNonBlank
+
+    selectionRowRange: ->
+      [cursorRow, cursorColumn] = @position()
+      {row: anchorRow} = @editor.selection.getSelectionAnchor()
+      [Math.min(cursorRow, anchorRow), Math.max(cursorRow, anchorRow)]
