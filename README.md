@@ -32,9 +32,6 @@ TODO for first "version"
 * `>`, `<` operators
 * `R` replace mode (will just switch to Ace's replace mode)
 * `*`, `#`
-* `ctrl-r`
-* `.` command for non-insert commands (inserts are a bit more complicated to
-  implement)
 * fully docco'ed source
 
 Known issues
