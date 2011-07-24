@@ -1,4 +1,6 @@
 define (require, exports, module) ->
+  util = require 'jim/util'
+
   ## these return a new regex each time so that we always get a fresh lastIndex
   # a string of non-whitespace characters
   WORDRegex = -> /\S+/g 
@@ -256,21 +258,11 @@ define (require, exports, module) ->
         position = lastColumnWithChar.call jim, options.char, count
         jim.adaptor.moveTo position[0], position[1] + 1 if position
 
-  singleChar = []
-  dualChar = []
-  for own k, v of simpleMotions
-    switch k.length
-      when 1 then singleChar.push k 
-      # second character is optional (because of partial matches)
-      when 2 then dualChar.push "#{k}?"
-
   regex: ///
       ([1-9]\d*)?    # count (multiplier, line number, ...)
       (?:
         (
-          # simple motions
-          [#{(c for c in singleChar).join ''}]|
-          #{(c for c in dualChar).join '|'}
+        #{util.propertyNameRegex(simpleMotions).source}
         )|
         ([fFtT])(.)?   # navigate to char
       )
