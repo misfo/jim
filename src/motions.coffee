@@ -100,8 +100,8 @@ define (require, exports, module) ->
   class Motion
     constructor: (props) ->
       this[key] = value for own key, value of props
-      @linewise  ?= false
-      @exclusive ?= false
+      @linewise  ?= no
+      @exclusive ?= no
 
     move: (jim, count, options, operation) ->
       timesLeft = count ? 1
@@ -129,39 +129,39 @@ define (require, exports, module) ->
 
   simpleMotions =
     h: new Motion
-      exclusive: true
+      exclusive: yes
       moveOnce: -> @adaptor.moveLeft()
     j: new Motion
-      linewise: true
+      linewise: yes
       moveOnce: -> @adaptor.moveDown()
     k: new Motion
-      linewise: true
+      linewise: yes
       moveOnce: -> @adaptor.moveUp()
     l: new Motion
-      exclusive: true
+      exclusive: yes
       moveOnce: (options, operation) -> @adaptor.moveRight operation?
 
     W: new Motion
-      exclusive: true
+      exclusive: yes
       moveOnce: -> moveNextWord.call this, WORDRegex()
       change: (jim, count) -> simpleMotions['E'].change jim, count
     E: new Motion
       moveOnce: -> moveWordEnd.call this, WORDRegex()
     B: new Motion
-      exclusive: true
+      exclusive: yes
       moveOnce: -> moveBackWord.call this, lastWORDRegex 
     w: new Motion
-      exclusive: true
+      exclusive: yes
       moveOnce: -> moveNextWord.call this, wordRegex()
       change: (jim, count) -> simpleMotions['e'].change jim, count
     e: new Motion
       moveOnce: -> moveWordEnd.call this, wordRegex()
     b: new Motion
-      exclusive: true
+      exclusive: yes
       moveOnce: -> moveBackWord.call this, lastWordRegex
       
     0: new Motion
-      exclusive: true
+      exclusive: yes
       move: (jim) -> jim.adaptor.moveTo jim.adaptor.row(), 0
 
     '^': new Motion
@@ -173,7 +173,7 @@ define (require, exports, module) ->
         jim.adaptor.moveToLineEnd()
 
     G: new Motion
-      linewise: true
+      linewise: yes
       move: (jim, count) ->
         lineNumber = count ? jim.adaptor.lastRow() + 1
         lineText = jim.adaptor.lineText lineNumber-1
@@ -181,17 +181,17 @@ define (require, exports, module) ->
         jim.adaptor.moveTo lineNumber-1, column
 
     gg: new Motion
-      linewise: true
+      linewise: yes
       move: (jim, count) -> simpleMotions['G'].move jim, count ? 1
 
     H: new Motion
-      linewise: true
+      linewise: yes
       move: (jim, count) ->
         line = jim.adaptor.firstFullyVisibleRow() + (count ? 1)
         simpleMotions['G'].move jim, line
 
     M: new Motion
-      linewise: true
+      linewise: yes
       move: (jim, count) ->
         topRow = jim.adaptor.firstFullyVisibleRow()
         lines = jim.adaptor.lastFullyVisibleRow() - topRow
@@ -199,29 +199,29 @@ define (require, exports, module) ->
         simpleMotions['G'].move jim, topRow + 1 + linesFromTop
 
     L: new Motion
-      linewise: true
+      linewise: yes
       move: (jim, count) ->
         line = jim.adaptor.lastFullyVisibleRow() + 2 - (count ? 1)
         simpleMotions['G'].move jim, line
 
     '/': new Motion
-      exclusive: true
+      exclusive: yes
       move: (jim, count) ->
         timesLeft = count ? 1
         pattern = prompt("Find:")
-        jim.search = {pattern, backwards: false}
+        jim.search = {pattern, backwards: no}
         jim.adaptor.findNext pattern while timesLeft--
 
     '?': new Motion
-      exclusive: true
+      exclusive: yes
       move: (jim, count) ->
         timesLeft = count ? 1
         pattern = prompt("Find:")
-        jim.search = {pattern, backwards: true}
+        jim.search = {pattern, backwards: yes}
         jim.adaptor.findPrevious pattern while timesLeft--
 
     n: new Motion
-      exclusive: true
+      exclusive: yes
       move: (jim, count) ->
         return if not jim.search
         timesLeft = count ? 1
@@ -229,7 +229,7 @@ define (require, exports, module) ->
         jim.adaptor[func] jim.search.pattern while timesLeft--
 
     N: new Motion
-      exclusive: true
+      exclusive: yes
       move: (jim, count) ->
         return if not jim.search
         timesLeft = count ? 1
