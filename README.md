@@ -31,7 +31,6 @@ TODO for first "version"
 ------------------------
 * `>`, `<` operators
 * `R` replace mode (will just switch to Ace's replace mode)
-* `*`, `#`
 * fully docco'ed source
 
 Known issues
