@@ -100,6 +100,16 @@ define (require, exports, module) ->
       makeLinewiseSelection.call this, count
       @yankSelection()
       @adaptor.moveTo startingPosition...
+    '>>': (count) ->
+      startingRow = @adaptor.row()
+      makeLinewiseSelection.call this, count
+      @adaptor.indentSelection()
+      motions.move this, 'G', startingRow + 1
+    '<<': (count) ->
+      startingRow = @adaptor.row()
+      makeLinewiseSelection.call this, count
+      @adaptor.outdentSelection()
+      motions.move this, 'G', startingRow + 1
 
   regex = ///
     ^

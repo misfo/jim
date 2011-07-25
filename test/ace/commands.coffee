@@ -133,6 +133,32 @@ test 'yy', ->
 
   """
 
+test '>>', ->
+  @press '>>'
+  eq @adaptor.lineText(0), '  _.sortBy = function(obj, iterator, context) {'
+  deepEqual @adaptor.position(), [0, 2]
+
+  @press '2>>'
+  eq @adaptor.lineText(0), '    _.sortBy = function(obj, iterator, context) {'
+  eq @adaptor.lineText(1), '    return _.pluck(_.map(obj, function(value, index, list) {'
+  deepEqual @adaptor.position(), [0, 4]
+
+test '<<', ->
+  @press '<<' # should do nothing
+  eq @adaptor.lineText(0), '_.sortBy = function(obj, iterator, context) {'
+  deepEqual @adaptor.position(), [0, 0]
+
+  @press 'j<<'
+  eq @adaptor.lineText(1), 'return _.pluck(_.map(obj, function(value, index, list) {'
+  deepEqual @adaptor.position(), [1, 0]
+
+  @press 'j4<<'
+  eq @adaptor.lineText(2), '  return {'
+  eq @adaptor.lineText(3), '    value : value,'
+  eq @adaptor.lineText(4), '    criteria : iterator.call(context, value, index, list)'
+  eq @adaptor.lineText(5), '  };'
+  deepEqual @adaptor.position(), [2, 2]
+
 test 'r', ->
   @press 'r$'
   eq @adaptor.lineText(), '$.sortBy = function(obj, iterator, context) {'

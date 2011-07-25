@@ -82,6 +82,14 @@ define (require, exports, module) ->
       @editor.clearSelection()
       yank
 
+    indentSelection: ->
+      @editor.indent()
+      @clearSelection()
+
+    outdentSelection: ->
+      @editor.blockOutdent()
+      @clearSelection()
+
     insert: (text, after) ->
       @editor.selection.moveCursorRight() if after and not beyondLineEnd(@editor)
       @editor.insert text if text

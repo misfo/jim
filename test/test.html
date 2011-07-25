@@ -44,6 +44,8 @@
 
         @setupAceTests = ->
           editor = new Editor(new MockRenderer(), new EditSession js_code)
+          editor.session.setUseSoftTabs true
+          editor.session.setTabSize 2
           @jim = aceModule.startup env: {editor}
           @adaptor = @jim.adaptor
           @esc = 27
