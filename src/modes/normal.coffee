@@ -142,10 +142,11 @@ define (require, exports, module) ->
     continueBuffering = false
 
     if visualSwitch
-      @adaptor.setSelectionAnchor()
       if visualSwitch is 'V'
+        @adaptor.setLinewiseSelectionAnchor()
         @setMode 'visual:linewise'
       else
+        @adaptor.setSelectionAnchor()
         @setMode 'visual:characterwise'
     else if motionMatch[0]
       continueBuffering = motions.execute this, operator, motionMatch, count

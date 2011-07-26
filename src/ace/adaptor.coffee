@@ -102,6 +102,20 @@ define (require, exports, module) ->
       lead = @editor.selection.selectionLead
       @editor.selection.setSelectionAnchor lead.row, lead.column
 
+    # Jim's linewise selections are really just regular selections with a CSS
+    # width of 100%.  When an operation is done, that's when the selection is
+    # actually made linewise.  Because of this, it only matters what line the
+    # anchor is on.  Therefore, we "hide" the anchor at the end of the line
+    # where Jim's cursor won't go so that Ace doesn't remove the selection
+    # elements from the DOM (which happens when the cursor and the anchor are
+    # in the same place).  It's a wierd hack, but it works.
+    #   https://github.com/misfo/jim/issues/5
+    setLinewiseSelectionAnchor: ->
+      {row, column} = @editor.selection.selectionLead
+      lastColumn = @editor.session.getDocumentLastRowColumnPosition row, column
+      @editor.selection.setSelectionAnchor row, lastColumn
+
+
     selectLineEnding: (andFollowingWhitespace) ->
       @editor.selection.moveCursorLineEnd()
       @editor.selection.selectRight()
