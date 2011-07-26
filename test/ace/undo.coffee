@@ -1,0 +1,14 @@
+module 'Ace: undo',
+  setup: setupAceTests
+
+test 'undoing commands', ->
+  @press 'xxu'
+  eq @adaptor.lineText(), '.sortBy = function(obj, iterator, context) {'
+
+test 'undoing inserts', ->
+  @press 'Aend', @esc, 'Ibegin', @esc
+  eq @adaptor.lineText(), 'begin_.sortBy = function(obj, iterator, context) {end'
+  @press 'u'
+  eq @adaptor.lineText(), '_.sortBy = function(obj, iterator, context) {end'
+  @press 'u'
+  eq @adaptor.lineText(), '_.sortBy = function(obj, iterator, context) {'

@@ -47,6 +47,13 @@
           editor.session.setUseSoftTabs true
           editor.session.setTabSize 2
           @jim = aceModule.startup env: {editor}
+
+          # make undo manager synchronous for easier testing
+          editor.session.$informUndoManager = editor.session.$syncInformUndoManager
+          editor.session.$informUndoManager.cancel = ->
+          editor.session.$informUndoManager.schedule = -> editor.session.$informUndoManager()
+
+          console.log 'editor.session.$informUndoManager', editor.session.$informUndoManager
           @adaptor = @jim.adaptor
           @esc = 27
           @press = (keyGroups...) ->
@@ -62,6 +69,7 @@
           'ace/motions'
           'ace/operators'
           'ace/insert_mode'
+          'ace/undo'
           'ace/visual_mode'
         ]
     </script>
