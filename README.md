@@ -10,7 +10,7 @@ same undo stack as Ace so that its Undo/Redo keybindings are left unchanged.
 
 What works so far
 -----------------
-* modes: normal, visual (characterwise and linewise), insert
+* modes: normal, visual (characterwise and linewise), insert, replace
 * insert switches: `i`, `a`, `o`, `O`, `I`, `A`, and `C`
 * commands: `D`, `gJ`, `J`, `p`, `P`, `r`, `s`, `x`, `X`, and `u`
 * visual mode commands: `gJ`, `J`, `p` and `P`
@@ -29,7 +29,6 @@ What works so far
 
 TODO for first "version"
 ------------------------
-* `R` replace mode (will just switch to Ace's replace mode)
 * fully docco'ed source
 
 Known issues
