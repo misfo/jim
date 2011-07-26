@@ -14,8 +14,8 @@ What works so far
 * insert switches: `i`, `a`, `o`, `O`, `I`, `A`, and `C`
 * commands: `D`, `gJ`, `J`, `p`, `P`, `r`, `s`, `x`, `X`, and `u`
 * visual mode commands: `gJ`, `J`, `p` and `P`
-* operators: `c`, `d`, and `y` in normal and visual modes (double operators work
-  as linewise commands in normal mode, too)
+* operators: `c`, `d`, `y`, `>`, and `<` in normal and visual modes (double
+  operators work as linewise commands in normal mode, too)
 * motions (can be used with counts and/or operators, and in visual mode)
   * `h`, `j`, `k`, `l`
   * `W`, `E`, `B`, `w`, `e`, `b`
@@ -29,7 +29,6 @@ What works so far
 
 TODO for first "version"
 ------------------------
-* `>`, `<` operators
 * `R` replace mode (will just switch to Ace's replace mode)
 * fully docco'ed source
 

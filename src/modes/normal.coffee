@@ -120,7 +120,7 @@ define (require, exports, module) ->
         (#{util.propertyNameRegex(commands).source})|
         (?:r([\s\S])?)|  # replace char command
         (?:
-          ([cdy])?       # operators
+          ([cdy><])?     # operators
           (#{motions.regex.source})?
         )
       )?

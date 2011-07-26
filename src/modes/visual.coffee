@@ -8,7 +8,7 @@ define (require, exports, module) ->
       ([pPJ]|gJ?)|                 # commands
       (?:
         (#{motions.regex.source})|
-        ([ydc])                    # operators
+        ([ydc><])                  # operators
       )
     )?
     $
@@ -65,6 +65,12 @@ define (require, exports, module) ->
           @setMode if operator is 'c' then 'insert' else 'normal'
         when 'y'
           @yankSelection()
+          @setMode 'normal'
+        when '>'
+          @indentSelection()
+          @setMode 'normal'
+        when '<'
+          @outdentSelection()
           @setMode 'normal'
     else
       continueBuffering = true

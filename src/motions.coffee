@@ -122,6 +122,16 @@ define (require, exports, module) ->
       @move jim, count, options, 'yank'
       adjustSelection.call this, jim
       jim.yankSelection @exclusive, @linewise
+    indent: (jim, count, options) ->
+      jim.adaptor.setSelectionAnchor()
+      @move jim, count, options, 'indent'
+      adjustSelection.call this, jim
+      jim.indentSelection()
+    outdent: (jim, count, options) ->
+      jim.adaptor.setSelectionAnchor()
+      @move jim, count, options, 'outdent'
+      adjustSelection.call this, jim
+      jim.outdentSelection()
 
     adjustSelection = (jim) ->
       if @linewise
@@ -285,10 +295,12 @@ define (require, exports, module) ->
     if motion
       count = (parseInt(count) or 1) * (operatorCount or 1) if count or operatorCount
       switch operator
-        when 'c' then motion.change jim, count, options
-        when 'd' then motion.delete jim, count, options
-        when 'y' then motion.yank   jim, count, options
-        else          motion.move   jim, count, options
+        when 'c' then motion.change  jim, count, options
+        when 'd' then motion.delete  jim, count, options
+        when 'y' then motion.yank    jim, count, options
+        when '>' then motion.indent  jim, count, options
+        when '<' then motion.outdent jim, count, options
+        else          motion.move    jim, count, options
 
       false
     else

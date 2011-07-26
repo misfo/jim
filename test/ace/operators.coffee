@@ -37,3 +37,16 @@ test 'y', ->
 
   @press '$hy4l'
   eq @jim.registers['"'], ' {'
+
+test '>', ->
+  @press '>3G'
+  eq @adaptor.lineText(0), '  _.sortBy = function(obj, iterator, context) {'
+  eq @adaptor.lineText(1), '    return _.pluck(_.map(obj, function(value, index, list) {'
+  eq @adaptor.lineText(2), '      return {'
+  deepEqual @adaptor.position(), [0, 2]
+
+test '<', ->
+  @press 'j<j'
+  eq @adaptor.lineText(1), 'return _.pluck(_.map(obj, function(value, index, list) {'
+  eq @adaptor.lineText(2), '  return {'
+  deepEqual @adaptor.position(), [1, 0]

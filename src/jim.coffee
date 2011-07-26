@@ -1,14 +1,16 @@
 define (require, exports, module) ->
-  class Jim
-    @modes:
-      insert: require 'jim/modes/insert'
-      normal: require 'jim/modes/normal'
-      visual: require 'jim/modes/visual'
+  motions = require 'jim/motions'
 
+  class Jim
     constructor: (@adaptor) ->
       @clearBuffer()
       @registers = {}
       @setMode 'normal'
+
+    modes:
+      insert: require 'jim/modes/insert'
+      normal: require 'jim/modes/normal'
+      visual: require 'jim/modes/visual'
 
     clearBuffer: -> @buffer = @operator = ''
 
@@ -19,7 +21,7 @@ define (require, exports, module) ->
       return if modeName is prevModeName
       @modeName = modeName
       modeParts = modeName.split ":"
-      @mode = Jim.modes[modeParts[0]]
+      @mode = @modes[modeParts[0]]
       @adaptor.moveLeft() if prevModeName is 'insert'
       @onModeChange? prevModeName
 
@@ -54,3 +56,11 @@ define (require, exports, module) ->
     yankSelection: (exclusive, linewise) ->
       @registers['"'] = @adaptor.selectionText exclusive, linewise
       @adaptor.clearSelection true
+    indentSelection: ->
+      [minRow, maxRow] = @adaptor.selectionRowRange()
+      @adaptor.indentSelection()
+      motions.move this, 'G', minRow + 1
+    outdentSelection: ->
+      [minRow, maxRow] = @adaptor.selectionRowRange()
+      @adaptor.outdentSelection()
+      motions.move this, 'G', minRow + 1
