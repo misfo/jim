@@ -8,34 +8,29 @@ define (require, exports, module) ->
       @silentUndo() if @isJimMark @lastOnUndoStack()
       super dontSelect
 
-    isJimMark: (entry, markName) ->
+    isJimMark: (entry) ->
       deltas = entry?.deltas
-      return false unless typeof deltas is 'string'
-      if markName
-        deltas is markName
-      else
-        /^jim/.test deltas
+      typeof deltas is 'string' and matchingMark[deltas]?
 
     lastOnUndoStack: -> @$undoStack[@$undoStack.length-1]
 
-    markInsertStartPoint: (doc) ->
-      options = args: [{group: 'doc', deltas: 'jimInsertStart'}, doc]
-      @execute options
-
-    # Jim functions
-    markInsertEndPoint: (doc) ->
-      options = args: [{group: 'doc', deltas: 'jimInsertEnd'}, doc]
-      @execute options
+    markUndoPoint: (doc, markName) ->
+      @execute args: [{group: 'doc', deltas: markName}, doc]
 
     silentUndo: ->
       deltas = @$undoStack.pop()
       @$redoStack.push deltas if deltas
 
+    matchingMark:
+      jimInsertEnd:  'jimInsertStart'
+      jimReplaceEnd: 'jimReplaceStart'
+
     jimUndo: ->
-      if @isJimMark @lastOnUndoStack(), 'jimInsertEnd'
+      lastDeltasOnStack = @lastOnUndoStack()?.deltas
+      if typeof lastDeltasOnStack is 'string' and startMark = @matchingMark[lastDeltasOnStack]
         startIndex = null
         for i in [(@$undoStack.length-1)..0]
-          if @isJimMark @$undoStack[i], 'jimInsertStart'
+          if @$undoStack[i]?.deltas is startMark
             startIndex = i
             break
 
@@ -44,6 +39,6 @@ define (require, exports, module) ->
           @undo() for i in [(@$undoStack.length-1)...startIndex]
           @silentUndo() # pop the start off
         else
-          console.log "found a jimInsertEnd on the undoStack, but no jimInsertStart'"
+          console.log "found a \"#{lastDeltasOnStack}\" on the undoStack, but no \"#{startMark}\""
       else
         @undo()

@@ -9,6 +9,8 @@ define (require, exports, module) ->
   class Adaptor
     constructor: (@editor) ->
 
+    setOverwriteMode: (active) -> @editor.setOverwrite active
+
     clearSelection: (beginning) ->
       if beginning and not @editor.selection.isBackwards()
         {row, column} = @editor.selection.getSelectionAnchor()

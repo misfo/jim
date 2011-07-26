@@ -10,6 +10,7 @@ define (require, exports, module) ->
     modes:
       insert: require 'jim/modes/insert'
       normal: require 'jim/modes/normal'
+      replace: require 'jim/modes/replace'
       visual: require 'jim/modes/visual'
 
     clearBuffer: -> @buffer = @operator = ''
@@ -22,7 +23,9 @@ define (require, exports, module) ->
       @modeName = modeName
       modeParts = modeName.split ":"
       @mode = @modes[modeParts[0]]
-      @adaptor.moveLeft() if prevModeName is 'insert'
+      switch prevModeName
+        when 'insert'  then @adaptor.moveLeft()
+        when 'replace' then @adaptor.setOverwriteMode off
       @onModeChange? prevModeName
 
     onEscape: ->

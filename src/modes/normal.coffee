@@ -62,6 +62,12 @@ define (require, exports, module) ->
       @setMode 'insert'
 
 
+    #### replace mode switch
+    R: ->
+      @adaptor.setOverwriteMode on
+      @setMode 'replace'
+
+
     #### general commands
 
     J:  (count) -> @joinLines @adaptor.row(), count or 2, true

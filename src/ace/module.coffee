@@ -56,9 +56,14 @@ define (require, exports, module) ->
           editor.unsetStyle className
 
       if @modeName is 'insert'
-        undoManager.markInsertStartPoint(editor.session)
+        undoManager.markUndoPoint editor.session, 'jimInsertStart'
       else if prevMode is 'insert'
-        undoManager.markInsertEndPoint(editor.session)
+        undoManager.markUndoPoint editor.session, 'jimInsertEnd'
+
+      if @modeName is 'replace'
+        undoManager.markUndoPoint editor.session, 'jimReplaceStart'
+      else if prevMode is 'replace'
+        undoManager.markUndoPoint editor.session, 'jimReplaceEnd'
 
     jim.onModeChange()
 
