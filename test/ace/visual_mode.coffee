@@ -27,6 +27,13 @@ test 'linewise selections', ->
   eq @adaptor.lastRow(), 10
   eq @adaptor.row(), 1
 
+test 'linewise changes', ->
+  eq @adaptor.lastRow(), 15
+  @press 'Vjcnew line!', @esc
+  eq @adaptor.lastRow(), 14
+  deepEqual @adaptor.position(), [0, 8]
+  eq @adaptor.lineText(0), 'new line!'
+
 test 'p, P', ->
   # p and P do the same thing in visual mode
   @press 'xlvep'
