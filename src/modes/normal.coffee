@@ -1,3 +1,9 @@
+# normal mode commands can take the following forms:
+#     [count] command
+# or
+#     [count] motion
+# or
+#     [count] operator [count] motion
 define (require, exports, module) ->
   motions = require 'jim/motions'
   util    = require 'jim/util'
