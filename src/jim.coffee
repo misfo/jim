@@ -28,6 +28,8 @@ define (require, exports, module) ->
         when 'replace' then @adaptor.setOverwriteMode off
       @onModeChange? prevModeName
 
+    inVisualMode: -> /^visual:/.test @modeName
+
     onEscape: ->
       @setMode 'normal'
       @adaptor.clearSelection()

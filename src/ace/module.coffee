@@ -30,6 +30,11 @@ define (require, exports, module) ->
         if keyCode is 27 # esc
           jim.onEscape()
         else if isCharacterKey(hashId, keyCode)
+          if jim.modeName is 'normal' and not jim.adaptor.emptySelection()
+            # if a selection has been made with the mouse since the last
+            # keypress in normal mode, switch to visual mode
+            jim.setMode 'visual:characterwise'
+
           if key.length > 1
             #TODO handle this better, we're dropping keypresses here
             key = key.charAt 0
