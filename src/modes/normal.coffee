@@ -76,6 +76,19 @@ define (require, exports, module) ->
 
     #### general commands
 
+    '.': ->
+      return unless @lastCommand
+      if @lastCommand.simple
+        #TODO count should replace the lastCommand's count
+        @modes.normal.execute.call this, @lastCommand.simple
+      else if @lastCommand.insert
+        @lastCommand.string ?= @adaptor.lastRepeatableInsertString()
+        console.log '@lastCommand', @lastCommand
+        {insert, string} = @lastCommand
+        @modes.normal.execute.call this, insert
+        @adaptor.insert string
+        @onEscape()
+
     J:  (count) -> @joinLines @adaptor.row(), count or 2, true
     gJ: (count) -> @joinLines @adaptor.row(), count or 2, false
 
@@ -140,10 +153,16 @@ define (require, exports, module) ->
     $
   ///
 
-  execute: ->
-    match = @buffer.match regex
+  isRepeatable = (commandMatch, operator) ->
+      return false if operator is 'y'
+      return false if commandMatch is 'yy' or commandMatch is '.' or commandMatch is 'u'
+      !!(commandMatch or operator)
+
+  execute: (buffer) ->
+    buffer ?= @buffer
+    match = buffer.match regex
     if not match? or match[0] is ""
-      console.log "unrecognized command: #{@buffer}"
+      console.log "unrecognized command: #{buffer}"
       @onEscape()
       return
 
@@ -177,4 +196,12 @@ define (require, exports, module) ->
     else
       continueBuffering = true
 
-    @clearBuffer() unless continueBuffering
+    if not continueBuffering
+      if buffer isnt '.'
+        switch @modeName
+          when 'normal'
+            if replacementChar or isRepeatable commandMatch, operator
+              @lastCommand = simple: buffer
+          when 'insert'
+            @lastCommand = insert: buffer
+      @clearBuffer()

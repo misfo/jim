@@ -9,13 +9,12 @@ define (require, exports, module) ->
       super dontSelect
 
     isJimMark: (entry) ->
-      deltas = entry?.deltas
-      typeof deltas is 'string' and matchingMark[deltas]?
+      typeof entry is 'string' and matchingMark[entry]?
 
     lastOnUndoStack: -> @$undoStack[@$undoStack.length-1]
 
     markUndoPoint: (doc, markName) ->
-      @execute args: [{group: 'doc', deltas: markName}, doc]
+      @execute args: [markName, doc]
 
     silentUndo: ->
       deltas = @$undoStack.pop()
@@ -26,11 +25,11 @@ define (require, exports, module) ->
       jimReplaceEnd: 'jimReplaceStart'
 
     jimUndo: ->
-      lastDeltasOnStack = @lastOnUndoStack()?.deltas
+      lastDeltasOnStack = @lastOnUndoStack()
       if typeof lastDeltasOnStack is 'string' and startMark = @matchingMark[lastDeltasOnStack]
         startIndex = null
         for i in [(@$undoStack.length-1)..0]
-          if @$undoStack[i]?.deltas is startMark
+          if @$undoStack[i] is startMark
             startIndex = i
             break
 
@@ -42,3 +41,25 @@ define (require, exports, module) ->
           console.log "found a \"#{lastDeltasOnStack}\" on the undoStack, but no \"#{startMark}\""
       else
         @undo()
+
+    lastRepeatableInsertString: ->
+      return '' if @lastOnUndoStack() isnt 'jimInsertEnd'
+      console.log '@$undoStack', @$undoStack
+
+      startPosition = null
+      stringParts = []
+      isContiguousInsert = (delta) ->
+        return false unless delta.action is 'insertText'
+        not startPosition or delta.range.isEnd startPosition...
+
+      for i in [(@$undoStack.length - 2)..0]
+        break if typeof @$undoStack[i] is 'string'
+        for j in [(@$undoStack[i].length - 1)..0]
+          for k in [(@$undoStack[i][j].deltas.length - 1)..0]
+            delta = @$undoStack[i][j].deltas[k]
+            if isContiguousInsert delta
+              stringParts.unshift delta.text
+              startPosition = [delta.range.start.row, delta.range.start.column]
+            else
+              return stringParts.join ''
+      stringParts.join ''
