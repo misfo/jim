@@ -61,7 +61,7 @@
                 when 'number'
                   editor.onCommandKey {}, 0, keys
                 when 'string'
-                  editor.onTextInput char for char in keys
+                  editor.onTextInput char, true for char in keys
 
         CoffeeScript.load "#{name}.coffee" for name in [
           'ace/commands'
