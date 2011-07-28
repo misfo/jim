@@ -75,8 +75,20 @@ define (require, exports, module) ->
     navigateFileEnd:   -> @editor.navigateFileEnd()
     navigateLineStart: -> @editor.navigateLineStart()
 
-    findNext:     (pattern) -> @editor.findNext(needle: pattern)
-    findPrevious: (pattern) -> @editor.findPrevious(needle: pattern)
+    findNext: (pattern) ->
+      @editor.$search.set needle: pattern, backwards: false
+      # move the cursor right so that it won't match what's already under the
+      # cursor. move the cursor back afterwards if nothing's found
+      @editor.selection.moveCursorRight()
+      range = @editor.$search.find @editor.session
+      if range
+        @moveTo range.start.row, range.start.column
+      else
+        @editor.selection.moveCursorLeft()
+    findPrevious: (pattern) ->
+      @editor.$search.set needle: pattern, backwards: true
+      range = @editor.$search.find @editor.session
+      @moveTo range.start.row, range.start.column if range
 
     deleteSelection: ->
       yank = @editor.getCopyText()
