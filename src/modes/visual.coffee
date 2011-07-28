@@ -61,7 +61,7 @@ define (require, exports, module) ->
 
       switch operator
         when 'c'
-          @adaptor.moveToEndOfPreviousLine()
+          @adaptor.moveToEndOfPreviousLine() if @modeName is 'visual:linewise'
           @deleteSelection()
           @setMode 'insert'
         when 'd'
