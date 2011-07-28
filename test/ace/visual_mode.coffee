@@ -27,6 +27,10 @@ test 'linewise selections', ->
   eq @adaptor.lastRow(), 10
   eq @adaptor.row(), 1
 
+test 'characterwise changes', ->
+  @press '2WvEchi!', @esc
+  eq @adaptor.lineText(0), '_.sortBy = hi! iterator, context) {'
+
 test 'linewise changes', ->
   eq @adaptor.lastRow(), 15
   @press 'Vjcnew line!', @esc
