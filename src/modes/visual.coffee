@@ -60,9 +60,13 @@ define (require, exports, module) ->
         @adaptor.includeCursorInSelection()
 
       switch operator
-        when 'c', 'd'
+        when 'c'
+          @adaptor.moveToEndOfPreviousLine()
           @deleteSelection()
-          @setMode if operator is 'c' then 'insert' else 'normal'
+          @setMode 'insert'
+        when 'd'
+          @deleteSelection()
+          @setMode 'normal'
         when 'y'
           @yankSelection()
           @setMode 'normal'
