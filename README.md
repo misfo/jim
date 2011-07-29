@@ -30,6 +30,7 @@ What works so far
 Next up
 -------
 * `.` command
+
 If you have a feature request [create an issue](https://github.com/misfo/jim/issues/new)
 
 Known issues
