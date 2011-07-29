@@ -27,9 +27,10 @@ What works so far
 * default register (operations yank text in the the register for pasting)
 * `u` works as it does in Vim (`Cmd-z` and `Cmd-y` still work as they do in Ace)
 
-TODO for first "version"
-------------------------
-* fully docco'ed source
+Next up
+-------
+* `.` command
+If you have a feature request [create an issue](https://github.com/misfo/jim/issues/new)
 
 Known issues
 ------------
