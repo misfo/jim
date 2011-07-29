@@ -1,10 +1,10 @@
 Jim
 ===
 
-> This is Vim's brain[1] on JavaScript[2]
+> This is Vim's brain(1) on JavaScript(2)
 
-  [1]: It's a smaller brain than Vim's. As Vim's younger brutha, Jim keeps learning new things...
-  [2]: Well, JavaScript compiled from Coffeescript
+  (1): It's a smaller brain than Vim's. As Vim's younger brutha, Jim keeps learning new things...
+  (2): Well, JavaScript compiled from Coffeescript
 
 Jim is an [Ace](https://github.com/ajaxorg/ace) plugin that aims to bring the
 feel of Vim to the editor.  The idea is to layer Vim's normal mode on top of Ace,
