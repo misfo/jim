@@ -1,17 +1,16 @@
 Jim
 ===
 
-> This is Vim's brain(1) on JavaScript(2)
+> This is Vim's brain on JavaScript
 
-  (1): It's a smaller brain than Vim's. As Vim's younger brutha, Jim keeps learning new things...
-  (2): Well, JavaScript compiled from Coffeescript
+Okay, okay.  It's a smaller brain than Vim's. But as Vim's younger brutha, Jim
+keeps learning new things.  And yes, it's JavaScript compiled from Coffeescript.
 
-Jim is an [Ace](https://github.com/ajaxorg/ace) plugin that aims to bring the
-feel of Vim to the editor.  The idea is to layer Vim's normal mode on top of Ace,
-have a visual mode that works harmoniously with regular Ace selections, and just
-step out of the way when in insert mode.  Also, Jim's undo/redo keybindings
-(u/ctrl-r) should behave consistently with its Vim counterparts while using the
-same undo stack as Ace so that its Undo/Redo keybindings are left unchanged.
+Plug Jim into Ace or Cloud9 and you're modal editing again...
+
+Try out Jim here:
+[misfo.github.com/jim](http://misfo.github.com/jim)
+
 
 What works so far
 -----------------
