@@ -17,8 +17,8 @@ define (require, exports, module) ->
     }
   """
 
-  isCharacterKey = (hashId, keyString, keyCode) ->
-    hashId is 0 and /\S/.test keyString and keyCode is null or keyCode is 0
+  isCharacterKey = (hashId, keyCode) ->
+    hashId is 0 and (keyCode is null or keyCode is 0)
 
   startup = (data, reason) ->
     {editor} = data.env
@@ -30,7 +30,7 @@ define (require, exports, module) ->
       handleKeyboard: (data, hashId, keyString, keyCode) ->
         if keyCode is 27 # esc
           jim.onEscape()
-        else if isCharacterKey hashId, keyString, keyCode
+        else if isCharacterKey hashId, keyCode
           if jim.modeName is 'normal' and not jim.adaptor.emptySelection()
             # if a selection has been made with the mouse since the last
             # keypress in normal mode, switch to visual mode

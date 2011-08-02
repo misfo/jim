@@ -40,13 +40,14 @@
         MockRenderer::setStyle = (->)
         MockRenderer::unsetStyle = (->)
 
-        js_code = require 'text!test/fixtures/sort_by.js'
+        sort_by_js = require 'text!test/fixtures/sort_by.js'
 
         @setupAceTests = ->
-          editor = new Editor(new MockRenderer(), new EditSession js_code)
+          editor = new Editor(new MockRenderer(), new EditSession sort_by_js)
           editor.session.setUseSoftTabs true
           editor.session.setTabSize 2
           @jim = aceModule.startup env: {editor}
+          @sort_by_js = sort_by_js
 
           # make undo manager synchronous for easier testing
           editor.session.$informUndoManager = editor.session.$syncInformUndoManager
@@ -55,20 +56,26 @@
 
           @adaptor = @jim.adaptor
           @esc = 27
+          @down = 40
           @press = (keyGroups...) ->
             for keys in keyGroups
               switch typeof keys
                 when 'number'
                   editor.onCommandKey {}, 0, keys
                 when 'string'
-                  editor.onTextInput char, true for char in keys
+                  for char in keys
+                    if /[A-Z!@#$%^&*()_+{}|:"<>?]/.test char
+                      # if it's a char that requires the shift key simulate the shift key event, too
+                      editor.onCommandKey {}, 4, 0
+                    editor.onTextInput char, true 
 
         CoffeeScript.load "#{name}.coffee" for name in [
           'ace/commands'
+          'ace/insert_mode'
           'ace/motions'
           'ace/operators'
-          'ace/insert_mode'
           'ace/undo'
+          'ace/unhandled_keys'
           'ace/visual_mode'
         ]
     </script>
