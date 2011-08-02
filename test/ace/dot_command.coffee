@@ -17,7 +17,7 @@ test 'repeating inserts', ->
   @press 'AtheEnd', @esc, 'j.'
   eq @adaptor.lineText(), '  return _.pluck(_.map(obj, function(value, index, list) {theEnd'
 
-  @press 'jBcwwhoa', @esc, 'j.'
+  @press 'j^cwwhoa', @esc, 'j.'
   eq @adaptor.lineText(), '      vwhoa : value,'
 
 test 'repeating inserts in which the users arrows around', ->

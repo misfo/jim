@@ -22,3 +22,7 @@ test 'undoing replaces', ->
 
   @press 'u'
   eq @adaptor.lineText(), '_.sortBy = function(obj, iterator, context) {'
+
+test 'undoing visual operators', ->
+  @press 'Wv>u'
+  eq @adaptor.lineText(), '_.sortBy = function(obj, iterator, context) {'

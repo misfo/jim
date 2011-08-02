@@ -5,203 +5,63 @@
 # or
 #     [count] operator [count] motion
 define (require, exports, module) ->
-  motions = require 'jim/motions'
-  util    = require 'jim/util'
+  commands  = require 'jim/commands'
+  motions   = require 'jim/motions'
+  operators = require 'jim/operators'
 
-  insertInNewLine = (below) ->
-    row = @adaptor.row() + (if below then 1 else 0)
-    @adaptor.insertNewLine row
-    @adaptor.moveTo row, 0
-    @setMode 'insert'
+  {MoveLeft, MoveDown} = motions
 
-  paste = (count, after) ->
-    return if not registerValue = @registers['"']
+  # tokenize the command into the @command object or nullify
+  # it if something invalid is encountered
+  #
+  # token names:
+  #    count
+  #    command
+  #    operator
+  #    motionCount
+  #    motion
+  tokenize = ->
+    if not @command
+      command = @keymap.commandFor @commandPart
 
-    text = new Array((count or 1) + 1).join registerValue
-    linewiseRegister = /\n$/.test registerValue
-    if linewiseRegister
-      row = @adaptor.row() + (if after then 1 else 0)
-      lastRow = @adaptor.lastRow()
-      if row > lastRow
-        # we have to move the line ending to the begining of the string
-        [wholeString, beforeLineEnding, lineEnding] = /^([\s\S]*)(\r?\n)$/.exec text
-        text = lineEnding + beforeLineEnding
-
-        column = @adaptor.lineText(lastRow).length - 1
-        @adaptor.moveTo row, column
+      if command is false
+        invalidCommand.call this
+      else if command isnt true
+        if command.isOperation
+          [@operatorPending] = @commandPart.match /[^\d]+$/
+        @command = command
+        @commandPart = ''
+    else if @command.constructor.followedBy
+      # if we've got a command that expects a key to follow it,
+      # check if nextToken is what it's expecting
+      if @command.constructor.followedBy.test @commandPart
+        @command.followedBy = @commandPart
       else
-        @adaptor.moveTo row, 0
-      @adaptor.insert text
-      @adaptor.moveTo row, 0
-    else
-      @adaptor.insert text, after
+        console.log "#{@command} didn't expect to be followed by \"#{@commandPart}\""
+      @commandPart = ''
+    else if @command.isOperation
+      motion = @keymap.motionFor @commandPart, @operatorPending
 
-  makeLinewiseSelection = (count) ->
-    startingPosition = @adaptor.position()
-    @adaptor.setSelectionAnchor()
-    additionalLines = (count or 1) - 1
-    motions.move this, 'j', additionalLines if additionalLines
-    @adaptor.makeLinewise()
+      if motion is false
+        invalidCommand.call this, 'motion'
+      else if motion isnt true
+        @command.motion = motion
+        @command.motion.operation = @command
+        @operatorPending = null
+        @commandPart = ''
 
-  commands =
-    #### insert mode switches
+  invalidCommand = (type = 'command') ->
+    console.log "invalid #{type}: #{@commandPart}"
+    @commandPart = ''
 
-    a: ->
-      @adaptor.moveRight true
-      @setMode 'insert'
+  exports.onKeypress = (keys) ->
+    @commandPart = (@commandPart or '') + keys
 
-    A: ->
-      motions.move this, '$'
-      @adaptor.moveRight true
-      @setMode 'insert'
+    tokenize.call this
 
-    C: (count) ->
-      motions.execute this, 'c', '$', count
-      @setMode 'insert'
+    if @command?.isComplete()
+      @command.exec this
+      @lastCommand = @command if @command.isRepeatable
+      @command = null
 
-    o: -> insertInNewLine.call this, true
-    O: -> insertInNewLine.call this, false
-
-    i: -> @setMode 'insert'
-    I: ->
-      motions.move this, '^'
-      @setMode 'insert'
-
-
-    #### replace mode switch
-    R: ->
-      @adaptor.setOverwriteMode on
-      @setMode 'replace'
-
-
-    #### general commands
-
-    '.': ->
-      return unless @lastCommand
-      if @lastCommand.simple
-        #TODO count should replace the lastCommand's count
-        @modes.normal.execute.call this, @lastCommand.simple
-      else if @lastCommand.insert
-        @lastCommand.string ?= @adaptor.lastRepeatableInsertString()
-        console.log '@lastCommand', @lastCommand
-        {insert, string} = @lastCommand
-        @modes.normal.execute.call this, insert
-        @adaptor.insert string
-        @onEscape()
-
-    J:  (count) -> @joinLines @adaptor.row(), count or 2, true
-    gJ: (count) -> @joinLines @adaptor.row(), count or 2, false
-
-    D: (count) ->
-      motions.execute this, 'd', '$', count
-
-    p: (count) -> paste.call this, count, true
-    P: (count) -> paste.call this, count, false
-
-    s: (count) ->
-      motions.execute this, 'c', 'l', count
-
-    u: (count) ->
-      timesLeft = count ? 1
-      @adaptor.undo() while timesLeft--
-
-    x: (count) -> motions.execute this, 'd', 'l', count
-    X: (count) -> motions.execute this, 'd', 'h', count
-
-
-    #### linewise commands
-
-    cc: (count) ->
-      makeLinewiseSelection.call this, count
-      @adaptor.moveToEndOfPreviousLine()
-      @deleteSelection()
-      @setMode 'insert'
-    dd: (count) ->
-      makeLinewiseSelection.call this, count
-      @deleteSelection()
-      @moveToFirstNonBlank()
-    yy: (count) ->
-      startingPosition = @adaptor.position()
-      makeLinewiseSelection.call this, count
-      @yankSelection()
-      @adaptor.moveTo startingPosition...
-    '>>': (count) ->
-      startingRow = @adaptor.row()
-      makeLinewiseSelection.call this, count
-      @adaptor.indentSelection()
-      motions.move this, 'G', startingRow + 1
-    '<<': (count) ->
-      startingRow = @adaptor.row()
-      makeLinewiseSelection.call this, count
-      @adaptor.outdentSelection()
-      motions.move this, 'G', startingRow + 1
-
-  regex = ///
-    ^
-    ([vV])|              # visual mode switch
-    (?:
-      ([1-9]\d*)?        # count (multiplier, line number, ...)
-      (?:
-        (#{util.propertyNameRegex(commands).source})|
-        (?:r([\s\S])?)|  # replace char command
-        (?:
-          ([cdy><])?     # operators
-          (#{motions.regex.source})?
-        )
-      )?
-    )
-    $
-  ///
-
-  isRepeatable = (commandMatch, operator) ->
-      return false if operator is 'y'
-      return false if commandMatch is 'yy' or commandMatch is '.' or commandMatch is 'u'
-      !!(commandMatch or operator)
-
-  execute: (buffer) ->
-    buffer ?= @buffer
-    match = buffer.match regex
-    if not match? or match[0] is ""
-      console.log "unrecognized command: #{buffer}"
-      @onEscape()
-      return
-
-    [fullMatch, visualSwitch, countMatch, commandMatch,
-      replacementChar, operator, motionMatch...] = match
-    count = parseInt(countMatch) or null
-
-    continueBuffering = false
-
-    if visualSwitch
-      if visualSwitch is 'V'
-        @adaptor.setLinewiseSelectionAnchor()
-        @setMode 'visual:linewise'
-      else
-        @adaptor.setSelectionAnchor()
-        @setMode 'visual:characterwise'
-    else if motionMatch[0]
-      continueBuffering = motions.execute this, operator, motionMatch, count
-    else if commandMatch and command = commands[commandMatch]
-      command.call this, count
-    else if replacementChar
-      @adaptor.setSelectionAnchor()
-      motions.move this, 'l', count or 1
-      @adaptor.deleteSelection() # don't yank
-      replacementText = if /^\r?\n$/.test replacementChar
-        replacementChar
-      else
-        new Array((count or 1) + 1).join replacementChar
-      @adaptor.insert replacementText
-      motions.move this, 'h'
-    else
-      continueBuffering = true
-
-    if not continueBuffering
-      if buffer isnt '.'
-        switch @modeName
-          when 'normal'
-            if replacementChar or isRepeatable commandMatch, operator
-              @lastCommand = simple: buffer
-          when 'insert'
-            @lastCommand = insert: buffer
-      @clearBuffer()
+  return

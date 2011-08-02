@@ -1,5 +1,5 @@
 define (require, exports, module) ->
-  util = require 'jim/util'
+  {Command} = require 'jim/helpers'
 
   ## these return a new regex each time so that we always get a fresh lastIndex
   # a string of non-whitespace characters
@@ -11,297 +11,249 @@ define (require, exports, module) ->
   lastWORDRegex = ///#{WORDRegex().source}\s*$///
   lastWordRegex = ///(#{wordRegex().source})\s*$///
 
-  moveWordEnd = (regex) ->
-    line = @adaptor.lineText()
-    [row, column] = @adaptor.position()
-    rightOfCursor = line.substring column
+  defaultMappings = {}
+  map = (keys, motionClass) -> defaultMappings[keys] = motionClass
 
-    if column >= line.length - 1
-      loop
-        line = @adaptor.lineText ++row
-        firstMatchOnSubsequentLine = regex.exec line
-        if firstMatchOnSubsequentLine
-          column = firstMatchOnSubsequentLine[0].length + firstMatchOnSubsequentLine.index - 1
-          break
-        else if row is @adaptor.lastRow()
-          # there are no more non-blank characters, don't move the cursor
-          return
-    else
-      thisMatch = regex.exec rightOfCursor
-      if thisMatch.index > 1 or thisMatch[0].length > 1
-        # go to the end of the WORD we're on top of
-        # or the next WORD if we're in whitespace
-        column += thisMatch[0].length + thisMatch.index - 1
+  class Motion extends Command
+    constructor: (@count = 1) ->
+    isRepeatable: false
+    linewise: no
+    exclusive: no
+
+    exec: (jim) ->
+      timesLeft = @count
+      @moveOnce jim while timesLeft--
+
+    # motions do the same thing in visual mode
+    visualExec: (jim) -> @exec jim
+
+  # used for double operators `cc`, `2yy`, `3d4d`
+  class LinewiseCommandMotion extends Motion
+    linewise: yes
+    exec: (jim) ->
+      if additionalLines = @count - 1
+        new MoveDown(additionalLines).exec jim
+
+  map 'h', class MoveLeft extends Motion
+    exclusive: yes
+    moveOnce: (jim) -> jim.adaptor.moveLeft()
+  map 'j', class MoveDown extends Motion
+    linewise: yes
+    moveOnce: (jim) -> jim.adaptor.moveDown()
+  map 'k', class MoveUp extends Motion
+    linewise: yes
+    moveOnce: (jim) -> jim.adaptor.moveUp()
+  map 'l', class MoveRight extends Motion
+    exclusive: yes
+    moveOnce: (jim) -> jim.adaptor.moveRight @operation?
+
+  map 'e', class MoveToWordEnd extends Motion
+    moveOnce: (jim) ->
+      regex = if @bigWord then WORDRegex() else wordRegex()
+      line = jim.adaptor.lineText()
+      [row, column] = jim.adaptor.position()
+      rightOfCursor = line.substring column
+
+      if column >= line.length - 1
+        loop
+          line = jim.adaptor.lineText ++row
+          firstMatchOnSubsequentLine = regex.exec line
+          if firstMatchOnSubsequentLine
+            column = firstMatchOnSubsequentLine[0].length + firstMatchOnSubsequentLine.index - 1
+            break
+          else if row is jim.adaptor.lastRow()
+            # there are no more non-blank characters, don't move the cursor
+            return
       else
-        # go to the end of the next WORD
-        nextMatch = regex.exec rightOfCursor
-        column += nextMatch.index + nextMatch[0].length - 1
+        thisMatch = regex.exec rightOfCursor
+        if thisMatch.index > 1 or thisMatch[0].length > 1
+          # go to the end of the WORD we're on top of
+          # or the next WORD if we're in whitespace
+          column += thisMatch[0].length + thisMatch.index - 1
+        else
+          # go to the end of the next WORD
+          nextMatch = regex.exec rightOfCursor
+          column += nextMatch.index + nextMatch[0].length - 1
 
-    @adaptor.moveTo row, column
+      jim.adaptor.moveTo row, column
 
-  moveNextWord = (regex) ->
-    line = @adaptor.lineText()
-    [row, column] = @adaptor.position()
-    rightOfCursor = line.substring column
+  map 'E', class MoveToBigWordEnd extends MoveToWordEnd
+    bigWord: yes
 
-    thisMatch = regex.exec rightOfCursor
-    if thisMatch?.index > 0
-      # We've found the next beginning of the next match and it's not already
-      # under the cursor. Go to it
-      column += thisMatch.index
-    else if not thisMatch or not nextMatch = regex.exec rightOfCursor
-      # the next match isn't on this line, find it on the next
-      line = @adaptor.lineText ++row
-      nextLineMatch = regex.exec line
-      column = nextLineMatch?.index or 0
-    else
-      # we're on top of part of a WORD, go to the next one
-      column += nextMatch.index
 
-    @adaptor.moveTo row, column
+  map 'w', class MoveToNextWord extends Motion
+    exclusive: yes
+    moveOnce: (jim) ->
+      regex = if @bigWord then WORDRegex() else wordRegex()
+      line = jim.adaptor.lineText()
+      [row, column] = jim.adaptor.position()
+      rightOfCursor = line.substring column
 
-  moveBackWord = (regex) ->
-    line = @adaptor.lineText()
-    [row, column] = @adaptor.position()
-    leftOfCursor = line.substring 0, column
+      thisMatch = regex.exec rightOfCursor
+      if thisMatch?.index > 0
+        # We've found the next beginning of the next match and it's not already
+        # under the cursor. Go to it
+        column += thisMatch.index
+      else if not thisMatch or not nextMatch = regex.exec rightOfCursor
+        # the next match isn't on this line, find it on the next
+        line = jim.adaptor.lineText ++row
+        nextLineMatch = regex.exec line
+        column = nextLineMatch?.index or 0
+      else
+        # we're on top of part of a WORD, go to the next one
+        column += nextMatch.index
 
-    match = regex.exec leftOfCursor
-    if match
-      column = match.index
-    else
-      # there are no matches left of the cursor
-      # go to the last word on the previous line
-      loop
+      jim.adaptor.moveTo row, column
+
+  map 'W', class MoveToNextBigWord extends MoveToNextWord
+    bigWord: yes
+
+
+  map 'b', class MoveBackWord extends Motion
+    exclusive: yes
+    moveOnce: (jim) ->
+      regex = if @bigWord then lastWORDRegex else lastWordRegex
+      line = jim.adaptor.lineText()
+      [row, column] = jim.adaptor.position()
+      leftOfCursor = line.substring 0, column
+
+      match = regex.exec leftOfCursor
+      if match
+        column = match.index
+      else
+        # there are no matches left of the cursor
+        # go to the last word on the previous line
+        row--
         # Vim skips lines that are only whitespace
         # (but not completely empty lines)
-        line = @adaptor.lineText --row
-        break unless /^\s+$/.test line
-      match = regex.exec line
-      column = match?.index or 0
+        row-- while /^\s+$/.test(line = jim.adaptor.lineText row)
+        match = regex.exec line
+        column = match?.index or 0
 
-    @adaptor.moveTo row, column
+      jim.adaptor.moveTo row, column
 
-  nextColumnWithChar = (char, count) ->
-    timesLeft = count ? 1
-    [row, column] = @adaptor.position()
-    rightOfCursor = @adaptor.lineText().substring column + 1
-    columnsRight = 0
-    while timesLeft--
-      columnsRight = rightOfCursor.indexOf(char, columnsRight) + 1
-    [row, column + columnsRight] if columnsRight
+  map 'B', class MoveBackBigWord extends MoveBackWord
+    bigWord: yes
+    
+  map '0', class extends Motion
+    exclusive: yes
+    exec: (jim) -> jim.adaptor.moveTo jim.adaptor.row(), 0
 
-  lastColumnWithChar = (char, count) ->
-    timesLeft = count ? 1
-    [row, column] = @adaptor.position()
-    leftOfCursor = @adaptor.lineText().substring 0, column
-    targetColumn = column
-    while timesLeft--
-      targetColumn = leftOfCursor.lastIndexOf(char, targetColumn - 1)
-    [row, targetColumn] if 0 <= targetColumn < column
+  map '^', class MoveToFirstNonBlank extends Motion
+    exec: (jim) ->
+      row = jim.adaptor.row()
+      line = jim.adaptor.lineText row
+      column = /\S/.exec(line)?.index or 0
+      jim.adaptor.moveTo row, column
 
-  class Motion
-    constructor: (props) ->
-      this[key] = value for own key, value of props
-      @linewise  ?= no
-      @exclusive ?= no
+  map '$', class MoveToEndOfLine extends Motion
+    exec: (jim) ->
+      additionalLines = @count - 1
+      new MoveDown(additionalLines).exec jim if additionalLines
+      jim.adaptor.moveToLineEnd()
 
-    move: (jim, count, options, operation) ->
-      timesLeft = count ? 1
-      @moveOnce.call jim, options, operation while timesLeft--
-    change: (jim, count, options) ->
-      @delete jim, count, options, 'change'
-      jim.setMode 'insert'
-    delete: (jim, count, options, operation) ->
-      jim.adaptor.setSelectionAnchor()
-      @move jim, count, options, operation ? 'delete'
-      adjustSelection.call this, jim
-      jim.adaptor.moveToEndOfPreviousLine() if operation is 'change' and @linewise
-      jim.deleteSelection @exclusive, @linewise
-    yank: (jim, count, options) ->
-      jim.adaptor.setSelectionAnchor()
-      @move jim, count, options, 'yank'
-      adjustSelection.call this, jim
-      jim.yankSelection @exclusive, @linewise
-    indent: (jim, count, options) ->
-      jim.adaptor.setSelectionAnchor()
-      @move jim, count, options, 'indent'
-      adjustSelection.call this, jim
-      jim.indentSelection()
-    outdent: (jim, count, options) ->
-      jim.adaptor.setSelectionAnchor()
-      @move jim, count, options, 'outdent'
-      adjustSelection.call this, jim
-      jim.outdentSelection()
+  map 'gg', class GoToLine extends Motion
+    linewise: yes
+    exec: (jim) ->
+      rowNumber = @count - 1
+      lineText = jim.adaptor.lineText rowNumber
+      jim.adaptor.moveTo rowNumber, 0
+      new MoveToFirstNonBlank().exec jim
 
-    adjustSelection = (jim) ->
-      if @linewise
-        jim.adaptor.makeLinewise()
-      else if not @exclusive
-        jim.adaptor.includeCursorInSelection()
+  map 'G', class GoToLineOrEnd extends GoToLine
+    constructor: (@count) ->
+    exec: (jim) ->
+      @count or= jim.adaptor.lastRow() + 1
+      super
 
-  simpleMotions =
-    h: new Motion
-      exclusive: yes
-      moveOnce: -> @adaptor.moveLeft()
-    j: new Motion
-      linewise: yes
-      moveOnce: -> @adaptor.moveDown()
-    k: new Motion
-      linewise: yes
-      moveOnce: -> @adaptor.moveUp()
-    l: new Motion
-      exclusive: yes
-      moveOnce: (options, operation) -> @adaptor.moveRight operation?
+  map 'H', class extends Motion
+    linewise: yes
+    exec: (jim) ->
+      line = jim.adaptor.firstFullyVisibleRow() + @count
+      literalMotions['G'].move jim, line
 
-    W: new Motion
-      exclusive: yes
-      moveOnce: -> moveNextWord.call this, WORDRegex()
-      change: (jim, count) -> simpleMotions['E'].change jim, count
-    E: new Motion
-      moveOnce: -> moveWordEnd.call this, WORDRegex()
-    B: new Motion
-      exclusive: yes
-      moveOnce: -> moveBackWord.call this, lastWORDRegex 
-    w: new Motion
-      exclusive: yes
-      moveOnce: -> moveNextWord.call this, wordRegex()
-      change: (jim, count) -> simpleMotions['e'].change jim, count
-    e: new Motion
-      moveOnce: -> moveWordEnd.call this, wordRegex()
-    b: new Motion
-      exclusive: yes
-      moveOnce: -> moveBackWord.call this, lastWordRegex
-      
-    0: new Motion
-      exclusive: yes
-      move: (jim) -> jim.adaptor.moveTo jim.adaptor.row(), 0
+  map 'M', class extends Motion
+    linewise: yes
+    exec: (jim) ->
+      topRow = jim.adaptor.firstFullyVisibleRow()
+      lines = jim.adaptor.lastFullyVisibleRow() - topRow
+      linesFromTop = lines / 2
+      literalMotions['G'].move jim, topRow + 1 + linesFromTop
 
-    '^': new Motion
-      move: (jim) -> jim.moveToFirstNonBlank()
-    $: new Motion
-      move: (jim, count) ->
-        additionalLines = (count ? 1) - 1
-        simpleMotions['j'].move jim, additionalLines if additionalLines
-        jim.adaptor.moveToLineEnd()
+  map 'L', class extends Motion
+    linewise: yes
+    exec: (jim) ->
+      line = jim.adaptor.lastFullyVisibleRow() + 2 - @count
+      literalMotions['G'].move jim, line
 
-    G: new Motion
-      linewise: yes
-      move: (jim, count) ->
-        lineNumber = count ? jim.adaptor.lastRow() + 1
-        lineText = jim.adaptor.lineText lineNumber-1
-        column = /\S/.exec(lineText)?.index or 0
-        jim.adaptor.moveTo lineNumber-1, column
+  map '/', class extends Motion
+    exclusive: yes
+    exec: (jim) ->
+      timesLeft = @count
+      pattern = prompt("Find:")
+      jim.search = {pattern, backwards: no}
+      jim.adaptor.findNext pattern while timesLeft--
 
-    gg: new Motion
-      linewise: yes
-      move: (jim, count) -> simpleMotions['G'].move jim, count ? 1
+  map '?', class extends Motion
+    exclusive: yes
+    exec: (jim) ->
+      timesLeft = @count
+      pattern = prompt("Find:")
+      jim.search = {pattern, backwards: yes}
+      jim.adaptor.findPrevious pattern while timesLeft--
 
-    H: new Motion
-      linewise: yes
-      move: (jim, count) ->
-        line = jim.adaptor.firstFullyVisibleRow() + (count ? 1)
-        simpleMotions['G'].move jim, line
+  map 'n', class extends Motion
+    exclusive: yes
+    exec: (jim) ->
+      return if not jim.search
+      timesLeft = @count
+      func = if jim.search.backwards then 'findPrevious' else 'findNext'
+      jim.adaptor[func] jim.search.pattern while timesLeft--
 
-    M: new Motion
-      linewise: yes
-      move: (jim, count) ->
-        topRow = jim.adaptor.firstFullyVisibleRow()
-        lines = jim.adaptor.lastFullyVisibleRow() - topRow
-        linesFromTop = lines / 2
-        simpleMotions['G'].move jim, topRow + 1 + linesFromTop
+  map 'N', class extends Motion
+    exclusive: yes
+    exec: (jim) ->
+      return if not jim.search
+      timesLeft = @count
+      func = if jim.search.backwards then 'findNext' else 'findPrevious'
+      jim.adaptor[func] jim.search.pattern while timesLeft--
 
-    L: new Motion
-      linewise: yes
-      move: (jim, count) ->
-        line = jim.adaptor.lastFullyVisibleRow() + 2 - (count ? 1)
-        simpleMotions['G'].move jim, line
 
-    '/': new Motion
-      exclusive: yes
-      move: (jim, count) ->
-        timesLeft = count ? 1
-        pattern = prompt("Find:")
-        jim.search = {pattern, backwards: no}
-        jim.adaptor.findNext pattern while timesLeft--
+  map 'f', class GoToNextChar extends Motion
+    @followedBy: /./
+    exec: (jim) ->
+      timesLeft = @count ? 1
+      [row, column] = jim.adaptor.position()
+      rightOfCursor = jim.adaptor.lineText().substring column + 1
+      columnsRight = 0
+      while timesLeft--
+        columnsRight = rightOfCursor.indexOf(@followedBy, columnsRight) + 1
+      if columnsRight
+        columnsRight-- if @beforeChar
+        jim.adaptor.moveTo row, column + columnsRight
 
-    '?': new Motion
-      exclusive: yes
-      move: (jim, count) ->
-        timesLeft = count ? 1
-        pattern = prompt("Find:")
-        jim.search = {pattern, backwards: yes}
-        jim.adaptor.findPrevious pattern while timesLeft--
+  map 't', class GoUpToNextChar extends GoToNextChar
+    beforeChar: yes
 
-    n: new Motion
-      exclusive: yes
-      move: (jim, count) ->
-        return if not jim.search
-        timesLeft = count ? 1
-        func = if jim.search.backwards then 'findPrevious' else 'findNext'
-        jim.adaptor[func] jim.search.pattern while timesLeft--
 
-    N: new Motion
-      exclusive: yes
-      move: (jim, count) ->
-        return if not jim.search
-        timesLeft = count ? 1
-        func = if jim.search.backwards then 'findNext' else 'findPrevious'
-        jim.adaptor[func] jim.search.pattern while timesLeft--
+  map 'F', class GoToPreviousChar extends Motion
+    @followedBy: /./
+    exec: (jim) ->
+      timesLeft = @count ? 1
+      [row, column] = jim.adaptor.position()
+      leftOfCursor = jim.adaptor.lineText().substring 0, column
+      targetColumn = column
+      while timesLeft--
+        targetColumn = leftOfCursor.lastIndexOf(@followedBy, targetColumn - 1)
+      if 0 <= targetColumn < column
+        targetColumn++ if @beforeChar
+        jim.adaptor.moveTo row, targetColumn
 
-  # these motions have their own capture groups in the regex and need to be
-  # handled separately
-  toCharMotions =
-    f: new Motion
-      move: (jim, count, options) ->
-        position = nextColumnWithChar.call jim, options.char, count
-        jim.adaptor.moveTo position... if position
-    F: new Motion
-      move: (jim, count, options) ->
-        position = lastColumnWithChar.call jim, options.char, count
-        jim.adaptor.moveTo position... if position
-    t: new Motion
-      move: (jim, count, options) ->
-        position = nextColumnWithChar.call jim, options.char, count
-        jim.adaptor.moveTo position[0], position[1] - 1 if position
-    T: new Motion
-      move: (jim, count, options) ->
-        position = lastColumnWithChar.call jim, options.char, count
-        jim.adaptor.moveTo position[0], position[1] + 1 if position
+  map 'T', class GoUpToPreviousChar extends GoToPreviousChar
+    beforeChar: yes
 
-  regex: ///
-      ([1-9]\d*)?    # count (multiplier, line number, ...)
-      (?:
-        (
-        #{util.propertyNameRegex(simpleMotions).source}
-        )|
-        ([fFtT])(.)?   # navigate to char
-      )
-    ///
 
-  move: (jim, keys, operatorCount) -> @execute(jim, null, keys, operatorCount)
-
-  execute: (jim, operator, matchOrKeys, operatorCount) ->
-    if typeof matchOrKeys is 'string'
-      simpleMatch = matchOrKeys
-    else
-      [fullMatch, count, simpleMatch, motionToChar, char] = matchOrKeys
-
-    if simpleMatch
-      motion = simpleMotions[simpleMatch]
-    else if char
-      motion = toCharMotions[motionToChar]
-      options = {char}
-
-    if motion
-      count = (parseInt(count) or 1) * (operatorCount or 1) if count or operatorCount
-      switch operator
-        when 'c' then motion.change  jim, count, options
-        when 'd' then motion.delete  jim, count, options
-        when 'y' then motion.yank    jim, count, options
-        when '>' then motion.indent  jim, count, options
-        when '<' then motion.outdent jim, count, options
-        else          motion.move    jim, count, options
-
-      false
-    else
-      !!fullMatch
+  {
+    GoToLine, MoveDown, MoveLeft, MoveRight, MoveToEndOfLine, MoveToFirstNonBlank, LinewiseCommandMotion,
+    MoveToNextBigWord, MoveToNextWord, MoveToBigWordEnd, MoveToWordEnd, defaultMappings
+  }

@@ -47,6 +47,7 @@
           editor.session.setUseSoftTabs true
           editor.session.setTabSize 2
           @jim = aceModule.startup env: {editor}
+          @jim.debugMode = 'verbose'
           @sort_by_js = sort_by_js
 
           # make undo manager synchronous for easier testing
