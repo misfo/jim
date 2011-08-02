@@ -17,8 +17,7 @@ define (require, exports, module) ->
     }
   """
 
-  isCharacterKey = (hashId, keyCode) ->
-    hashId is 0 and (keyCode is null or keyCode is 0)
+  isCharacterKey = (hashId, keyCode) -> hashId is 0 and not keyCode
 
   startup = (data, reason) ->
     {editor} = data.env
