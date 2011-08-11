@@ -23,8 +23,7 @@ define (require, exports, module) ->
       undoManager.jimUndo()
       @editor.clearSelection()
 
-    lastRepeatableInsertString: ->
-      @editor.session.getUndoManager().lastRepeatableInsertString()
+    lastInsert: -> @editor.session.getUndoManager().lastInsert()
 
     column:   -> @editor.selection.selectionLead.column
     row:      -> @editor.selection.selectionLead.row

@@ -1,5 +1,4 @@
 define (require, exports, module) ->
-  motions = require 'jim/motions'
 
   invalidCommand = (type = 'command') ->
     console.log "invalid #{type}: #{@commandPart}"

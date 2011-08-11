@@ -4,12 +4,12 @@ define (require, exports, module) ->
   class JimUndoManager extends UndoManager
     # override so that the default undo (button and keyboard shortcut)
     # will skip over Jim's bookmarks and behave as they usually do
-    undo: (dontSelect) ->
+    undo: ->
       @silentUndo() if @isJimMark @lastOnUndoStack()
-      super dontSelect
+      super
 
     isJimMark: (entry) ->
-      typeof entry is 'string' and matchingMark[entry]?
+      typeof entry is 'string' and /^jim:/.test entry
 
     lastOnUndoStack: -> @$undoStack[@$undoStack.length-1]
 
@@ -21,8 +21,8 @@ define (require, exports, module) ->
       @$redoStack.push deltas if deltas
 
     matchingMark:
-      jimInsertEnd:  'jimInsertStart'
-      jimReplaceEnd: 'jimReplaceStart'
+      'jim:insert:end':  'jim:insert:start'
+      'jim:replace:end': 'jim:replace:start'
 
     jimUndo: ->
       lastDeltasOnStack = @lastOnUndoStack()
@@ -33,18 +33,22 @@ define (require, exports, module) ->
             startIndex = i
             break
 
-        if startIndex?
-          @silentUndo() # pop the end off
-          @undo() for i in [(@$undoStack.length-1)...startIndex]
-          @silentUndo() # pop the start off
-        else
+        if not startIndex?
           console.log "found a \"#{lastDeltasOnStack}\" on the undoStack, but no \"#{startMark}\""
+          return
+
+        @silentUndo() # pop the end off
+        while @$undoStack.length > startIndex + 1
+          if @isJimMark @lastOnUndoStack()
+            @silentUndo()
+          else
+            @undo()
+        @silentUndo() # pop the start off
       else
         @undo()
 
-    lastRepeatableInsertString: ->
-      return '' if @lastOnUndoStack() isnt 'jimInsertEnd'
-      console.log '@$undoStack', @$undoStack
+    lastInsert: ->
+      return '' if @lastOnUndoStack() isnt 'jim:insert:end'
 
       startPosition = null
       stringParts = []
@@ -56,10 +60,13 @@ define (require, exports, module) ->
         break if typeof @$undoStack[i] is 'string'
         for j in [(@$undoStack[i].length - 1)..0]
           for k in [(@$undoStack[i][j].deltas.length - 1)..0]
-            delta = @$undoStack[i][j].deltas[k]
-            if isContiguousInsert delta
+            item = @$undoStack[i][j]
+            delta = item.deltas[k]
+            if item is 'jim:insert:start' or item is 'jim:insert:afterSwitch'
+              return string: stringParts.join(''), contiguous: true
+            else if isContiguousInsert delta
               stringParts.unshift delta.text
               startPosition = [delta.range.start.row, delta.range.start.column]
             else
-              return stringParts.join ''
-      stringParts.join ''
+              return string: stringParts.join(''), contiguous: false
+      string: stringParts.join(''), contiguous: true

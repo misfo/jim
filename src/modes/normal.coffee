@@ -5,11 +5,7 @@
 # or
 #     [count] operator [count] motion
 define (require, exports, module) ->
-  commands  = require 'jim/commands'
-  motions   = require 'jim/motions'
-  operators = require 'jim/operators'
-
-  {MoveLeft, MoveDown} = motions
+  {MoveLeft, MoveDown} = require 'jim/motions'
 
   # tokenize the command into the @command object or nullify
   # it if something invalid is encountered

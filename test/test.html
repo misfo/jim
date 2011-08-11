@@ -51,6 +51,7 @@
           @sort_by_js = sort_by_js
 
           # make undo manager synchronous for easier testing
+          #TODO: this should get taken out since it's causing tests to pass that don't "pass" for humans
           editor.session.$informUndoManager = editor.session.$syncInformUndoManager
           editor.session.$informUndoManager.cancel = ->
           editor.session.$informUndoManager.schedule = -> editor.session.$informUndoManager()

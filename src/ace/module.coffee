@@ -30,6 +30,11 @@ define (require, exports, module) ->
         if keyCode is 27 # esc
           jim.onEscape()
         else if isCharacterKey hashId, keyCode
+          if jim.afterInsertSwitch
+            if jim.modeName is 'insert'
+              undoManager.markUndoPoint editor.session, 'jim:insert:afterSwitch'
+            jim.afterInsertSwitch = false
+
           if jim.modeName is 'normal' and not jim.adaptor.emptySelection()
             # if a selection has been made with the mouse since the last
             # keypress in normal mode, switch to visual mode
@@ -60,15 +65,18 @@ define (require, exports, module) ->
         else
           editor.unsetStyle className
 
+      undoPointName = null
       if @modeName is 'insert'
-        undoManager.markUndoPoint editor.session, 'jimInsertStart'
+        undoPointName = 'jim:insert:start'
       else if prevMode is 'insert'
-        undoManager.markUndoPoint editor.session, 'jimInsertEnd'
+        undoPointName = 'jim:insert:end'
 
       if @modeName is 'replace'
-        undoManager.markUndoPoint editor.session, 'jimReplaceStart'
+        undoPointName = 'jim:replace:start'
       else if prevMode is 'replace'
-        undoManager.markUndoPoint editor.session, 'jimReplaceEnd'
+        undoPointName = 'jim:replace:end'
+
+      undoManager.markUndoPoint editor.session, undoPointName if undoPointName
 
     jim.onModeChange()
 

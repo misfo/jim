@@ -30,9 +30,11 @@ define (require, exports, module) ->
       else if not @getMotion()?.exclusive
         jim.adaptor.includeCursorInSelection()
       @operate jim
-      if @switchToMode is 'insert' and @repeatableInsertString
-        jim.adaptor.insert @repeatableInsertString
+      if @repeatableInsert
+        jim.adaptor.insert @repeatableInsert.string
       else
+        if @switchToMode is 'insert'
+          jim.afterInsertSwitch = true
         jim.setMode @switchToMode if @switchToMode
 
 

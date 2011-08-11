@@ -29,9 +29,10 @@ define (require, exports, module) ->
     switchToMode: 'insert'
     exec: (jim) ->
       @beforeSwitch? jim
-      if string = @repeatableInsertString
-        jim.adaptor.insert string
+      if @repeatableInsert
+        jim.adaptor.insert @repeatableInsert.string
       else
+        jim.afterInsertSwitch = true
         jim.setMode @switchToMode
 
   map 'a', class InsertAfter extends Insert
@@ -44,7 +45,7 @@ define (require, exports, module) ->
 
   map 'C', class ChangeToEndOfLine extends Insert
     beforeSwitch: (jim) ->
-      new Change(1, new MoveToEndOfLine @count).exec jim
+      new DeleteToEndOfLine(@count).exec jim
 
   map 'I', class InsertBeforeFirstNonBlank extends Insert
     beforeSwitch: (jim) -> new MoveToFirstNonBlank().exec jim
@@ -54,7 +55,6 @@ define (require, exports, module) ->
       row = jim.adaptor.row() + (if @above then 0 else 1)
       jim.adaptor.insertNewLine row
       jim.adaptor.moveTo row, 0
-      jim.setMode 'insert'
 
   map 'O', class OpenLineAbove extends OpenLine
     above: yes
@@ -93,7 +93,7 @@ define (require, exports, module) ->
   map 'J', class JoinLinesNormalizingWhitespace extends JoinLines
     normalize: yes
 
-  map 'D', class extends Command
+  map 'D', class DeleteToEndOfLine extends Command
     exec: (jim) -> new Delete(1, new MoveToEndOfLine @count).exec jim
 
   map 'p', class Paste extends Command
@@ -146,15 +146,26 @@ define (require, exports, module) ->
       new MoveLeft().exec jim
 
 
-  map '.', class extends Command
+  map '.', class RepeatCommand extends Command
     isRepeatable: no
     exec: (jim) ->
-      {lastCommand} = jim
-      return unless lastCommand
+      command = jim.lastCommand
+      return if not command
+
+      if command.switchToMode is 'insert'
+        command.repeatableInsert or= jim.adaptor.lastInsert()
+        console.log 'command.repeatableInsert', command.repeatableInsert
+        if not command.repeatableInsert.contiguous
+          # for inserts that weren't contiguous (i.e. the user moved the cursor
+          # partway through the insert), Vim repeats the insert as a standard `i`
+          # insert with just the last contigous piece of the inserted text as
+          # the text that gets inserted for the repeat
+          {string} = command.repeatableInsert
+          command = new Insert()
+          command.repeatableInsert = {string}
+
       #TODO count should replace the lastCommand's count
-      if lastCommand.switchToMode is 'insert'
-        lastCommand.repeatableInsertString ?= jim.adaptor.lastRepeatableInsertString()
-      jim.lastCommand.exec jim
+      command.exec jim
 
   map 'u', class Undo extends Command
     isRepeatable: no

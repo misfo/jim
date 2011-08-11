@@ -15,6 +15,10 @@ test 'c', ->
   eq @adaptor.lineText(), "kablammo!"
   eq @adaptor.lastRow(), 14
 
+test "c won't join lines when it has a non-linewise motion", ->
+  @press '$cWdo', @esc
+  eq @adaptor.lineText(), '_.sortBy = function(obj, iterator, context) do'
+
 test 'd', ->
   @adaptor.moveTo 0, 11
   @press 'd11W'
