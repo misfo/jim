@@ -1,5 +1,5 @@
 define (require, exports, module) ->
-  {Command} = require 'jim/helpers'
+  {Command, repeatCountTimes} = require 'jim/helpers'
 
   ## these return a new regex each time so that we always get a fresh lastIndex
   # a string of non-whitespace characters
@@ -20,10 +20,6 @@ define (require, exports, module) ->
     linewise: no
     exclusive: no
 
-    exec: (jim) ->
-      timesLeft = @count
-      @moveOnce jim while timesLeft--
-
     # motions do the same thing in visual mode
     visualExec: (jim) -> @exec jim
 
@@ -36,19 +32,19 @@ define (require, exports, module) ->
 
   map 'h', class MoveLeft extends Motion
     exclusive: yes
-    moveOnce: (jim) -> jim.adaptor.moveLeft()
+    exec: repeatCountTimes (jim) -> jim.adaptor.moveLeft()
   map 'j', class MoveDown extends Motion
     linewise: yes
-    moveOnce: (jim) -> jim.adaptor.moveDown()
+    exec: repeatCountTimes (jim) -> jim.adaptor.moveDown()
   map 'k', class MoveUp extends Motion
     linewise: yes
-    moveOnce: (jim) -> jim.adaptor.moveUp()
+    exec: repeatCountTimes (jim) -> jim.adaptor.moveUp()
   map 'l', class MoveRight extends Motion
     exclusive: yes
-    moveOnce: (jim) -> jim.adaptor.moveRight @operation?
+    exec: repeatCountTimes (jim) -> jim.adaptor.moveRight @operation?
 
   map 'e', class MoveToWordEnd extends Motion
-    moveOnce: (jim) ->
+    exec: repeatCountTimes (jim) ->
       regex = if @bigWord then WORDRegex() else wordRegex()
       line = jim.adaptor.lineText()
       [row, column] = jim.adaptor.position()
@@ -83,7 +79,7 @@ define (require, exports, module) ->
 
   map 'w', class MoveToNextWord extends Motion
     exclusive: yes
-    moveOnce: (jim) ->
+    exec: repeatCountTimes (jim) ->
       regex = if @bigWord then WORDRegex() else wordRegex()
       line = jim.adaptor.lineText()
       [row, column] = jim.adaptor.position()
@@ -111,7 +107,7 @@ define (require, exports, module) ->
 
   map 'b', class MoveBackWord extends Motion
     exclusive: yes
-    moveOnce: (jim) ->
+    exec: repeatCountTimes (jim) ->
       regex = if @bigWord then lastWORDRegex else lastWordRegex
       line = jim.adaptor.lineText()
       [row, column] = jim.adaptor.position()

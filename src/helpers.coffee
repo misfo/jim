@@ -10,5 +10,9 @@ define (require, exports, module) ->
       # matched yet, the command isn't complete
       if @constructor.followedBy then @followedBy else true
 
+  exports.repeatCountTimes = (func) ->
+    (jim) ->
+      timesLeft = @count
+      func.call this, jim while timesLeft--
 
   return

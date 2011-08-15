@@ -1,5 +1,5 @@
 define (require, exports, module) ->
-  {Command} = require 'jim/helpers'
+  {Command, repeatCountTimes} = require 'jim/helpers'
   {Change, Delete} = require 'jim/operators'
   {GoToLine, MoveDown, MoveLeft, MoveRight, MoveToEndOfLine, MoveToFirstNonBlank} = require 'jim/motions'
 
@@ -169,9 +169,7 @@ define (require, exports, module) ->
 
   map 'u', class Undo extends Command
     isRepeatable: no
-    exec: (jim) ->
-      timesLeft = @count
-      jim.adaptor.undo() while timesLeft--
+    exec: repeatCountTimes (jim) -> jim.adaptor.undo()
 
   map 'x', class DeleteChar extends Command
     exec: (jim) -> new Delete(1, new MoveRight @count).exec jim

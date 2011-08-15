@@ -5,6 +5,10 @@ test 'undoing commands', ->
   @press 'xxu'
   eq @adaptor.lineText(), '.sortBy = function(obj, iterator, context) {'
 
+test 'undoing multiple commands', ->
+  @press 'xx2u'
+  eq @adaptor.lineText(), '_.sortBy = function(obj, iterator, context) {'
+
 test 'undoing inserts', ->
   @press 'Aend', @esc, 'Ibegin', @esc
   eq @adaptor.lineText(), 'begin_.sortBy = function(obj, iterator, context) {end'
