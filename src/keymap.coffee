@@ -51,7 +51,7 @@ define (require, exports, module) ->
           [#{(char for own char, nothing of partialCommands).join ''}]?
           # if the group below captures something, we know outer group is
           # is more than just a partial command (could be invalid, though)
-          (.*)
+          ([\s\S]*)
         )?
         $
       ///

@@ -31,6 +31,7 @@ define (require, exports, module) ->
 
     onEscape: ->
       @setMode 'normal'
+      @commandPart = '' # just in case...
       @adaptor.clearSelection()
 
     onKeypress: (keys) -> @mode.onKeypress.call this, keys
