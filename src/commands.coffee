@@ -164,8 +164,13 @@ define (require, exports, module) ->
           command = new Insert()
           command.repeatableInsert = {string}
 
-      #TODO count should replace the lastCommand's count
-      command.exec jim
+      if selectionSize = command.selectionSize
+        #TODO if selectionSize.chars
+        jim.adaptor.makeLinewise selectionSize.lines - 1
+        command.visualExec jim
+      else
+        #TODO count should replace the lastCommand's count
+        command.exec jim
 
   map 'u', class Undo extends Command
     isRepeatable: no

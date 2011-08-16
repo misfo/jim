@@ -49,10 +49,14 @@ define (require, exports, module) ->
 
     lineText: (lineNumber) -> @editor.selection.doc.getLine lineNumber ? @row()
 
-    makeLinewise: ->
+    makeLinewise: (lines) ->
       {selectionAnchor: {row: anchorRow}, selectionLead: {row: leadRow}} = @editor.selection
-      @editor.selection.setSelectionAnchor Math.min(anchorRow, leadRow), 0
-      @editor.selection.moveCursorTo Math.max(anchorRow, leadRow) + 1, 0
+      [firstRow, lastRow] = if lines?
+        [leadRow, leadRow + (lines - 1)]
+      else
+        [Math.min(anchorRow, leadRow), Math.max(anchorRow, leadRow)]
+      @editor.selection.setSelectionAnchor firstRow, 0
+      @editor.selection.moveCursorTo lastRow + 1, 0
 
     moveUp:   -> @editor.selection.moveCursorBy -1, 0
     moveDown: -> @editor.selection.moveCursorBy 1, 0
@@ -143,3 +147,9 @@ define (require, exports, module) ->
       [cursorRow, cursorColumn] = @position()
       {row: anchorRow} = @editor.selection.getSelectionAnchor()
       [Math.min(cursorRow, anchorRow), Math.max(cursorRow, anchorRow)]
+
+    # returns {lines: n, chars: n}
+    # where lines is the number of lines endings that are selected
+    # and chars is the number of chars selected on the last line
+    characterwiseSelectionSize: ->
+      #TODO

@@ -19,13 +19,12 @@ define (require, exports, module) ->
         @motion.count *= @count
         @count = 1
       motion = @getMotion()
+      @linewise ?= motion.linewise
       motion.exec jim
       @visualExec jim
 
-    linewise: (jim) -> jim.modeName is 'visual:linewise' or @motion?.linewise
-
     visualExec: (jim) ->
-      if @linewise jim
+      if @linewise
         jim.adaptor.makeLinewise()
       else if not @getMotion()?.exclusive
         jim.adaptor.includeCursorInSelection()
@@ -47,20 +46,18 @@ define (require, exports, module) ->
         else                        super
     operate: (jim) ->
       motion = @getMotion()
-      linewise = @linewise jim
-      jim.adaptor.moveToEndOfPreviousLine() if linewise
-      jim.deleteSelection motion?.exclusive, linewise
+      jim.adaptor.moveToEndOfPreviousLine() if @linewise
+      jim.deleteSelection motion?.exclusive, @linewise
     switchToMode: 'insert'
 
   map 'd', class Delete extends Operation
     operate: (jim) ->
-      linewise = @linewise jim
-      jim.deleteSelection @motion?.exclusive, linewise
-      new MoveToFirstNonBlank().exec jim if linewise
+      jim.deleteSelection @motion?.exclusive, @linewise
+      new MoveToFirstNonBlank().exec jim if @linewise
 
   map 'y', class Yank extends Operation
     operate: (jim) ->
-      jim.yankSelection @motion?.exclusive, @linewise(jim)
+      jim.yankSelection @motion?.exclusive, @linewise
       jim.adaptor.moveTo @startingPosition... if @startingPosition
 
   map '>', class Indent extends Operation

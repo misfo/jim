@@ -30,8 +30,18 @@ define (require, exports, module) ->
     wasBackwards = @adaptor.isSelectionBackwards()
 
     if @command?.isOperation or @command?.isComplete()
-      @command.visualExec this
-      @lastCommand = @command if @command.isRepeatable
+      if @command.isRepeatable
+        @command.selectionSize = if @modeName is 'visual:linewise'
+          [minRow, maxRow] = @adaptor.selectionRowRange()
+          lines: (maxRow - minRow) + 1
+        else
+          @adaptor.characterwiseSelectionSize()
+        @command.linewise = @modeName is 'visual:linewise'
+        @command.visualExec this
+        @lastCommand = @command
+        console.log 'repeatable visual command', @lastCommand
+      else
+        @command.visualExec this
       @command = null
 
     if @inVisualMode()
