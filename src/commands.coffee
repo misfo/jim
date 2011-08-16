@@ -165,8 +165,13 @@ define (require, exports, module) ->
           command.repeatableInsert = {string}
 
       if selectionSize = command.selectionSize
-        #TODO if selectionSize.chars
-        jim.adaptor.makeLinewise selectionSize.lines - 1
+        if selectionSize.lines
+          jim.adaptor.makeLinewise selectionSize.lines - 1
+        else if selectionSize.chars
+          jim.adaptor.setSelectionAnchor()
+          new MoveRight(selectionSize.chars).exec jim
+        #TODO if selectionSize.lineEndings and trailingChars
+
         command.visualExec jim
       else
         #TODO count should replace the lastCommand's count

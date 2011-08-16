@@ -37,6 +37,10 @@ test 'repeating characterwise visual commands', ->
   @press 'WvjdW.'
   eq @adaptor.lineText(), '_.sortBy .pluck(_.map(obj,  {'
 
+test 'repeating single line characterwise visual commands', ->
+  @press 'v10ld10l.'
+  eq @adaptor.lineText(), 'function(or, context) {'
+
 test 'repeating linewise visual commands', ->
   @press 'VjjJj.'
   eq @adaptor.lineText(), '      value : value, criteria : iterator.call(context, value, index, list) };'

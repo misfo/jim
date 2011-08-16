@@ -148,8 +148,11 @@ define (require, exports, module) ->
       {row: anchorRow} = @editor.selection.getSelectionAnchor()
       [Math.min(cursorRow, anchorRow), Math.max(cursorRow, anchorRow)]
 
-    # returns {lines: n, chars: n}
-    # where lines is the number of lines endings that are selected
-    # and chars is the number of chars selected on the last line
     characterwiseSelectionSize: ->
-      #TODO
+      {selectionAnchor, selectionLead} = @editor.selection
+      rowsDown = selectionLead.row - selectionAnchor.row
+      if rowsDown is 0
+        chars: Math.abs(selectionAnchor.column - selectionLead.column)
+      else
+        lineEndings: Math.abs(rowsDown)
+        trailingChars: (if rowsDown > 0 then selectionLead else selectionAnchor).column
