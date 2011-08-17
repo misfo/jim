@@ -155,4 +155,4 @@ define (require, exports, module) ->
         chars: Math.abs(selectionAnchor.column - selectionLead.column)
       else
         lineEndings: Math.abs(rowsDown)
-        trailingChars: (if rowsDown > 0 then selectionLead else selectionAnchor).column
+        trailingChars: (if rowsDown > 0 then selectionLead else selectionAnchor).column + 1

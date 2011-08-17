@@ -170,7 +170,10 @@ define (require, exports, module) ->
         else if selectionSize.chars
           jim.adaptor.setSelectionAnchor()
           new MoveRight(selectionSize.chars).exec jim
-        #TODO if selectionSize.lineEndings and trailingChars
+        else
+          jim.adaptor.setSelectionAnchor()
+          row = jim.adaptor.row() + selectionSize.lineEndings
+          jim.adaptor.moveTo row, selectionSize.trailingChars - 1
 
         command.visualExec jim
       else
