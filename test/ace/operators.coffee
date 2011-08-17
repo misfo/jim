@@ -54,3 +54,14 @@ test '<', ->
   eq @adaptor.lineText(1), 'return _.pluck(_.map(obj, function(value, index, list) {'
   eq @adaptor.lineText(2), '  return {'
   deepEqual @adaptor.position(), [1, 0]
+
+test 'invalid motions following operators escape', ->
+  @press 'cql'
+
+  # makes no changes and moves one char right
+  deepEqual @adaptor.position(), [0, 1]
+  eq @adaptor.lineText(), '_.sortBy = function(obj, iterator, context) {'
+
+test 'work with motions that are followed by something', ->
+  @press 'ct(thwap!', @esc
+  eq @adaptor.lineText(), 'thwap!(obj, iterator, context) {'

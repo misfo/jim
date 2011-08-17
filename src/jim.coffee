@@ -31,6 +31,7 @@ define (require, exports, module) ->
 
     onEscape: ->
       @setMode 'normal'
+      @command = null
       @commandPart = '' # just in case...
       @adaptor.clearSelection()
 
