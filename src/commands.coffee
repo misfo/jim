@@ -1,11 +1,19 @@
+# All the default commands (other than operations and motions) for normal mode.  All commands
+# can be prefixed with a {count} which multiplies their action in some way.
+#
+# Commands that also work in visual mode define a `::visualExec` here.
+
 define (require, exports, module) ->
   {Command, repeatCountTimes} = require 'jim/helpers'
   {Change, Delete} = require 'jim/operators'
   {GoToLine, MoveDown, MoveLeft, MoveRight, MoveToEndOfLine, MoveToFirstNonBlank} = require 'jim/motions'
 
+  # The default key mappings are specified alongside the definitions of each command.
+  # Accumulate the mappings so they can be exported.
   defaultMappings = {}
   map = (keys, commandClass) -> defaultMappings[keys] = commandClass
 
+  # convenience class for commands that switch to another mode
   class ModeSwitch extends Command
     exec: (jim) ->
       @beforeSwitch? jim
@@ -13,11 +21,13 @@ define (require, exports, module) ->
 
   #### visual mode switches
 
+  # switch to characterwise visual mode
   map 'v', class extends ModeSwitch
     isRepeatable: no
     beforeSwitch: (jim) -> jim.adaptor.setSelectionAnchor()
     switchToMode: 'visual:characterwise'
 
+  # switch to linewise visual mode
   map 'V', class extends ModeSwitch
     isRepeatable: no
     beforeSwitch: (jim) -> jim.adaptor.setLinewiseSelectionAnchor()
@@ -25,40 +35,56 @@ define (require, exports, module) ->
 
   #### insert mode switches
 
+  # insert before the char under the cursor
   map 'i', class Insert extends ModeSwitch
     switchToMode: 'insert'
     exec: (jim) ->
       @beforeSwitch? jim
       if @repeatableInsert
+        # If @repeatableInsert is set, this call to `::exec` is to repeat the insert.
+        # Don't switch to insert mode, just insert the text that was inserted the
+        # first time.
         jim.adaptor.insert @repeatableInsert.string
       else
+        # In order to inform the undo manager (which helps figures out what text to
+        # insert when repeating an insert) when the insert is done doing whatever it
+        # may have done before the switch to insert mode (e.g. deleted to the end of
+        # the line in the case of `C`) and is switching to insert mode, a boolean is
+        # set so the undo manager can bookmark that spot during the next keypress event
         jim.afterInsertSwitch = true
         jim.setMode @switchToMode
 
+  # insert after the char under the cursor
   map 'a', class InsertAfter extends Insert
     beforeSwitch: (jim) -> jim.adaptor.moveRight true
 
+  # insert at the end of the line
   map 'A', class InsertAtEndOfLine extends Insert
     beforeSwitch: (jim) ->
       new MoveToEndOfLine().exec jim
       jim.adaptor.moveRight true
 
+  # delete all remaining text on the line and insert in it's place
   map 'C', class ChangeToEndOfLine extends Insert
     beforeSwitch: (jim) ->
       new DeleteToEndOfLine(@count).exec jim
 
+  # insert before to first non-blank char of the line
   map 'I', class InsertBeforeFirstNonBlank extends Insert
     beforeSwitch: (jim) -> new MoveToFirstNonBlank().exec jim
 
+  # create a new line below the cursor and insert there
   map 'o', class OpenLine extends Insert
     beforeSwitch: (jim) ->
       row = jim.adaptor.row() + (if @above then 0 else 1)
       jim.adaptor.insertNewLine row
       jim.adaptor.moveTo row, 0
 
+  # create a new line above the cursor and insert there
   map 'O', class OpenLineAbove extends OpenLine
     above: yes
 
+  # replace the char under the cursor with an insert
   map 's', class ChangeChar extends Insert
     beforeSwitch: (jim) -> new DeleteChar(@count).exec jim
 
@@ -71,6 +97,7 @@ define (require, exports, module) ->
 
 
   #### general commands
+
   map 'gJ', class JoinLines extends Command
     exec: (jim) ->
       timesLeft = Math.max(@count, 2) - 1
