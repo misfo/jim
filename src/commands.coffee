@@ -120,7 +120,10 @@ define (require, exports, module) ->
         jim.adaptor.insert text, not @before
 
     visualExec: (jim) ->
-      jim.adaptor.includeCursorInSelection()
+      if jim.modeName is 'visual:linewise'
+        jim.adaptor.makeLinewise()
+      else
+        jim.adaptor.includeCursorInSelection()
       overwrittenText = jim.adaptor.deleteSelection()
       # gross?
       @before = true

@@ -74,3 +74,21 @@ test 'gJ', ->
   eq @adaptor.lineText(), '    return {      value : value,      criteria : iterator.call(context, value, index, list)    };'
   deepEqual @adaptor.position(), [1, 91]
   eq @jim.modeName, 'normal'
+
+test 'linewise paste over a linewise selection', ->
+  firstLine = @adaptor.lineText 0
+  fourthLine = @adaptor.lineText 3
+  lastRow = @adaptor.lastRow()
+
+  # replace lines 2 & 3 with line 1 (threw the `l`'s in there fo fun)
+  @press 'yyjlllVjp'
+  eq @adaptor.lineText(1), firstLine
+  eq @adaptor.lineText(2), fourthLine
+  eq @adaptor.lastRow(), lastRow - 1
+
+test 'linewise gJ', ->
+  lastRow = @adaptor.lastRow()
+
+  @press 'lllVjgJ'
+  eq @adaptor.lineText(), '_.sortBy = function(obj, iterator, context) {  return _.pluck(_.map(obj, function(value, index, list) {'
+  eq @adaptor.lastRow(), lastRow - 1
