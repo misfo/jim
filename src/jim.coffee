@@ -9,11 +9,7 @@ define (require, exports, module) ->
       @keymap = Keymap.getDefault()
       @setMode 'normal'
 
-    modes:
-      insert: require 'jim/modes/insert'
-      normal: require 'jim/modes/normal'
-      replace: require 'jim/modes/replace'
-      visual: require 'jim/modes/visual'
+    modes: require 'jim/modes'
 
     setMode: (modeName) ->
       console.log 'setMode', modeName if @debugMode
