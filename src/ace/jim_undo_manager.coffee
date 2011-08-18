@@ -47,26 +47,44 @@ define (require, exports, module) ->
       else
         @undo()
 
-    lastInsert: ->
-      return '' if @lastOnUndoStack() isnt 'jim:insert:end'
+    # helper class for figuring out what text was inserted and if it was contiguous
+    class InsertedText
+      @fromUndoStack: (undoStack) ->
+        insertedText = new InsertedText
 
-      startPosition = null
-      stringParts = []
-      isContiguousInsert = (delta) ->
+        for i in [(undoStack.length - 2)..0]
+          if typeof undoStack[i] is 'string'
+            insertedText.addBookmark undoStack[i]
+            return insertedText
+
+          for j in [(undoStack[i].length - 1)..0]
+            for k in [(undoStack[i][j].deltas.length - 1)..0]
+              continueLooping = insertedText.addDelta undoStack[i][j].deltas[k]
+              return insertedText unless continueLooping
+
+      constructor: ->
+        # we don't consider it contiguous until it's been "proven"
+        @contiguous = no
+        @textParts = []
+
+      addBookmark: (bookmark) -> @contiguous = yes if bookmark is 'jim:insert:afterSwitch'
+
+      isContiguousInsert: (delta) ->
         return false unless delta.action is 'insertText'
-        not startPosition or delta.range.isEnd startPosition...
+        not @lastStartPosition or delta.range.isEnd @lastStartPosition...
 
-      for i in [(@$undoStack.length - 2)..0]
-        break if typeof @$undoStack[i] is 'string'
-        for j in [(@$undoStack[i].length - 1)..0]
-          for k in [(@$undoStack[i][j].deltas.length - 1)..0]
-            item = @$undoStack[i][j]
-            delta = item.deltas[k]
-            if item is 'jim:insert:start' or item is 'jim:insert:afterSwitch'
-              return string: stringParts.join(''), contiguous: true
-            else if isContiguousInsert delta
-              stringParts.unshift delta.text
-              startPosition = [delta.range.start.row, delta.range.start.column]
-            else
-              return string: stringParts.join(''), contiguous: false
-      string: stringParts.join(''), contiguous: true
+      addDelta: (delta) ->
+        if @isContiguousInsert delta
+          @textParts.unshift delta.text
+          @lastStartPosition = [delta.range.start.row, delta.range.start.column]
+          true
+
+      text: -> @textParts.join ''
+
+
+    lastInsert: ->
+      return {string: '', contiguous: no} if @lastOnUndoStack() isnt 'jim:insert:end'
+
+      insertedText = InsertedText.fromUndoStack @$undoStack
+
+      string: insertedText.text(), contiguous: insertedText.contiguous
