@@ -13,6 +13,14 @@ lastWordRegex = ///(#{wordRegex().source})\s*$///
 defaultMappings = {}
 map = (keys, motionClass) -> defaultMappings[keys] = motionClass
 
+wordCursorIsOn = (line, column) ->
+  leftOfCursor = line.substring 0, column
+  rightOfCursor = line.substring column
+  leftMatch = /\w*$/.exec leftOfCursor
+  rightMatch = /^\w*/.exec rightOfCursor
+
+  leftMatch[0] + rightMatch[0]
+
 class Motion extends Command
   constructor: (@count = 1) ->
   isRepeatable: false
@@ -194,6 +202,24 @@ map '?', class extends Motion
   exec: (jim) ->
     timesLeft = @count
     pattern = prompt("Find:")
+    jim.search = {pattern, backwards: yes}
+    jim.adaptor.findPrevious pattern while timesLeft--
+
+map '*', class extends Motion
+  exclusive: yes
+  exec: (jim) ->
+    timesLeft = @count
+    adaptor = jim.adaptor
+    pattern = wordCursorIsOn adaptor.lineText(), adaptor.column()
+    jim.search = {pattern, backwards: no}
+    jim.adaptor.findNext pattern while timesLeft--
+
+map '#', class extends Motion
+  exclusive: yes
+  exec: (jim) ->
+    timesLeft = @count
+    adaptor = jim.adaptor
+    pattern = wordCursorIsOn adaptor.lineText(), adaptor.column()
     jim.search = {pattern, backwards: yes}
     jim.adaptor.findPrevious pattern while timesLeft--
 
