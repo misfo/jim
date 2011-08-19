@@ -2,9 +2,9 @@ define (require, exports, module) ->
   class Keymap
     @getDefault: ->
       keymap = new Keymap
-      keymap.mapCommand keys, commandClass for own keys, commandClass of require('jim/commands').defaultMappings
-      keymap.mapOperator keys, operationClass for own keys, operationClass of require('jim/operators').defaultMappings
-      keymap.mapMotion keys, motionClass for own keys, motionClass of require('jim/motions').defaultMappings
+      keymap.mapCommand keys, commandClass for own keys, commandClass of require('./commands').defaultMappings
+      keymap.mapOperator keys, operationClass for own keys, operationClass of require('./operators').defaultMappings
+      keymap.mapMotion keys, motionClass for own keys, motionClass of require('./motions').defaultMappings
       keymap
 
     constructor: ->
@@ -79,7 +79,7 @@ define (require, exports, module) ->
       if beyondPartial
         if motion is operatorPending
           # e.g `cc`, `yy`
-          {LinewiseCommandMotion} = require('jim/motions')
+          {LinewiseCommandMotion} = require './motions'
           new LinewiseCommandMotion(parseInt(count) or null)
         else if motionClass = @motions[motion]
           new motionClass(parseInt(count) or null)

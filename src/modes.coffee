@@ -1,5 +1,5 @@
 define (require, exports, module) ->
-  {MoveLeft, MoveDown} = require 'jim/motions'
+  {MoveLeft, MoveDown} = require './motions'
 
   exports.normal = do ->
     # tokenize the command into the @command object or nullify

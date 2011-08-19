@@ -1,6 +1,6 @@
 define (require, exports, module) ->
-  Keymap     = require 'jim/keymap'
-  {GoToLine} = require 'jim/motions'
+  Keymap     = require './keymap'
+  {GoToLine} = require './motions'
 
   class Jim
     constructor: (@adaptor) ->
@@ -9,7 +9,7 @@ define (require, exports, module) ->
       @keymap = Keymap.getDefault()
       @setMode 'normal'
 
-    modes: require 'jim/modes'
+    modes: require './modes'
 
     setMode: (modeName) ->
       console.log 'setMode', modeName if @debugMode

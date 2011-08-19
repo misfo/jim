@@ -1,6 +1,6 @@
 define (require, exports, module) ->
-  {Command} = require 'jim/helpers'
-  {GoToLine, MoveToFirstNonBlank, MoveToNextBigWord, MoveToNextWord, MoveToBigWordEnd, MoveToWordEnd} = require 'jim/motions'
+  {Command} = require './helpers'
+  {GoToLine, MoveToFirstNonBlank, MoveToNextBigWord, MoveToNextWord, MoveToBigWordEnd, MoveToWordEnd} = require './motions'
 
   defaultMappings = {}
   map = (keys, operatorClass) -> defaultMappings[keys] = operatorClass

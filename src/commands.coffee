@@ -4,9 +4,9 @@
 # Commands that also work in visual mode define a `::visualExec` here.
 
 define (require, exports, module) ->
-  {Command, repeatCountTimes} = require 'jim/helpers'
-  {Change, Delete} = require 'jim/operators'
-  {GoToLine, MoveDown, MoveLeft, MoveRight, MoveToEndOfLine, MoveToFirstNonBlank} = require 'jim/motions'
+  {Command, repeatCountTimes} = require './helpers'
+  {Change, Delete} = require './operators'
+  {GoToLine, MoveDown, MoveLeft, MoveRight, MoveToEndOfLine, MoveToFirstNonBlank} = require './motions'
 
   # The default key mappings are specified alongside the definitions of each command.
   # Accumulate the mappings so they can be exported.

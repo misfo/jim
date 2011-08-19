@@ -1,5 +1,5 @@
 define (require, exports, module) ->
-  {Command, repeatCountTimes} = require 'jim/helpers'
+  {Command, repeatCountTimes} = require './helpers'
 
   ## these return a new regex each time so that we always get a fresh lastIndex
   # a string of non-whitespace characters
