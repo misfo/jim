@@ -16,8 +16,8 @@ map = (keys, motionClass) -> defaultMappings[keys] = motionClass
 wordCursorIsOn = (line, column) ->
   leftOfCursor = line.substring 0, column
   rightOfCursor = line.substring column
-  leftMatch = /\w*$/.exec leftOfCursor
-  rightMatch = /^\w*/.exec rightOfCursor
+  leftMatch = /\S*$/.exec leftOfCursor
+  rightMatch = /^\S*/.exec rightOfCursor
 
   leftMatch[0] + rightMatch[0]
 
