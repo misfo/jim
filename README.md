@@ -55,8 +55,9 @@ Chrome needs a special command line argument to allow XHRs to files:
 `google-chrome --allow-file-access-from-files`
 
 While developing, keep your CoffeeScript compiling in the background:
-```
-coffee --watch --output lib/ src/
+
+```bash
+cake watch
 ```
 
 Open test/test.html to run the tests
