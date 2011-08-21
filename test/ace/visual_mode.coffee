@@ -92,3 +92,19 @@ test 'linewise gJ', ->
   @press 'lllVjgJ'
   eq @adaptor.lineText(), '_.sortBy = function(obj, iterator, context) {  return _.pluck(_.map(obj, function(value, index, list) {'
   eq @adaptor.lastRow(), lastRow - 1
+
+test 'toggle visual mode', ->
+  @press 'vW'
+  eq @jim.modeName, 'visual:characterwise'
+
+  @press 'Vj'
+  eq @jim.modeName, 'visual:linewise'
+
+  @press 'vy'
+  eq @jim.registers['"'], '_.sortBy = function(obj, iterator, context) {\n  return _'
+
+  @press 'vv'
+  eq @jim.modeName, 'normal'
+
+  @press 'VV'
+  eq @jim.modeName, 'normal'
