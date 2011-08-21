@@ -25,12 +25,22 @@ map 'v', class extends ModeSwitch
   isRepeatable: no
   beforeSwitch: (jim) -> jim.adaptor.setSelectionAnchor()
   switchToMode: 'visual:characterwise'
+  visualExec: (jim) ->
+    if /linewise/.test jim.modeName
+      jim.setMode 'visual:characterwise'
+    else
+      jim.onEscape()
 
 # switch to linewise visual mode
 map 'V', class extends ModeSwitch
   isRepeatable: no
   beforeSwitch: (jim) -> jim.adaptor.setLinewiseSelectionAnchor()
   switchToMode: 'visual:linewise'
+  visualExec: (jim) ->
+    if /characterwise/.test jim.modeName
+      jim.setMode 'visual:linewise'
+    else
+      jim.onEscape()
 
 #### insert mode switches
 
