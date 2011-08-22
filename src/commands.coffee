@@ -97,6 +97,7 @@ map 'R', class ReplaceSwitch extends ModeSwitch
 
 #### general commands
 
+# join a line with the line following it
 map 'gJ', class JoinLines extends Command
   exec: (jim) ->
     timesLeft = Math.max(@count, 2) - 1
@@ -116,19 +117,26 @@ map 'gJ', class JoinLines extends Command
     @exec jim
     jim.setMode 'normal'
 
+# join a line with the line following it, with one space separating the lines' content
 map 'J', class JoinLinesNormalizingWhitespace extends JoinLines
   normalize: yes
 
+# delete all remaining text on the line
 map 'D', class DeleteToEndOfLine extends Command
   exec: (jim) -> new Delete(1, new MoveToEndOfLine @count).exec jim
 
+# paste from the register
 map 'p', class Paste extends Command
   exec: (jim) ->
     return if not registerValue = jim.registers['"']
 
+    # using a count with `p` causes the pasted text to be repeated
     text = new Array(@count + 1).join registerValue
     linewiseRegister = /\n$/.test registerValue
     if linewiseRegister
+      # Registers with linewise text in them (e.g. yanked with `yy` instead of `yw`,
+      # for instance) are never pasted mid-line.  Move to the beginning of a line to
+      # ensure this doesn't happen.
       row = jim.adaptor.row() + (if @before then 0 else 1)
       lastRow = jim.adaptor.lastRow()
       if row > lastRow
@@ -157,9 +165,11 @@ map 'p', class Paste extends Command
     jim.registers['"'] = overwrittenText
     jim.setMode 'normal'
 
+# paste after the cursor (or after the line for linewise registers)
 map 'P', class extends Paste
   before: yes
 
+# replace the char under the cursor with the key pressed after `r`
 map 'r', class extends Command
   # [\s\S] so that it will match \n (windows' \r\n?)
   @followedBy: /[\s\S]+/
@@ -175,6 +185,7 @@ map 'r', class extends Command
     new MoveLeft().exec jim
 
 
+# repeat the previous repeatable command
 map '.', class RepeatCommand extends Command
   isRepeatable: no
   exec: (jim) ->
@@ -194,6 +205,9 @@ map '.', class RepeatCommand extends Command
         command.repeatableInsert = {string}
 
     if selectionSize = command.selectionSize
+      # if we're repeating command made in visual mode, repeating the commmand should
+      # affect the same "amount" of text by using motions to move over the same aomount
+      # of text
       if selectionSize.lines
         jim.adaptor.makeLinewise selectionSize.lines - 1
       else if selectionSize.chars
@@ -209,12 +223,16 @@ map '.', class RepeatCommand extends Command
       #TODO count should replace the lastCommand's count
       command.exec jim
 
+# undo the last command that changed text
 map 'u', class Undo extends Command
   isRepeatable: no
   exec: repeatCountTimes (jim) -> jim.adaptor.undo()
 
+# delete the char under the cursor
 map 'x', class DeleteChar extends Command
   exec: (jim) -> new Delete(1, new MoveRight @count).exec jim
+  
+# delete the char before the cursor
 map 'X', class extends Command
   exec: (jim) -> new Delete(1, new MoveLeft @count).exec jim
 
