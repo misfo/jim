@@ -28,6 +28,14 @@ test '*', ->
   @press '2*'
   deepEqual @adaptor.position(), [0, 11]
 
+  @adaptor.moveTo 7, 8
+  @press '*'
+  # asserting that only whole word are matched and not just any instance of "a"
+  deepEqual @adaptor.position(), [8, 11]
+
+  @press '2n'
+  deepEqual @adaptor.position(), [7, 8]
+
 test '#', ->
   @adaptor.moveTo 1, 4
   @press '#'
@@ -41,6 +49,14 @@ test '#', ->
 
   @press '2#'
   deepEqual @adaptor.position(), [1, 2]
+
+  @adaptor.moveTo 7, 8
+  @press '#'
+  # asserting that only whole word are matched and not just any instance of "a"
+  deepEqual @adaptor.position(), [8, 24]
+
+  @press 'N'
+  deepEqual @adaptor.position(), [7, 8]
 
 
 # there are four different rules for what search Vim uses for * and #

@@ -84,8 +84,8 @@ Adaptor = do ->
     navigateFileEnd:   -> @editor.navigateFileEnd()
     navigateLineStart: -> @editor.navigateLineStart()
 
-    findNext: (pattern) ->
-      @editor.$search.set needle: pattern, backwards: false
+    findNext: (pattern, wholeWord) ->
+      @editor.$search.set needle: pattern, backwards: false, wholeWord: !!wholeWord
       # move the cursor right so that it won't match what's already under the
       # cursor. move the cursor back afterwards if nothing's found
       @editor.selection.moveCursorRight()

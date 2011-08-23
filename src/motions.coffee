@@ -20,7 +20,7 @@ wordCursorIsOn = (line, column) ->
 
   # If the item on the cursor isn't a word it goes to the next word or
   # the next group of special characters if there isn't a word.
-  if /\W/.test line[column]
+  if specialChars = /\W/.test line[column]
     leftMatch = ['']
     nextWord = /\w+/.exec rightOfCursor
     rightMatch = if not nextWord
@@ -32,7 +32,7 @@ wordCursorIsOn = (line, column) ->
     leftMatch = /\w*$/.exec leftOfCursor
     rightMatch = /^\w*/.exec rightOfCursor
 
-  [leftMatch[0] + rightMatch[0], charsAhead]
+  [leftMatch[0] + rightMatch[0], specialChars, charsAhead]
 
 class Motion extends Command
   constructor: (@count = 1) ->
@@ -223,22 +223,24 @@ map '*', class extends Motion
   exec: (jim) ->
     timesLeft = @count
     adaptor = jim.adaptor
-    [pattern, charsAhead] = wordCursorIsOn adaptor.lineText(), adaptor.column()
+    [pattern, specialChars, charsAhead] = wordCursorIsOn adaptor.lineText(), adaptor.column()
     if charsAhead
       # if we're searching for a word that's ahead of the cursor, ensure that
       # we the search starts at the word beyond that one
       new MoveRight(charsAhead).exec jim
-    jim.search = {pattern, backwards: no}
-    jim.adaptor.findNext pattern while timesLeft--
+    wholeWord = not specialChars
+    jim.search = {pattern, backwards: no, wholeWord}
+    jim.adaptor.findNext pattern, wholeWord while timesLeft--
 
 map '#', class extends Motion
   exclusive: yes
   exec: (jim) ->
     timesLeft = @count
     adaptor = jim.adaptor
-    [pattern, charsAhead] = wordCursorIsOn adaptor.lineText(), adaptor.column()
-    jim.search = {pattern, backwards: yes}
-    jim.adaptor.findPrevious pattern while timesLeft--
+    [pattern, specialChars, charsAhead] = wordCursorIsOn adaptor.lineText(), adaptor.column()
+    wholeWord = not specialChars
+    jim.search = {pattern, backwards: yes, wholeWord}
+    jim.adaptor.findPrevious pattern, wholeWord while timesLeft--
 
 map 'n', class extends Motion
   exclusive: yes
@@ -246,7 +248,7 @@ map 'n', class extends Motion
     return if not jim.search
     timesLeft = @count
     func = if jim.search.backwards then 'findPrevious' else 'findNext'
-    jim.adaptor[func] jim.search.pattern while timesLeft--
+    jim.adaptor[func] jim.search.pattern, jim.search.wholeWord while timesLeft--
 
 map 'N', class extends Motion
   exclusive: yes
@@ -254,7 +256,7 @@ map 'N', class extends Motion
     return if not jim.search
     timesLeft = @count
     func = if jim.search.backwards then 'findNext' else 'findPrevious'
-    jim.adaptor[func] jim.search.pattern while timesLeft--
+    jim.adaptor[func] jim.search.pattern, jim.search.wholeWord while timesLeft--
 
 
 map 'f', class GoToNextChar extends Motion
