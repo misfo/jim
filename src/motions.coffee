@@ -16,8 +16,19 @@ map = (keys, motionClass) -> defaultMappings[keys] = motionClass
 wordCursorIsOn = (line, column) ->
   leftOfCursor = line.substring 0, column
   rightOfCursor = line.substring column
-  leftMatch = /\w*$/.exec leftOfCursor
-  rightMatch = /^\w*/.exec rightOfCursor
+
+  # If the item on the cursor isn't a word it goes to the next word or
+  # the next group of special characters if there isn't a word.
+  if /\W/.test line[column]
+    leftMatch = ['']
+    nextWord = /\w+/.exec rightOfCursor
+    rightMatch = if not nextWord
+      /[^\w\s]+/.exec rightOfCursor
+    else
+      nextWord
+  else
+    leftMatch = /\w*$/.exec leftOfCursor
+    rightMatch = /^\w*/.exec rightOfCursor
 
   leftMatch[0] + rightMatch[0]
 
