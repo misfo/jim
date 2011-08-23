@@ -37,6 +37,7 @@ task 'compile', 'compile individual files for development', ->
 task 'watch', 'watch files in src/, compiling for development', ->
   invoke 'compile'
   for sourceName in sourceNames
-    fs.watchFile "src/#{sourceName}.coffee", {persistent: yes, interval: 500}, (curr, prev) ->
-      unless curr.size is prev.size and curr.mtime.getTime() is prev.mtime.getTime()
-        compileModule sourceName
+    do (sourceName) ->
+      fs.watchFile "src/#{sourceName}.coffee", {persistent: yes, interval: 500}, (curr, prev) ->
+        unless curr.size is prev.size and curr.mtime.getTime() is prev.mtime.getTime()
+          compileModule sourceName

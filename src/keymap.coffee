@@ -1,4 +1,10 @@
+# This is a pretty standard key-to-command Keymap except for a few details:
+# * It has some built-in [VJ]im-specific smarts about the concepts of motions and operators
+#   and if/how they should be available in each mode
+# * It differentiates between invalid commands (`gz`) and partial commands (`g`)
 class Keymap
+
+  # build an instance of Keymap with all the default keymappings
   @getDefault: ->
     keymap = new Keymap
     keymap.mapCommand keys, commandClass for own keys, commandClass of require('./commands').defaultMappings
@@ -16,6 +22,8 @@ class Keymap
     @partialMotions = {}
     @partialVisualCommands = {}
 
+  # Map the `comandClass` to the `keys` sequence.  Map it as a visual command as well
+  # if the class has a ::visualExec method
   mapCommand: (keys, commandClass) ->
     if commandClass::exec
       @commands[keys] = commandClass
@@ -26,6 +34,7 @@ class Keymap
       if keys.length is 2
         @partialVisualCommands[keys[0]] = true
 
+  # Map `motionClass` to the `keys` sequence
   mapMotion: (keys, motionClass) ->
     @commands[keys] = motionClass
     @motions[keys] = motionClass
@@ -35,6 +44,7 @@ class Keymap
       @partialCommands[keys[0]] = true
       @partialVisualCommands[keys[0]] = true
 
+  # Map `operatorClass` to the `keys` sequence
   mapOperator: (keys, operatorClass) ->
     @commands[keys] = operatorClass
     @visualCommands[keys] = operatorClass
@@ -42,22 +52,28 @@ class Keymap
       @partialCommands[keys[0]] = true
       @partialVisualCommands[keys[0]] = true
 
+  # Build a regex that will match any key sequence, splitting the preceding count captured
+  # into the first capture group, the command/motion/operator into second, and will capture
+  # text in the third only if we're not matching a *partial* command/motion/operator
   buildPartialCommandRegex = (partialCommands) ->
     ///
       ^
       ([1-9]\d*)?
       (
         [#{(char for own char, nothing of partialCommands).join ''}]?
-        # if the group below captures something, we know outer group is
+        # if the group below captures something, we know the outer group is
         # is more than just a partial command (could be invalid, though)
         ([\s\S]*)
       )?
       $
     ///
 
-  # returns a Command with a count if the commandPart is a complete command (e.g. '12gg')
-  # returns true if commandPart is a valid partial command
-  # returns false if commandPart is invalid
+
+  # returns:
+  # * a `Command` with a count if `commandPart` is a complete command:
+  #     commandFor('12gg') # returns GoToLine with a count of 12
+  # * true if `commandPart` is a valid partial command
+  # * false if `commandPart` is invalid
   commandFor: (commandPart) ->
     @partialCommandRegex or= buildPartialCommandRegex @partialCommands
     [commandPart, count, command, beyondPartial] = commandPart.match @partialCommandRegex
@@ -71,6 +87,11 @@ class Keymap
       # it's a partial command
       true
 
+  # returns:
+  # * a `Motion` with a count if `motionPart` is a complete motion:
+  #     motionFor('3j') # returns MoveDown with a count of 3
+  # * true if `motionPart` is a valid partial motion
+  # * false if `motionPart` is invalid
   motionFor: (commandPart, operatorPending) ->
     @partialMotionRegex or= buildPartialCommandRegex @partialMotions
     [commandPart, count, motion, beyondPartial] = commandPart.match @partialCommandRegex
@@ -88,6 +109,11 @@ class Keymap
       # it's a partial command
       true
 
+  # returns:
+  # * a `Command` with a count if `commandPart` is a complete visual command:
+  #     visualCommandFor('c') # returns Change with a count of `null`
+  # * true if `commandPart` is a valid partial visual command
+  # * false if `commandPart` is invalid
   visualCommandFor: (commandPart) ->
     @partialVisualCommandRegex or= buildPartialCommandRegex @partialVisualCommands
     [commandPart, count, command, beyondPartial] = commandPart.match @partialVisualCommandRegex
