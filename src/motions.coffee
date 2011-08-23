@@ -18,7 +18,7 @@ wordCursorIsOn = (line, column) ->
   rightOfCursor = line.substring column
 
   # If the item on the cursor isn't a word it goes to the next word or
-  # the nest group of special character if there isn't a word.
+  # the next group of special characters if there isn't a word.
   if /\W/.test line[column]
     leftMatch = ['']
     nextWord = /\w+/.exec rightOfCursor
