@@ -16,6 +16,7 @@ map = (keys, motionClass) -> defaultMappings[keys] = motionClass
 wordCursorIsOn = (line, column) ->
   leftOfCursor = line.substring 0, column
   rightOfCursor = line.substring column
+  charsAhead = null
 
   # If the item on the cursor isn't a word it goes to the next word or
   # the next group of special characters if there isn't a word.
@@ -26,11 +27,12 @@ wordCursorIsOn = (line, column) ->
       /[^\w\s]+/.exec rightOfCursor
     else
       nextWord
+    charsAhead = rightMatch.index
   else
     leftMatch = /\w*$/.exec leftOfCursor
     rightMatch = /^\w*/.exec rightOfCursor
 
-  leftMatch[0] + rightMatch[0]
+  [leftMatch[0] + rightMatch[0], charsAhead]
 
 class Motion extends Command
   constructor: (@count = 1) ->
@@ -221,7 +223,11 @@ map '*', class extends Motion
   exec: (jim) ->
     timesLeft = @count
     adaptor = jim.adaptor
-    pattern = wordCursorIsOn adaptor.lineText(), adaptor.column()
+    [pattern, charsAhead] = wordCursorIsOn adaptor.lineText(), adaptor.column()
+    if charsAhead
+      # if we're searching for a word that's ahead of the cursor, ensure that
+      # we the search starts at the word beyond that one
+      new MoveRight(charsAhead).exec jim
     jim.search = {pattern, backwards: no}
     jim.adaptor.findNext pattern while timesLeft--
 
@@ -230,7 +236,7 @@ map '#', class extends Motion
   exec: (jim) ->
     timesLeft = @count
     adaptor = jim.adaptor
-    pattern = wordCursorIsOn adaptor.lineText(), adaptor.column()
+    [pattern, charsAhead] = wordCursorIsOn adaptor.lineText(), adaptor.column()
     jim.search = {pattern, backwards: yes}
     jim.adaptor.findPrevious pattern while timesLeft--
 

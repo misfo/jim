@@ -49,27 +49,27 @@ test '#', ->
 # rule #1
 test '* or # will match the keyword under the cursor', ->
   # match the underscore
-  @press '*'
-  deepEqual @adaptor.position(), [1, 9]
+  @press '#'
+  deepEqual @adaptor.position(), [1, 17]
 
 # rule #2
 test '* or # will match the keyword after the cursor', ->
-  @adaptor.moveTo 1, 26
-  # match "function" since the comma and the space aren't keywords
-  @press '#'
-  deepEqual @adaptor.position(), [0, 11]
+  @adaptor.moveTo 0, 8
+  # match "function" since the equals sign and spaces aren't keywords
+  @press '*'
+  deepEqual @adaptor.position(), [1, 28]
 
 # rule #3
 test '* or # will match the non-blank word under the cursor', ->
   @adaptor.moveTo 5, 4
   # match "};", since there aren't any keywords on the line after the cursor
-  @press '*'
+  @press '#'
   deepEqual @adaptor.position(), [10, 0]
 
 # rule #4
 test '* or # will match the non-blank word after the cursor', ->
-  @adaptor.moveTo 1, 56
+  @adaptor.moveTo 0, 43
   # match the curly brace, since there aren't any keywords on the line after the cursor
   # and the curly brace is a non-blank
-  @press '#'
-  deepEqual @adaptor.position(), [0, 44]
+  @press '*'
+  deepEqual @adaptor.position(), [1, 57]
