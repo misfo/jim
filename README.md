@@ -75,3 +75,8 @@ Chromeless is very experimental and the file capabilities
 that Jim has are only kinda tested, so keep any files you're editing in
 Git.  If it eats your file or slaps your grandma, don't say you weren't
 warned...
+
+Thanks!
+-------
+Thanks to all [contributors](https://github.com/misfo/jim/contributors).
+In other words: thanks [sourrust](https://github.com/sourrust).
