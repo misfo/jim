@@ -20,7 +20,7 @@ wordCursorIsOn = (line, column) ->
 
   # If the item on the cursor isn't a word it goes to the next word or
   # the next group of special characters if there isn't a word.
-  if specialChars = /\W/.test line[column]
+  if /\W/.test line[column]
     leftMatch = ['']
     nextWord = /\w+/.exec rightOfCursor
     rightMatch = if not nextWord
@@ -32,7 +32,7 @@ wordCursorIsOn = (line, column) ->
     leftMatch = /\w*$/.exec leftOfCursor
     rightMatch = /^\w*/.exec rightOfCursor
 
-  [leftMatch[0] + rightMatch[0], specialChars, charsAhead]
+  [leftMatch[0] + rightMatch[0], charsAhead]
 
 class Motion extends Command
   constructor: (@count = 1) ->
@@ -223,12 +223,13 @@ map '*', class extends Motion
   exec: (jim) ->
     timesLeft = @count
     adaptor = jim.adaptor
-    [pattern, specialChars, charsAhead] = wordCursorIsOn adaptor.lineText(), adaptor.column()
+    [pattern, charsAhead] = wordCursorIsOn adaptor.lineText(), adaptor.column()
     if charsAhead
       # if we're searching for a word that's ahead of the cursor, ensure that
       # we the search starts at the word beyond that one
       new MoveRight(charsAhead).exec jim
-    wholeWord = not specialChars
+    # match only whole word's unless searching for special chars
+    wholeWord = /^\w/.test pattern
     jim.search = {pattern, backwards: no, wholeWord}
     jim.adaptor.findNext pattern, wholeWord while timesLeft--
 
@@ -237,8 +238,9 @@ map '#', class extends Motion
   exec: (jim) ->
     timesLeft = @count
     adaptor = jim.adaptor
-    [pattern, specialChars, charsAhead] = wordCursorIsOn adaptor.lineText(), adaptor.column()
-    wholeWord = not specialChars
+    [pattern, charsAhead] = wordCursorIsOn adaptor.lineText(), adaptor.column()
+    # match only whole word's unless searching for special chars
+    wholeWord = /^\w/.test pattern
     jim.search = {pattern, backwards: yes, wholeWord}
     jim.adaptor.findPrevious pattern, wholeWord while timesLeft--
 
