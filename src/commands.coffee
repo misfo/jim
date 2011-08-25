@@ -21,26 +21,28 @@ class ModeSwitch extends Command
 #### visual mode switches
 
 # switch to characterwise visual mode
-map 'v', class extends ModeSwitch
+map 'v', class extends Command
   isRepeatable: no
-  beforeSwitch: (jim) -> jim.adaptor.setSelectionAnchor()
-  switchToMode: 'visual:characterwise'
+  exec: (jim) ->
+    jim.adaptor.setSelectionAnchor()
+    jim.setMode 'visual'
   visualExec: (jim) ->
-    if /linewise/.test jim.modeName
-      jim.setMode 'visual:characterwise'
+    if jim.mode.linewise
+      jim.setMode 'visual'
     else
       jim.onEscape()
 
 # switch to linewise visual mode
-map 'V', class extends ModeSwitch
+map 'V', class extends Command
   isRepeatable: no
-  beforeSwitch: (jim) -> jim.adaptor.setLinewiseSelectionAnchor()
-  switchToMode: 'visual:linewise'
+  exec: (jim) ->
+    jim.mode.anchor = jim.adaptor.setLinewiseSelectionAnchor()
+    jim.setMode 'visual', linewise: yes
   visualExec: (jim) ->
-    if /characterwise/.test jim.modeName
-      jim.setMode 'visual:linewise'
-    else
+    if jim.mode.linewise
       jim.onEscape()
+    else
+      jim.setMode 'visual', linewise: yes
 
 #### insert mode switches
 
@@ -164,7 +166,7 @@ map 'p', class Paste extends Command
       jim.adaptor.insert text, not @before
 
   visualExec: (jim) ->
-    if jim.modeName is 'visual:linewise'
+    if jim.mode.linewise
       jim.adaptor.makeLinewise()
     else
       jim.adaptor.includeCursorInSelection()

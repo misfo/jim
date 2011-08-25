@@ -95,12 +95,12 @@ exports.visual = do ->
 
     if @command?.isOperation or @command?.isComplete()
       if @command.isRepeatable
-        @command.selectionSize = if @modeName is 'visual:linewise'
+        @command.selectionSize = if @mode.name is 'visual' and @mode.linewise
           [minRow, maxRow] = @adaptor.selectionRowRange()
           lines: (maxRow - minRow) + 1
         else
           @adaptor.characterwiseSelectionSize()
-        @command.linewise = @modeName is 'visual:linewise'
+        @command.linewise = @mode.name is 'visual' and @mode.linewise
         @command.visualExec this
         @lastCommand = @command
         console.log 'repeatable visual command', @lastCommand
@@ -108,7 +108,7 @@ exports.visual = do ->
         @command.visualExec this
       @command = null
 
-    if @inVisualMode()
+    if @mode.name is 'visual'
       if wasBackwards
         @adaptor.adjustAnchor -1 if not @adaptor.isSelectionBackwards()
       else

@@ -15,19 +15,19 @@ class Jim
 
   modes: require './modes'
 
-  setMode: (modeName) ->
-    console.log 'setMode', modeName if @debugMode
-    prevModeName = @modeName
-    return if modeName is prevModeName
-    @modeName = modeName
-    modeParts = modeName.split ":"
-    @mode = @modes[modeParts[0]]
-    switch prevModeName
+  # changes Jim's mode to `modeName` with optional `modeState`:
+  #
+  #     @setMode 'visual', linewise: yes
+  setMode: (modeName, modeState = {}) ->
+    console.log 'setMode', modeName, modeState if @debugMode
+    prevMode = @mode
+    return if modeName is prevMode?.name and modeState.linewise is prevMode.linewise
+    @mode = modeState
+    @mode.name = modeName
+    switch prevMode?.name
       when 'insert'  then @adaptor.moveLeft()
       when 'replace' then @adaptor.setOverwriteMode off
-    @onModeChange? prevModeName
-
-  inVisualMode: -> /^visual:/.test @modeName
+    @onModeChange? prevMode
 
   onEscape: ->
     @setMode 'normal'
@@ -35,7 +35,7 @@ class Jim
     @commandPart = '' # just in case...
     @adaptor.clearSelection()
 
-  onKeypress: (keys) -> @mode.onKeypress.call this, keys
+  onKeypress: (keys) -> @modes[@mode.name].onKeypress.call this, keys
 
   # delete the selected text, putting it in the default register
   deleteSelection: (exclusive, linewise) ->
