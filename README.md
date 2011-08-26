@@ -6,10 +6,11 @@ Jim
 Okay, okay.  It's a smaller brain than Vim's. But as Vim's younger brutha, Jim
 keeps learning new things.  And yes, it's JavaScript compiled from Coffeescript.
 
-Plug Jim into Ace or Cloud9 and you're modal editing again...
-
 Try out Jim here:
 [misfo.github.com/jim](http://misfo.github.com/jim)
+
+Jim can be easily plugged into Ace.  For an example, look at
+[index.html](https://github.com/misfo/jim/blob/master/index.html)
 
 
 What works so far
@@ -26,10 +27,11 @@ What works so far
   * `0`, `^`, `$`
   * `G`, `gg`
   * `H`, `M`, `L`
-  * `/`, `?`, `n`, `N`
+  * `/`, `?`, `n`, `N`, `*`, `#`
   * `f`, `F`, `t`, `T`
 * default register (operations yank text in the the register for pasting)
 * `u` works as it does in Vim (`Cmd-z` and `Cmd-y` still work as they do in Ace)
+
 
 Next up
 -------
@@ -37,9 +39,11 @@ Next up
 
 If you have a feature request [create an issue](https://github.com/misfo/jim/issues/new)
 
+
 Known issues
 ------------
 Take a gander at the [issue tracker](https://github.com/misfo/jim/issues)
+
 
 Hack
 ----
@@ -54,27 +58,14 @@ Then just open index.html and you're good to go.
 Chrome needs a special command line argument to allow XHRs to files:
 `google-chrome --allow-file-access-from-files`
 
-While developing, keep your CoffeeScript compiling in the background:
+While developing, keep your CoffeeScript building in the background:
 
-```bash
-cake watch
+```
+cake build:ace:watch
 ```
 
 Open test/test.html to run the tests
 
-Chromeless (experimental)
--------------------------
-Jim can be run as a [Chromeless](https://github.com/mozilla/chromeless)
-app that has (very) basic Open/Save file capabilities.  Once you've
-installed Chromeless just point it at Jim's directory:
-```
-~/code/chromless/chromeless ~/code/jim/
-```
-
-Chromeless is very experimental and the file capabilities
-that Jim has are only kinda tested, so keep any files you're editing in
-Git.  If it eats your file or slaps your grandma, don't say you weren't
-warned...
 
 Thanks!
 -------

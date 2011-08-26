@@ -20,14 +20,48 @@
   <body>
 
     <div id="container">
-      <pre id="editor"></pre>
+<pre id="editor">
+_.sortBy = function(obj, iterator, context) {
+  return _.pluck(_.map(obj, function(value, index, list) {
+    return {
+      value : value,
+      criteria : iterator.call(context, value, index, list)
+    };
+  }).sort(function(left, right) {
+    var a = left.criteria, b = right.criteria;
+    return a < b ? -1 : a > b ? 1 : 0;
+  }), 'value');
+};
+
+// borrowed from:
+//     Underscore.js 1.1.6
+//     (c) 2011 Jeremy Ashkenas, DocumentCloud Inc.
+</pre>
     </div>
 
-    <script type="application/javascript" src="vendor/coffee-script.js"></script>
+    <script src="vendor/ace/build/src/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script src="vendor/ace/build/src/theme-twilight.js" type="text/javascript" charset="utf-8"></script>
+    <script src="vendor/ace/build/src/mode-javascript.js" type="text/javascript" charset="utf-8"></script>
+
+    <script src="build/jim-ace-uncompressed.js" type="text/javascript"></script>
     <!--
       <script type="text/coffeescript" src="demo/chromeless.coffee" charset="utf-8"></script>
     -->
-    <script type="application/javascript" src="vendor/require.js" charset="utf-8"></script>
-    <script type="text/coffeescript" src="demo/index.coffee" charset="utf-8"></script>
+
+    <script type="text/javascript">
+      window.onload = function() {
+        var editor = ace.edit('editor');
+        editor.setTheme('ace/theme/twilight');
+        var JavaScriptMode = require("ace/mode/javascript").Mode;
+
+        var session = editor.getSession();
+        session.setTabSize(2);
+        session.setUseSoftTabs(true);
+        session.setMode(new JavaScriptMode());
+
+        jim = Jim.aceInit(editor);
+        jim.debugMode = true;
+      };
+    </script>
   </body>
 </html>
