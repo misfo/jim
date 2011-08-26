@@ -8,7 +8,6 @@
     <script type="text/javascript">
       require({
         paths: {
-          jim: "../lib",
           test: ".",
 
           text: "../vendor/text",
@@ -29,13 +28,14 @@
         'ace/edit_session'
         'ace/editor'
         'ace/test/mockrenderer'
-        'jim/ace'
+        'ace/undomanager'
+        'pilot/dom'
+        '../build/jim-ace-uncompressed.js'
         'text!test/fixtures/sort_by.js'
       ], ->
         EditSession = require('ace/edit_session').EditSession
         Editor = require('ace/editor').Editor
-        MockRenderer = require 'ace/test/mockrenderer'
-        aceModule = require 'jim/ace'
+        {MockRenderer} = require 'ace/test/mockrenderer'
 
         MockRenderer::setStyle = (->)
         MockRenderer::unsetStyle = (->)
@@ -46,7 +46,7 @@
           editor = new Editor(new MockRenderer(), new EditSession sort_by_js)
           editor.session.setUseSoftTabs true
           editor.session.setTabSize 2
-          @jim = aceModule.startup env: {editor}
+          @jim = Jim.aceInit editor
           @jim.debugMode = 'verbose'
           @sort_by_js = sort_by_js
 

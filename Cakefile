@@ -2,42 +2,56 @@ fs = require 'fs'
 CoffeeScript = require 'coffee-script'
 
 sourceNames = [
-  'ace'
-  'commands'
+  # in dependency order
   'helpers'
-  'jim'
-  'keymap'
-  'modes'
   'motions'
   'operators'
+  'commands'
+  'keymap'
+  'modes'
+  'jim'
+  'ace'
 ]
 
-compileModule = (sourceName) ->
-  source = "src/#{sourceName}.coffee"
-  lib    = "lib/#{sourceName}.js"
 
-  fs.readFile source, (err, coffeeCode) ->
-    try
-      jsCode = CoffeeScript.compile coffeeCode.toString(), bare: yes
-      jsCode = """
-        define(function(require, exports, module) {
-
-        #{jsCode}
-
-        });
-      """
-      fs.writeFile lib, jsCode, (err) ->
-        console.log "#{(new Date).toLocaleTimeString()} - compiled #{source}"
-    catch err
-      console.log "err while compiling #{source}", err
-
-task 'compile', 'compile individual files for development', ->
-  compileModule(sourceName) for sourceName in sourceNames
-
-task 'watch', 'watch files in src/, compiling for development', ->
-  invoke 'compile'
+task 'build:ace', 'build Jim for use with Ace', ->
+  # based on coffee-script's dead-simple `cake build:browser`
+  jsCode = ''
   for sourceName in sourceNames
-    do (sourceName) ->
-      fs.watchFile "src/#{sourceName}.coffee", {persistent: yes, interval: 500}, (curr, prev) ->
-        unless curr.size is prev.size and curr.mtime.getTime() is prev.mtime.getTime()
-          compileModule sourceName
+    source = "src/#{sourceName}.coffee"
+
+    coffeeCode = fs.readFileSync source, 'utf8'
+    jsCode += """
+
+      require['./#{sourceName}'] = (function() {
+        var exports = {}, module = {};
+        #{CoffeeScript.compile coffeeCode, bare: yes}
+        return module.exports || exports;
+      })();
+
+    """
+
+  jsCode = """
+    /**
+     * Jim v0.2.0pre
+     * https://github.com/misfo/jim
+     *
+     * Copyright 2011, Trent Ogren
+     * Released under the MIT License
+     */
+    this.Jim = (function() {
+      function require(path) { return path[0] === '.' ? require[path] : window.require(path); }
+      #{jsCode}
+      return require['./jim'];
+    })()
+  """
+
+  filename = 'build/jim-ace-uncompressed.js'
+  fs.writeFileSync filename, jsCode
+  console.log "#{(new Date).toLocaleTimeString()} - built #{filename}"
+
+task 'build:ace:watch', 'continuously build Jim for use with Ace', ->
+  invoke 'build:ace'
+  for sourceName in sourceNames
+    fs.watchFile "src/#{sourceName}.coffee", {persistent: yes, interval: 500}, (curr, prev) ->
+      invoke 'build:ace' unless curr.size is prev.size and curr.mtime.getTime() is prev.mtime.getTime()

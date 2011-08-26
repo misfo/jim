@@ -247,12 +247,7 @@ require('pilot/dom').importCssString """
 
 isCharacterKey = (hashId, keyCode) -> hashId is 0 and not keyCode
 
-exports.startup = (data, reason) ->
-  {editor} = data.env
-  if not editor
-    setTimeout startup, 0, data, reason
-    return
-
+Jim.aceInit = (editor) ->
   editor.setKeyboardHandler
     handleKeyboard: (data, hashId, keyString, keyCode) ->
       if keyCode is 27 # esc
