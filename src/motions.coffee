@@ -202,7 +202,7 @@ map 'H', class extends Motion
   linewise: yes
   exec: (jim) ->
     line = jim.adaptor.firstFullyVisibleRow() + @count
-    literalMotions['G'].move jim, line
+    new GoToLineOrEnd(line).exec jim
 
 map 'M', class extends Motion
   linewise: yes
@@ -210,13 +210,13 @@ map 'M', class extends Motion
     topRow = jim.adaptor.firstFullyVisibleRow()
     lines = jim.adaptor.lastFullyVisibleRow() - topRow
     linesFromTop = lines / 2
-    literalMotions['G'].move jim, topRow + 1 + linesFromTop
+    new GoToLineOrEnd(topRow + 1 + linesFromTop).exec jim
 
 map 'L', class extends Motion
   linewise: yes
   exec: (jim) ->
     line = jim.adaptor.lastFullyVisibleRow() + 2 - @count
-    literalMotions['G'].move jim, line
+    new GoToLineOrEnd(line).exec jim
 
 map '/', class extends Motion
   exclusive: yes
