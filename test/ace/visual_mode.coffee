@@ -113,3 +113,10 @@ test 'toggle visual mode', ->
 
   @press 'WVvy'
   eq @jim.registers['"'], '='
+
+  @press 'vjVy'
+  eq endings(@jim.registers['"']), """
+    _.sortBy = function(obj, iterator, context) {
+      return _.pluck(_.map(obj, function(value, index, list) {
+
+  """
