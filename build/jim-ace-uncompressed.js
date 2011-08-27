@@ -632,11 +632,9 @@ Operation = (function() {
       this.count = 1;
     }
     motion = this.getMotion();
-        if ((_ref2 = this.linewise) != null) {
-      _ref2;
-    } else {
+    if ((_ref2 = this.linewise) == null) {
       this.linewise = motion.linewise;
-    };
+    }
     motion.exec(jim);
     return this.visualExec(jim);
   };
@@ -752,7 +750,7 @@ module.exports = {
 
 require['./commands'] = (function() {
   var exports = {}, module = {};
-  var Change, ChangeChar, ChangeToEndOfLine, Command, Delete, DeleteChar, DeleteToEndOfLine, GoToLine, Insert, InsertAfter, InsertAtEndOfLine, InsertBeforeFirstNonBlank, JoinLines, JoinLinesNormalizingWhitespace, ModeSwitch, MoveDown, MoveLeft, MoveRight, MoveToEndOfLine, MoveToFirstNonBlank, OpenLine, OpenLineAbove, Paste, RepeatCommand, ReplaceSwitch, Undo, defaultMappings, map, repeatCountTimes, _ref, _ref2, _ref3;
+  var Change, ChangeChar, ChangeToEndOfLine, Command, Delete, DeleteChar, DeleteToEndOfLine, GoToLine, Insert, InsertAfter, InsertAtEndOfLine, InsertBeforeFirstNonBlank, JoinLines, JoinLinesNormalizingWhitespace, ModeSwitch, MoveDown, MoveLeft, MoveRight, MoveToEndOfLine, MoveToFirstNonBlank, OpenLine, OpenLineAbove, Paste, RepeatCommand, ReplaceSwitch, Undo, VisualLinewiseSwitch, VisualSwitch, defaultMappings, map, repeatCountTimes, _ref, _ref2, _ref3;
 var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
   for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
   function ctor() { this.constructor = child; }
@@ -781,47 +779,63 @@ ModeSwitch = (function() {
   };
   return ModeSwitch;
 })();
-map('v', (function() {
-  __extends(_Class, Command);
-  function _Class() {
-    _Class.__super__.constructor.apply(this, arguments);
+map('v', VisualSwitch = (function() {
+  __extends(VisualSwitch, Command);
+  function VisualSwitch() {
+    VisualSwitch.__super__.constructor.apply(this, arguments);
   }
-  _Class.prototype.isRepeatable = false;
-  _Class.prototype.exec = function(jim) {
+  VisualSwitch.prototype.isRepeatable = false;
+  VisualSwitch.prototype.exec = function(jim) {
+    var anchor;
+    anchor = jim.adaptor.position();
     jim.adaptor.setSelectionAnchor();
-    return jim.setMode('visual');
-  };
-  _Class.prototype.visualExec = function(jim) {
-    if (jim.mode.linewise) {
-      return jim.setMode('visual');
-    } else {
-      return jim.onEscape();
-    }
-  };
-  return _Class;
-})());
-map('V', (function() {
-  __extends(_Class, Command);
-  function _Class() {
-    _Class.__super__.constructor.apply(this, arguments);
-  }
-  _Class.prototype.isRepeatable = false;
-  _Class.prototype.exec = function(jim) {
-    jim.mode.anchor = jim.adaptor.setLinewiseSelectionAnchor();
     return jim.setMode('visual', {
-      linewise: true
+      anchor: anchor
     });
   };
-  _Class.prototype.visualExec = function(jim) {
+  VisualSwitch.prototype.visualExec = function(jim) {
+    var _ref4;
+    if (jim.mode.linewise) {
+      jim.setMode('visual', {
+        linewise: false
+      });
+      return (_ref4 = jim.adaptor.editor.selection).setSelectionAnchor.apply(_ref4, jim.mode.anchor);
+    } else {
+      return jim.onEscape();
+    }
+  };
+  return VisualSwitch;
+})());
+map('V', VisualLinewiseSwitch = (function() {
+  __extends(VisualLinewiseSwitch, Command);
+  function VisualLinewiseSwitch() {
+    VisualLinewiseSwitch.__super__.constructor.apply(this, arguments);
+  }
+  VisualLinewiseSwitch.prototype.isRepeatable = false;
+  VisualLinewiseSwitch.prototype.exec = function(jim) {
+    var anchor;
+    anchor = jim.adaptor.setLinewiseSelectionAnchor();
+    return jim.setMode('visual', {
+      linewise: true,
+      anchor: anchor
+    });
+  };
+  VisualLinewiseSwitch.prototype.visualExec = function(jim) {
+    var anchor, modeState;
     if (jim.mode.linewise) {
       return jim.onEscape();
     } else {
-      return jim.setMode('visual', {
+      modeState = {
         linewise: true
-      });
+      };
+      anchor = jim.adaptor.setLinewiseSelectionAnchor();
+      if (!jim.mode.anchor) {
+        modeState.anchor = anchor;
+      }
+      return jim.setMode('visual', modeState);
     }
   };
-  return _Class;
+  return VisualLinewiseSwitch;
 })());
 map('i', Insert = (function() {
   __extends(Insert, ModeSwitch);
@@ -1396,6 +1410,7 @@ exports.replace = {
 require['./jim'] = (function() {
   var exports = {}, module = {};
   var GoToLine, Jim, Keymap;
+var __hasProp = Object.prototype.hasOwnProperty;
 Keymap = require('./keymap');
 GoToLine = require('./motions').GoToLine;
 Jim = (function() {
@@ -1408,19 +1423,24 @@ Jim = (function() {
   }
   Jim.prototype.modes = require('./modes');
   Jim.prototype.setMode = function(modeName, modeState) {
-    var prevMode;
-    if (modeState == null) {
-      modeState = {};
-    }
+    var key, prevMode, value;
     if (this.debugMode) {
       console.log('setMode', modeName, modeState);
     }
     prevMode = this.mode;
-    if (modeName === (prevMode != null ? prevMode.name : void 0) && modeState.linewise === prevMode.linewise) {
-      return;
+    if (modeName === (prevMode != null ? prevMode.name : void 0)) {
+      if (!modeState) {
+        return;
+      }
+      for (key in modeState) {
+        if (!__hasProp.call(modeState, key)) continue;
+        value = modeState[key];
+        this.mode[key] = value;
+      }
+    } else {
+      this.mode = modeState || {};
+      this.mode.name = modeName;
     }
-    this.mode = modeState;
-    this.mode.name = modeName;
     switch (prevMode != null ? prevMode.name : void 0) {
       case 'insert':
         this.adaptor.moveLeft();

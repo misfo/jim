@@ -18,12 +18,16 @@ class Jim
   # changes Jim's mode to `modeName` with optional `modeState`:
   #
   #     @setMode 'visual', linewise: yes
-  setMode: (modeName, modeState = {}) ->
+  setMode: (modeName, modeState) ->
     console.log 'setMode', modeName, modeState if @debugMode
     prevMode = @mode
-    return if modeName is prevMode?.name and modeState.linewise is prevMode.linewise
-    @mode = modeState
-    @mode.name = modeName
+    if modeName is prevMode?.name
+      return unless modeState
+      @mode[key] = value for own key, value of modeState
+    else
+      @mode = modeState or {}
+      @mode.name = modeName
+
     switch prevMode?.name
       when 'insert'  then @adaptor.moveLeft()
       when 'replace' then @adaptor.setOverwriteMode off
