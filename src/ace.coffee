@@ -126,7 +126,7 @@ Adaptor = do ->
       @editor.selection.setSelectionAnchor lead.row, lead.column
 
     # Jim's linewise selections are really just regular selections with a CSS
-    # width of 100%.  When an operation is done, that's when the selection is
+    # width of 100%.  Before a visual command is exececuted the selection is
     # actually made linewise.  Because of this, it only matters what line the
     # anchor is on.  Therefore, we "hide" the anchor at the end of the line
     # where Jim's cursor won't go so that Ace doesn't remove the selection
@@ -137,6 +137,7 @@ Adaptor = do ->
       {row, column} = @editor.selection.selectionLead
       lastColumn = @editor.session.getDocumentLastRowColumnPosition row, column
       @editor.selection.setSelectionAnchor row, lastColumn
+      [row, column]
 
 
     selectLineEnding: (andFollowingWhitespace) ->
@@ -233,8 +234,7 @@ class JimUndoManager extends UndoManager
 
 require('pilot/dom').importCssString """
   .jim-normal-mode div.ace_cursor
-  , .jim-visual-characterwise-mode div.ace_cursor
-  , .jim-visual-linewise-mode div.ace_cursor {
+  , .jim-visual-mode div.ace_cursor {
     border: 0;
     background-color: #91FF00;
     opacity: 0.5;
@@ -261,7 +261,7 @@ Jim.aceInit = (editor) ->
         if jim.modeName is 'normal' and not jim.adaptor.emptySelection()
           # if a selection has been made with the mouse since the last
           # keypress in normal mode, switch to visual mode
-          jim.setMode 'visual:characterwise'
+          jim.setMode 'visual'
 
         if keyString.length > 1
           #TODO handle this better, we're dropping keypresses here
@@ -281,22 +281,20 @@ Jim.aceInit = (editor) ->
 
   # this is executed before the action is
   jim.onModeChange = (prevMode) ->
-    for mode in ['insert', 'normal', 'visual:characterwise', 'visual:linewise']
-      className = "jim-#{mode.replace(/\W/, '-')}-mode"
-      if mode is @modeName
-        editor.setStyle className
-      else
-        editor.unsetStyle className
+    for mode in ['insert', 'normal', 'visual']
+      editor[if mode is @mode.name then 'setStyle' else 'unsetStyle'] "jim-#{mode}-mode"
+
+    editor[if @mode.name is 'visual' and @mode.linewise then 'setStyle' else 'unsetStyle'] 'jim-visual-linewise-mode'
 
     undoPointName = null
-    if @modeName is 'insert'
+    if @mode.name is 'insert'
       undoPointName = 'jim:insert:start'
-    else if prevMode is 'insert'
+    else if prevMode?.name is 'insert'
       undoPointName = 'jim:insert:end'
 
-    if @modeName is 'replace'
+    if @mode.name is 'replace'
       undoPointName = 'jim:replace:start'
-    else if prevMode is 'replace'
+    else if prevMode?.name is 'replace'
       undoPointName = 'jim:replace:end'
 
     undoManager.markUndoPoint editor.session, undoPointName if undoPointName

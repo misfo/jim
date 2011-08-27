@@ -750,7 +750,7 @@ module.exports = {
 
 require['./commands'] = (function() {
   var exports = {}, module = {};
-  var Change, ChangeChar, ChangeToEndOfLine, Command, Delete, DeleteChar, DeleteToEndOfLine, GoToLine, Insert, InsertAfter, InsertAtEndOfLine, InsertBeforeFirstNonBlank, JoinLines, JoinLinesNormalizingWhitespace, ModeSwitch, MoveDown, MoveLeft, MoveRight, MoveToEndOfLine, MoveToFirstNonBlank, OpenLine, OpenLineAbove, Paste, RepeatCommand, ReplaceSwitch, Undo, defaultMappings, map, repeatCountTimes, _ref, _ref2, _ref3;
+  var Change, ChangeChar, ChangeToEndOfLine, Command, Delete, DeleteChar, DeleteToEndOfLine, GoToLine, Insert, InsertAfter, InsertAtEndOfLine, InsertBeforeFirstNonBlank, JoinLines, JoinLinesNormalizingWhitespace, ModeSwitch, MoveDown, MoveLeft, MoveRight, MoveToEndOfLine, MoveToFirstNonBlank, OpenLine, OpenLineAbove, Paste, RepeatCommand, ReplaceSwitch, Undo, VisualLinewiseSwitch, VisualSwitch, defaultMappings, map, repeatCountTimes, _ref, _ref2, _ref3;
 var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
   for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
   function ctor() { this.constructor = child; }
@@ -779,29 +779,63 @@ ModeSwitch = (function() {
   };
   return ModeSwitch;
 })();
-map('v', (function() {
-  __extends(_Class, ModeSwitch);
-  function _Class() {
-    _Class.__super__.constructor.apply(this, arguments);
+map('v', VisualSwitch = (function() {
+  __extends(VisualSwitch, Command);
+  function VisualSwitch() {
+    VisualSwitch.__super__.constructor.apply(this, arguments);
   }
-  _Class.prototype.isRepeatable = false;
-  _Class.prototype.beforeSwitch = function(jim) {
-    return jim.adaptor.setSelectionAnchor();
+  VisualSwitch.prototype.isRepeatable = false;
+  VisualSwitch.prototype.exec = function(jim) {
+    var anchor;
+    anchor = jim.adaptor.position();
+    jim.adaptor.setSelectionAnchor();
+    return jim.setMode('visual', {
+      anchor: anchor
+    });
   };
-  _Class.prototype.switchToMode = 'visual:characterwise';
-  return _Class;
+  VisualSwitch.prototype.visualExec = function(jim) {
+    var _ref4;
+    if (jim.mode.linewise) {
+      jim.setMode('visual', {
+        linewise: false
+      });
+      return (_ref4 = jim.adaptor.editor.selection).setSelectionAnchor.apply(_ref4, jim.mode.anchor);
+    } else {
+      return jim.onEscape();
+    }
+  };
+  return VisualSwitch;
 })());
-map('V', (function() {
-  __extends(_Class, ModeSwitch);
-  function _Class() {
-    _Class.__super__.constructor.apply(this, arguments);
+map('V', VisualLinewiseSwitch = (function() {
+  __extends(VisualLinewiseSwitch, Command);
+  function VisualLinewiseSwitch() {
+    VisualLinewiseSwitch.__super__.constructor.apply(this, arguments);
   }
-  _Class.prototype.isRepeatable = false;
-  _Class.prototype.beforeSwitch = function(jim) {
-    return jim.adaptor.setLinewiseSelectionAnchor();
+  VisualLinewiseSwitch.prototype.isRepeatable = false;
+  VisualLinewiseSwitch.prototype.exec = function(jim) {
+    var anchor;
+    anchor = jim.adaptor.setLinewiseSelectionAnchor();
+    return jim.setMode('visual', {
+      linewise: true,
+      anchor: anchor
+    });
   };
-  _Class.prototype.switchToMode = 'visual:linewise';
-  return _Class;
+  VisualLinewiseSwitch.prototype.visualExec = function(jim) {
+    var anchor, modeState;
+    if (jim.mode.linewise) {
+      return jim.onEscape();
+    } else {
+      modeState = {
+        linewise: true
+      };
+      anchor = jim.adaptor.setLinewiseSelectionAnchor();
+      if (!jim.mode.anchor) {
+        modeState.anchor = anchor;
+      }
+      return jim.setMode('visual', modeState);
+    }
+  };
+  return VisualLinewiseSwitch;
 })());
 map('i', Insert = (function() {
   __extends(Insert, ModeSwitch);
@@ -981,7 +1015,7 @@ map('p', Paste = (function() {
   };
   Paste.prototype.visualExec = function(jim) {
     var overwrittenText;
-    if (jim.modeName === 'visual:linewise') {
+    if (jim.mode.linewise) {
       jim.adaptor.makeLinewise();
     } else {
       jim.adaptor.includeCursorInSelection();
@@ -1334,10 +1368,10 @@ exports.visual = (function() {
       wasBackwards = this.adaptor.isSelectionBackwards();
       if (((_ref2 = this.command) != null ? _ref2.isOperation : void 0) || ((_ref3 = this.command) != null ? _ref3.isComplete() : void 0)) {
         if (this.command.isRepeatable) {
-          this.command.selectionSize = this.modeName === 'visual:linewise' ? ((_ref4 = this.adaptor.selectionRowRange(), minRow = _ref4[0], maxRow = _ref4[1], _ref4), {
+          this.command.selectionSize = this.mode.name === 'visual' && this.mode.linewise ? ((_ref4 = this.adaptor.selectionRowRange(), minRow = _ref4[0], maxRow = _ref4[1], _ref4), {
             lines: (maxRow - minRow) + 1
           }) : this.adaptor.characterwiseSelectionSize();
-          this.command.linewise = this.modeName === 'visual:linewise';
+          this.command.linewise = this.mode.name === 'visual' && this.mode.linewise;
           this.command.visualExec(this);
           this.lastCommand = this.command;
           console.log('repeatable visual command', this.lastCommand);
@@ -1346,7 +1380,7 @@ exports.visual = (function() {
         }
         this.command = null;
       }
-      if (this.inVisualMode()) {
+      if (this.mode.name === 'visual') {
         if (wasBackwards) {
           if (!this.adaptor.isSelectionBackwards()) {
             return this.adaptor.adjustAnchor(-1);
@@ -1376,6 +1410,7 @@ exports.replace = {
 require['./jim'] = (function() {
   var exports = {}, module = {};
   var GoToLine, Jim, Keymap;
+var __hasProp = Object.prototype.hasOwnProperty;
 Keymap = require('./keymap');
 GoToLine = require('./motions').GoToLine;
 Jim = (function() {
@@ -1387,29 +1422,33 @@ Jim = (function() {
     this.setMode('normal');
   }
   Jim.prototype.modes = require('./modes');
-  Jim.prototype.setMode = function(modeName) {
-    var modeParts, prevModeName;
+  Jim.prototype.setMode = function(modeName, modeState) {
+    var key, prevMode, value;
     if (this.debugMode) {
-      console.log('setMode', modeName);
+      console.log('setMode', modeName, modeState);
     }
-    prevModeName = this.modeName;
-    if (modeName === prevModeName) {
-      return;
+    prevMode = this.mode;
+    if (modeName === (prevMode != null ? prevMode.name : void 0)) {
+      if (!modeState) {
+        return;
+      }
+      for (key in modeState) {
+        if (!__hasProp.call(modeState, key)) continue;
+        value = modeState[key];
+        this.mode[key] = value;
+      }
+    } else {
+      this.mode = modeState || {};
+      this.mode.name = modeName;
     }
-    this.modeName = modeName;
-    modeParts = modeName.split(":");
-    this.mode = this.modes[modeParts[0]];
-    switch (prevModeName) {
+    switch (prevMode != null ? prevMode.name : void 0) {
       case 'insert':
         this.adaptor.moveLeft();
         break;
       case 'replace':
         this.adaptor.setOverwriteMode(false);
     }
-    return typeof this.onModeChange === "function" ? this.onModeChange(prevModeName) : void 0;
-  };
-  Jim.prototype.inVisualMode = function() {
-    return /^visual:/.test(this.modeName);
+    return typeof this.onModeChange === "function" ? this.onModeChange(prevMode) : void 0;
   };
   Jim.prototype.onEscape = function() {
     this.setMode('normal');
@@ -1418,7 +1457,7 @@ Jim = (function() {
     return this.adaptor.clearSelection();
   };
   Jim.prototype.onKeypress = function(keys) {
-    return this.mode.onKeypress.call(this, keys);
+    return this.modes[this.mode.name].onKeypress.call(this, keys);
   };
   Jim.prototype.deleteSelection = function(exclusive, linewise) {
     return this.registers['"'] = this.adaptor.deleteSelection(exclusive, linewise);
@@ -1634,7 +1673,8 @@ Adaptor = (function() {
       var column, lastColumn, row, _ref;
       _ref = this.editor.selection.selectionLead, row = _ref.row, column = _ref.column;
       lastColumn = this.editor.session.getDocumentLastRowColumnPosition(row, column);
-      return this.editor.selection.setSelectionAnchor(row, lastColumn);
+      this.editor.selection.setSelectionAnchor(row, lastColumn);
+      return [row, column];
     };
     Adaptor.prototype.selectLineEnding = function(andFollowingWhitespace) {
       var firstNonBlank, _ref;
@@ -1776,7 +1816,7 @@ JimUndoManager = (function() {
   };
   return JimUndoManager;
 })();
-require('pilot/dom').importCssString(".jim-normal-mode div.ace_cursor\n, .jim-visual-characterwise-mode div.ace_cursor\n, .jim-visual-linewise-mode div.ace_cursor {\n  border: 0;\n  background-color: #91FF00;\n  opacity: 0.5;\n}\n.jim-visual-linewise-mode .ace_marker-layer .ace_selection {\n  left: 0 !important;\n  width: 100% !important;\n}");
+require('pilot/dom').importCssString(".jim-normal-mode div.ace_cursor\n, .jim-visual-mode div.ace_cursor {\n  border: 0;\n  background-color: #91FF00;\n  opacity: 0.5;\n}\n.jim-visual-linewise-mode .ace_marker-layer .ace_selection {\n  left: 0 !important;\n  width: 100% !important;\n}");
 isCharacterKey = function(hashId, keyCode) {
   return hashId === 0 && !keyCode;
 };
@@ -1795,7 +1835,7 @@ Jim.aceInit = function(editor) {
           jim.afterInsertSwitch = false;
         }
         if (jim.modeName === 'normal' && !jim.adaptor.emptySelection()) {
-          jim.setMode('visual:characterwise');
+          jim.setMode('visual');
         }
         if (keyString.length > 1) {
           keyString = keyString.charAt(0);
@@ -1816,26 +1856,22 @@ Jim.aceInit = function(editor) {
   adaptor = new Adaptor(editor);
   jim = new Jim(adaptor);
   jim.onModeChange = function(prevMode) {
-    var className, mode, undoPointName, _i, _len, _ref;
-    _ref = ['insert', 'normal', 'visual:characterwise', 'visual:linewise'];
+    var mode, undoPointName, _i, _len, _ref;
+    _ref = ['insert', 'normal', 'visual'];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       mode = _ref[_i];
-      className = "jim-" + (mode.replace(/\W/, '-')) + "-mode";
-      if (mode === this.modeName) {
-        editor.setStyle(className);
-      } else {
-        editor.unsetStyle(className);
-      }
+      editor[mode === this.mode.name ? 'setStyle' : 'unsetStyle']("jim-" + mode + "-mode");
     }
+    editor[this.mode.name === 'visual' && this.mode.linewise ? 'setStyle' : 'unsetStyle']('jim-visual-linewise-mode');
     undoPointName = null;
-    if (this.modeName === 'insert') {
+    if (this.mode.name === 'insert') {
       undoPointName = 'jim:insert:start';
-    } else if (prevMode === 'insert') {
+    } else if ((prevMode != null ? prevMode.name : void 0) === 'insert') {
       undoPointName = 'jim:insert:end';
     }
-    if (this.modeName === 'replace') {
+    if (this.mode.name === 'replace') {
       undoPointName = 'jim:replace:start';
-    } else if (prevMode === 'replace') {
+    } else if ((prevMode != null ? prevMode.name : void 0) === 'replace') {
       undoPointName = 'jim:replace:end';
     }
     if (undoPointName) {
