@@ -209,7 +209,7 @@ map 'M', class extends Motion
   exec: (jim) ->
     topRow = jim.adaptor.firstFullyVisibleRow()
     lines = jim.adaptor.lastFullyVisibleRow() - topRow
-    linesFromTop = lines / 2
+    linesFromTop = Math.floor(lines / 2)
     new GoToLineOrEnd(topRow + 1 + linesFromTop).exec jim
 
 map 'L', class extends Motion
