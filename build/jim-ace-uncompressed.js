@@ -1669,10 +1669,11 @@ Adaptor = (function() {
     return this.editor.selection.setSelectionAnchor(lead.row, lead.column);
   };
   Adaptor.prototype.setLinewiseSelectionAnchor = function() {
-    var column, lastColumn, row, _ref;
-    _ref = this.editor.selection.selectionLead, row = _ref.row, column = _ref.column;
+    var column, lastColumn, row, selection, _ref;
+    selection = this.editor.selection;
+    _ref = selection[selection.isEmpty() ? 'selectionLead' : 'selectionAnchor'], row = _ref.row, column = _ref.column;
     lastColumn = this.editor.session.getDocumentLastRowColumnPosition(row, column);
-    this.editor.selection.setSelectionAnchor(row, lastColumn);
+    selection.setSelectionAnchor(row, lastColumn);
     return [row, column];
   };
   Adaptor.prototype.selectLineEnding = function(andFollowingWhitespace) {

@@ -133,9 +133,10 @@ class Adaptor
   # in the same place).  It's a wierd hack, but it works.
   #   https://github.com/misfo/jim/issues/5
   setLinewiseSelectionAnchor: ->
-    {row, column} = @editor.selection.selectionLead
+    {selection} = @editor
+    {row, column} = selection[if selection.isEmpty() then 'selectionLead' else 'selectionAnchor']
     lastColumn = @editor.session.getDocumentLastRowColumnPosition row, column
-    @editor.selection.setSelectionAnchor row, lastColumn
+    selection.setSelectionAnchor row, lastColumn
     [row, column]
 
 
