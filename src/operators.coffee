@@ -9,7 +9,6 @@ class Operation extends Command
     @motion.operation = this if @motion
   isOperation: true
   isComplete: -> @motion?.isComplete()
-  getMotion: -> @motion
   switchToMode: 'normal'
   exec: (jim) ->
     @startingPosition = jim.adaptor.position()
@@ -17,15 +16,14 @@ class Operation extends Command
     if @count isnt 1
       @motion.count *= @count
       @count = 1
-    motion = @getMotion()
-    @linewise ?= motion.linewise
-    motion.exec jim
+    @linewise ?= @motion.linewise
+    @motion.exec jim
     @visualExec jim
 
   visualExec: (jim) ->
     if @linewise
       jim.adaptor.makeLinewise()
-    else if not @getMotion()?.exclusive
+    else if not @motion?.exclusive
       jim.adaptor.includeCursorInSelection()
     @operate jim
     if @repeatableInsert
@@ -37,16 +35,9 @@ class Operation extends Command
 
 
 map 'c', class Change extends Operation
-  getMotion: ->
-    # `cw` actually behaves like `ce`
-    switch @motion?.constructor
-      when MoveToNextWord    then new MoveToWordEnd @motion.count
-      when MoveToNextBigWord then new MoveToBigWordEnd @motion.count
-      else                        super
   operate: (jim) ->
-    motion = @getMotion()
     jim.adaptor.moveToEndOfPreviousLine() if @linewise
-    jim.deleteSelection motion?.exclusive, @linewise
+    jim.deleteSelection @motion?.exclusive, @linewise
   switchToMode: 'insert'
 
 map 'd', class Delete extends Operation

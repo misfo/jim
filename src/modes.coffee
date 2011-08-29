@@ -43,8 +43,8 @@ exports.normal = do ->
         if motion is false
           invalidCommand.call this, 'motion'
         else if motion isnt true
+          motion.operation = @command
           @command.motion = motion
-          @command.motion.operation = @command
           @operatorPending = null
           @commandPart = ''
 

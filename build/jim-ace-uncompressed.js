@@ -198,24 +198,39 @@ map('w', MoveToNextWord = (function() {
     MoveToNextWord.__super__.constructor.apply(this, arguments);
   }
   MoveToNextWord.prototype.exclusive = true;
-  MoveToNextWord.prototype.exec = repeatCountTimes(function(jim) {
-    var column, line, nextLineMatch, nextMatch, regex, rightOfCursor, row, thisMatch, _ref2;
-    regex = this.bigWord ? WORDRegex() : wordRegex();
-    line = jim.adaptor.lineText();
-    _ref2 = jim.adaptor.position(), row = _ref2[0], column = _ref2[1];
-    rightOfCursor = line.substring(column);
-    thisMatch = regex.exec(rightOfCursor);
-    if ((thisMatch != null ? thisMatch.index : void 0) > 0) {
-      column += thisMatch.index;
-    } else if (!thisMatch || !(nextMatch = regex.exec(rightOfCursor))) {
-      line = jim.adaptor.lineText(++row);
-      nextLineMatch = regex.exec(line);
-      column = (nextLineMatch != null ? nextLineMatch.index : void 0) || 0;
-    } else {
-      column += nextMatch.index;
+  MoveToNextWord.prototype.exec = function(jim) {
+    var column, lastMotion, line, nextLineMatch, nextMatch, regex, rightOfCursor, row, thisMatch, timesLeft, _ref2, _ref3, _results;
+    timesLeft = this.count;
+    _results = [];
+    while (timesLeft--) {
+      regex = this.bigWord ? WORDRegex() : wordRegex();
+      line = jim.adaptor.lineText();
+      _ref2 = jim.adaptor.position(), row = _ref2[0], column = _ref2[1];
+      rightOfCursor = line.substring(column);
+      thisMatch = regex.exec(rightOfCursor);
+      if (!thisMatch || !(nextMatch = regex.exec(rightOfCursor))) {
+        if (timesLeft === 0 && this.operation) {
+          column = line.length;
+        } else {
+          line = jim.adaptor.lineText(++row);
+          nextLineMatch = regex.exec(line);
+          column = (nextLineMatch != null ? nextLineMatch.index : void 0) || 0;
+        }
+      } else if (timesLeft === 0 && ((_ref3 = this.operation) != null ? _ref3.switchToMode : void 0) === 'insert') {
+        lastMotion = new MoveToWordEnd();
+        lastMotion.bigWord = this.bigWord;
+        lastMotion.exec(jim);
+        this.exclusive = false;
+        return;
+      } else if ((thisMatch != null ? thisMatch.index : void 0) > 0) {
+        column += thisMatch.index;
+      } else {
+        column += nextMatch.index;
+      }
+      _results.push(jim.adaptor.moveTo(row, column));
     }
-    return jim.adaptor.moveTo(row, column);
-  });
+    return _results;
+  };
   return MoveToNextWord;
 })());
 map('W', MoveToNextBigWord = (function() {
@@ -619,30 +634,26 @@ Operation = (function() {
     var _ref2;
     return (_ref2 = this.motion) != null ? _ref2.isComplete() : void 0;
   };
-  Operation.prototype.getMotion = function() {
-    return this.motion;
-  };
   Operation.prototype.switchToMode = 'normal';
   Operation.prototype.exec = function(jim) {
-    var motion, _ref2;
+    var _ref2;
     this.startingPosition = jim.adaptor.position();
     jim.adaptor.setSelectionAnchor();
     if (this.count !== 1) {
       this.motion.count *= this.count;
       this.count = 1;
     }
-    motion = this.getMotion();
     if ((_ref2 = this.linewise) == null) {
-      this.linewise = motion.linewise;
+      this.linewise = this.motion.linewise;
     }
-    motion.exec(jim);
+    this.motion.exec(jim);
     return this.visualExec(jim);
   };
   Operation.prototype.visualExec = function(jim) {
     var _ref2;
     if (this.linewise) {
       jim.adaptor.makeLinewise();
-    } else if (!((_ref2 = this.getMotion()) != null ? _ref2.exclusive : void 0)) {
+    } else if (!((_ref2 = this.motion) != null ? _ref2.exclusive : void 0)) {
       jim.adaptor.includeCursorInSelection();
     }
     this.operate(jim);
@@ -664,24 +675,12 @@ map('c', Change = (function() {
   function Change() {
     Change.__super__.constructor.apply(this, arguments);
   }
-  Change.prototype.getMotion = function() {
-    var _ref2;
-    switch ((_ref2 = this.motion) != null ? _ref2.constructor : void 0) {
-      case MoveToNextWord:
-        return new MoveToWordEnd(this.motion.count);
-      case MoveToNextBigWord:
-        return new MoveToBigWordEnd(this.motion.count);
-      default:
-        return Change.__super__.getMotion.apply(this, arguments);
-    }
-  };
   Change.prototype.operate = function(jim) {
-    var motion;
-    motion = this.getMotion();
+    var _ref2;
     if (this.linewise) {
       jim.adaptor.moveToEndOfPreviousLine();
     }
-    return jim.deleteSelection(motion != null ? motion.exclusive : void 0, this.linewise);
+    return jim.deleteSelection((_ref2 = this.motion) != null ? _ref2.exclusive : void 0, this.linewise);
   };
   Change.prototype.switchToMode = 'insert';
   return Change;
@@ -1302,8 +1301,8 @@ exports.normal = (function() {
         if (motion === false) {
           return invalidCommand.call(this, 'motion');
         } else if (motion !== true) {
+          motion.operation = this.command;
           this.command.motion = motion;
-          this.command.motion.operation = this.command;
           this.operatorPending = null;
           return this.commandPart = '';
         }

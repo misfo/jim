@@ -144,6 +144,10 @@ test 'b', ->
   @press '17b'
   deepEqual @adaptor.position(), [1, 16]
 
+test 'w, W EOL behavior in operations', ->
+  @press '$cWdo', @esc
+  eq @adaptor.lineText(), '_.sortBy = function(obj, iterator, context) do'
+
 test '^', ->
   @press '^'
   deepEqual @adaptor.position(), [0, 0]
