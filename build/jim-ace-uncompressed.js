@@ -351,7 +351,7 @@ map('H', (function() {
   _Class.prototype.exec = function(jim) {
     var line;
     line = jim.adaptor.firstFullyVisibleRow() + this.count;
-    return literalMotions['G'].move(jim, line);
+    return new GoToLineOrEnd(line).exec(jim);
   };
   return _Class;
 })());
@@ -365,8 +365,8 @@ map('M', (function() {
     var lines, linesFromTop, topRow;
     topRow = jim.adaptor.firstFullyVisibleRow();
     lines = jim.adaptor.lastFullyVisibleRow() - topRow;
-    linesFromTop = lines / 2;
-    return literalMotions['G'].move(jim, topRow + 1 + linesFromTop);
+    linesFromTop = Math.floor(lines / 2);
+    return new GoToLineOrEnd(topRow + 1 + linesFromTop).exec(jim);
   };
   return _Class;
 })());
@@ -379,7 +379,7 @@ map('L', (function() {
   _Class.prototype.exec = function(jim) {
     var line;
     line = jim.adaptor.lastFullyVisibleRow() + 2 - this.count;
-    return literalMotions['G'].move(jim, line);
+    return new GoToLineOrEnd(line).exec(jim);
   };
   return _Class;
 })());
@@ -1532,7 +1532,14 @@ Adaptor = (function() {
     return this.editor.renderer.getFirstFullyVisibleRow();
   };
   Adaptor.prototype.lastFullyVisibleRow = function() {
-    return this.editor.renderer.getLastFullyVisibleRow();
+    var lastVisibleRow, totalLines;
+    totalLines = this.editor.selection.doc.$lines.length;
+    lastVisibleRow = this.editor.renderer.getLastFullyVisibleRow();
+    if (totalLines < lastVisibleRow) {
+      return totalLines;
+    } else {
+      return lastVisibleRow;
+    }
   };
   Adaptor.prototype.includeCursorInSelection = function() {
     if (!this.editor.selection.isBackwards()) {
