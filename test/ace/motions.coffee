@@ -254,6 +254,11 @@ test 'M', ->
   
   @press 'M'
   deepEqual @adaptor.position(), [7, 4]
+  
+  # odd number of rows
+  @renderer.getLastFullyVisibleRow = -> 13
+  @press 'ddM'
+  deepEqual @adaptor.position(), [6, 2]
 
 test 'L', ->
   @renderer.getLastFullyVisibleRow = -> 14
