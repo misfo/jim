@@ -1,16 +1,13 @@
 {MoveLeft, MoveDown} = require './motions'
 
-exports.normal = do ->
-  # tokenize the command into the @command object or nullify
-  # it if something invalid is encountered
-  #
-  # token names:
-  #    count
-  #    command
-  #    operator
-  #    motionCount
-  #    motion
-  tokenize = ->
+invalidCommand = (type = 'command') ->
+  console.log "invalid #{type}: #{@commandPart}"
+  @onEscape()
+
+exports.normal =
+  onKeypress: (keys) ->
+    @commandPart = (@commandPart or '') + keys
+
     if not @command
       command = @keymap.commandFor @commandPart
 
@@ -48,27 +45,16 @@ exports.normal = do ->
           @operatorPending = null
           @commandPart = ''
 
-  invalidCommand = (type = 'command') ->
-    console.log "invalid #{type}: #{@commandPart}"
-    @onEscape()
-
-  onKeypress: (keys) ->
-    @commandPart = (@commandPart or '') + keys
-
-    tokenize.call this
-
     if @command?.isComplete()
       @command.exec this
       @lastCommand = @command if @command.isRepeatable
       @command = null
 
 
-exports.visual = do ->
-  invalidCommand = (type = 'command') ->
-    console.log "invalid #{type}: #{@commandPart}"
-    @commandPart = ''
+exports.visual =
+  onKeypress: (newKeys) ->
+    @commandPart = (@commandPart or '') + newKeys
 
-  tokenize = ->
     if not @command
       command = @keymap.visualCommandFor @commandPart
 
@@ -85,12 +71,6 @@ exports.visual = do ->
       else
         console.log "#{@command} didn't expect to be followed by \"#{@commandPart}\""
       @commandPart = ''
-
-  onKeypress: (newKeys) ->
-    @commandPart = (@commandPart or '') + newKeys
-
-    tokenize.call this
-
     wasBackwards = @adaptor.isSelectionBackwards()
 
     if @command?.isOperation or @command?.isComplete()
