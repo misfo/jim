@@ -32,7 +32,15 @@ class Adaptor
   position: -> [@row(), @column()]
 
   firstFullyVisibleRow: -> @editor.renderer.getFirstFullyVisibleRow()
-  lastFullyVisibleRow:  -> @editor.renderer.getLastFullyVisibleRow()
+  lastFullyVisibleRow:  ->
+    # Ace sometimes sees more rows then there are lines, this will
+    # keep that in check.
+    totalLines = @editor.selection.doc.$lines.length
+    lastVisibleRow = @editor.renderer.getLastFullyVisibleRow()
+    if totalLines < lastVisibleRow
+      totalLines
+    else
+      lastVisibleRow
 
   includeCursorInSelection: ->
     if not @editor.selection.isBackwards()
