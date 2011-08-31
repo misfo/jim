@@ -286,18 +286,18 @@ Jim.aceInit = (editor) ->
 
     editor[if @mode.name is 'visual' and @mode.linewise then 'setStyle' else 'unsetStyle'] 'jim-visual-linewise-mode'
 
-    undoPointName = null
     if @mode.name is 'insert'
-      undoPointName = 'jim:insert:start'
+      undoManager.markUndoPoint editor.session, 'jim:insert:start'
     else if prevMode?.name is 'insert'
-      undoPointName = 'jim:insert:end'
+      undoManager.markUndoPoint editor.session, 'jim:insert:end'
+      # so the insert "remembers" how to repeat itself
+      @lastCommand.repeatableInsert = @adaptor.lastInsert()
 
     if @mode.name is 'replace'
-      undoPointName = 'jim:replace:start'
+      undoManager.markUndoPoint editor.session, 'jim:replace:start'
     else if prevMode?.name is 'replace'
-      undoPointName = 'jim:replace:end'
+      undoManager.markUndoPoint editor.session, 'jim:replace:end'
 
-    undoManager.markUndoPoint editor.session, undoPointName if undoPointName
 
   jim.onModeChange()
 

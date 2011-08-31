@@ -1065,7 +1065,6 @@ map('.', RepeatCommand = (function() {
       return;
     }
     if (command.switchToMode === 'insert') {
-      command.repeatableInsert || (command.repeatableInsert = jim.adaptor.lastInsert());
       console.log('command.repeatableInsert', command.repeatableInsert);
       if (!command.repeatableInsert.contiguous) {
         string = command.repeatableInsert.string;
@@ -1855,26 +1854,23 @@ Jim.aceInit = function(editor) {
   adaptor = new Adaptor(editor);
   jim = new Jim(adaptor);
   jim.onModeChange = function(prevMode) {
-    var mode, undoPointName, _i, _len, _ref;
+    var mode, _i, _len, _ref;
     _ref = ['insert', 'normal', 'visual'];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       mode = _ref[_i];
       editor[mode === this.mode.name ? 'setStyle' : 'unsetStyle']("jim-" + mode + "-mode");
     }
     editor[this.mode.name === 'visual' && this.mode.linewise ? 'setStyle' : 'unsetStyle']('jim-visual-linewise-mode');
-    undoPointName = null;
     if (this.mode.name === 'insert') {
-      undoPointName = 'jim:insert:start';
+      undoManager.markUndoPoint(editor.session, 'jim:insert:start');
     } else if ((prevMode != null ? prevMode.name : void 0) === 'insert') {
-      undoPointName = 'jim:insert:end';
+      undoManager.markUndoPoint(editor.session, 'jim:insert:end');
+      this.lastCommand.repeatableInsert = this.adaptor.lastInsert();
     }
     if (this.mode.name === 'replace') {
-      undoPointName = 'jim:replace:start';
+      return undoManager.markUndoPoint(editor.session, 'jim:replace:start');
     } else if ((prevMode != null ? prevMode.name : void 0) === 'replace') {
-      undoPointName = 'jim:replace:end';
-    }
-    if (undoPointName) {
-      return undoManager.markUndoPoint(editor.session, undoPointName);
+      return undoManager.markUndoPoint(editor.session, 'jim:replace:end');
     }
   };
   jim.onModeChange();

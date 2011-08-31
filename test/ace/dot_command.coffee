@@ -28,6 +28,10 @@ test 'repeating inserts in which the users arrows around', ->
   @press 'Cfirstline', @down, 'secondLine', @esc, 'j^.'
   eq @adaptor.lineText(), '    secondLinereturn {'
 
+test 'repeating inserts that have been undone', ->
+  @press 'isomething', @esc, 'uW.'
+  eq @adaptor.lineText(), '_.sortBy something= function(obj, iterator, context) {'
+
 test 'repeating linewise changes', ->
   @press 'cjone line now', @esc, 'j.'
   eq @adaptor.lineText(), 'one line now'

@@ -210,7 +210,6 @@ map '.', class RepeatCommand extends Command
     return if not command
 
     if command.switchToMode is 'insert'
-      command.repeatableInsert or= jim.adaptor.lastInsert()
       console.log 'command.repeatableInsert', command.repeatableInsert
       if not command.repeatableInsert.contiguous
         # for inserts that weren't contiguous (i.e. the user moved the cursor
