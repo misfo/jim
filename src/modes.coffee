@@ -1,11 +1,25 @@
+# Key handling for each of Jim's modes
+#
+# Each mode handles key presses a bit differently.  For instance, typing an operator in
+# visual mode immediately operates on the selected text. In normal mode Jim
+# waits for a motion to follow the operator.
+
 {MoveLeft, MoveDown} = require './motions'
 
+# shame the user in the console for not knowing their Jim commands
 invalidCommand = (type = 'command') ->
   console.log "invalid #{type}: #{@commandPart}"
   @onEscape()
 
+# Normal mode (a.k.a. Command mode)
 exports.normal =
   onKeypress: (keys) ->
+    # `@commandPart` can one of the following in normal mode
+    #   * `{count}command`
+    #   * `{count}motion`
+    #   * `{count}operator`
+    #   * chars expected to follow a command (e.g. when `r` is pressed, the next
+    #     `@commandPart` will be the char that's used in the replace)
     @commandPart = (@commandPart or '') + keys
 
     if not @command

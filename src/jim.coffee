@@ -35,12 +35,14 @@ class Jim
       when 'replace' then @adaptor.setOverwriteMode off
     @onModeChange? prevMode
 
+  # pressing escape blows away all the state
   onEscape: ->
     @setMode 'normal'
     @command = null
     @commandPart = '' # just in case...
     @adaptor.clearSelection()
 
+  # when a key is pressed let the current mode figure out what to do about it
   onKeypress: (keys) -> @modes[@mode.name].onKeypress.call this, keys
 
   # delete the selected text, putting it in the default register
