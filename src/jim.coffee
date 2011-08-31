@@ -7,6 +7,8 @@ Keymap     = require './keymap'
 {GoToLine} = require './motions'
 
 class Jim
+  @VERSION: '0.2.0-pre'
+
   constructor: (@adaptor) ->
     @command = null
     @registers = {}

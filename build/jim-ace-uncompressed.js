@@ -1,5 +1,5 @@
 /**
- * Jim v0.2.0pre
+ * Jim v0.2.0-pre
  * https://github.com/misfo/jim
  *
  * Copyright 2011, Trent Ogren
@@ -1413,6 +1413,7 @@ var __hasProp = Object.prototype.hasOwnProperty;
 Keymap = require('./keymap');
 GoToLine = require('./motions').GoToLine;
 Jim = (function() {
+  Jim.VERSION = '0.2.0-pre';
   function Jim(adaptor) {
     this.adaptor = adaptor;
     this.command = null;

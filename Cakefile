@@ -33,7 +33,7 @@ task 'build:ace', 'build Jim for use with Ace', ->
 
   jsCode = """
     /**
-     * Jim v0.2.0pre
+     * Jim v#{require('./src/jim').VERSION}
      * https://github.com/misfo/jim
      *
      * Copyright 2011, Trent Ogren
