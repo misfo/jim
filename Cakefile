@@ -32,13 +32,6 @@ task 'build:ace', 'build Jim for use with Ace', ->
     """
 
   jsCode = """
-    /**
-     * Jim v#{require('./src/jim').VERSION}
-     * https://github.com/misfo/jim
-     *
-     * Copyright 2011, Trent Ogren
-     * Released under the MIT License
-     */
     this.Jim = (function() {
       function require(path) { return path[0] === '.' ? require[path] : window.require(path); }
       #{jsCode}
@@ -46,9 +39,27 @@ task 'build:ace', 'build Jim for use with Ace', ->
     })()
   """
 
-  filename = 'build/jim-ace-uncompressed.js'
-  fs.writeFileSync filename, jsCode
+  header = """
+    /**
+     * Jim v#{require('./src/jim').VERSION}
+     * https://github.com/misfo/jim
+     *
+     * Copyright 2011, Trent Ogren
+     * Released under the MIT License
+     */
+  """
+
+  filename = 'build/jim-ace.debug.js'
+  fs.writeFileSync filename, "#{header}\n#{jsCode}"
   console.log "#{(new Date).toLocaleTimeString()} - built #{filename}"
+
+  {parser, uglify} = require 'uglify-js'
+  minifiedCode = uglify.gen_code uglify.ast_squeeze uglify.ast_mangle parser.parse jsCode
+
+  filename = 'build/jim-ace.min.js'
+  fs.writeFileSync filename, "#{header}\n#{minifiedCode}"
+  console.log "#{(new Date).toLocaleTimeString()} - built #{filename}"
+
 
 task 'build:ace:watch', 'continuously build Jim for use with Ace', ->
   invoke 'build:ace'
