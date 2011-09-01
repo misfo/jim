@@ -1349,16 +1349,13 @@ exports.visual = {
         this.command.selectionSize = this.mode.name === 'visual' && this.mode.linewise ? ((_ref4 = this.adaptor.selectionRowRange(), minRow = _ref4[0], maxRow = _ref4[1], _ref4), {
           lines: (maxRow - minRow) + 1
         }) : this.adaptor.characterwiseSelectionSize();
-        this.command.linewise = this.mode.name === 'visual' && this.mode.linewise;
-        this.command.visualExec(this);
+        this.command.linewise = this.mode.linewise;
         this.lastCommand = this.command;
-        console.log('repeatable visual command', this.lastCommand);
-      } else {
-        this.command.visualExec(this);
       }
+      this.command.visualExec(this);
       this.command = null;
     }
-    if (this.mode.name === 'visual') {
+    if (!this.mode.linewise) {
       if (wasBackwards) {
         if (!this.adaptor.isSelectionBackwards()) {
           return this.adaptor.adjustAnchor(-1);

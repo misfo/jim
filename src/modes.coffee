@@ -14,7 +14,9 @@ invalidCommand = (type = 'command') ->
 # Normal mode (a.k.a. Command mode)
 exports.normal =
   onKeypress: (keys) ->
-    # `@commandPart` can one of the following in normal mode
+    # `@commandPart` is the current part of the command that's being typed.  For an
+    # operation, the operator is one "part" and the motion is another. In normal or
+    # visual mode, `@commandPart` can one of the following in normal mode:
     #   * `{count}command`
     #   * `{count}motion`
     #   * `{count}operator`
@@ -29,6 +31,8 @@ exports.normal =
         invalidCommand.call this
       else if command isnt true
         if command.isOperation
+          # hang onto the pending operator so that double-operators can recognized
+          # (`cc`, `yy`, etc)
           [@operatorPending] = @commandPart.match /[^\d]+$/
         @command = command
         @commandPart = ''
@@ -54,17 +58,22 @@ exports.normal =
         if motion is false
           invalidCommand.call this, 'motion'
         else if motion isnt true
+          # motions need a reference to the operation they're a part of since it sometimes
+          # changes the amount of text they move over (`cw` deletes less text than `dw`)
           motion.operation = @command
+
           @command.motion = motion
           @operatorPending = null
           @commandPart = ''
 
+    # execute the command if it's complete, otherwise wait for more keys
     if @command?.isComplete()
       @command.exec this
       @lastCommand = @command if @command.isRepeatable
       @command = null
 
 
+# visual mode
 exports.visual =
   onKeypress: (newKeys) ->
     @commandPart = (@commandPart or '') + newKeys
@@ -85,24 +94,28 @@ exports.visual =
       else
         console.log "#{@command} didn't expect to be followed by \"#{@commandPart}\""
       @commandPart = ''
+
     wasBackwards = @adaptor.isSelectionBackwards()
 
+    # operations are always "complete" in visual mode
     if @command?.isOperation or @command?.isComplete()
       if @command.isRepeatable
+        # save the selection's "size", which will be used if the command is repeated
         @command.selectionSize = if @mode.name is 'visual' and @mode.linewise
           [minRow, maxRow] = @adaptor.selectionRowRange()
           lines: (maxRow - minRow) + 1
         else
           @adaptor.characterwiseSelectionSize()
-        @command.linewise = @mode.name is 'visual' and @mode.linewise
-        @command.visualExec this
+        @command.linewise = @mode.linewise
+
         @lastCommand = @command
-        console.log 'repeatable visual command', @lastCommand
-      else
-        @command.visualExec this
+
+      @command.visualExec this
       @command = null
 
-    if @mode.name is 'visual'
+    # if the direction of the selection changes in characterwise visual mode we have
+    # to make sure that the anchor character stays selected
+    unless @mode.linewise
       if wasBackwards
         @adaptor.adjustAnchor -1 if not @adaptor.isSelectionBackwards()
       else
