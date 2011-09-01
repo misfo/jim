@@ -1355,7 +1355,7 @@ exports.visual = {
       this.command.visualExec(this);
       this.command = null;
     }
-    if (!this.mode.linewise) {
+    if (this.mode.name === 'visual' && !this.mode.linewise) {
       if (wasBackwards) {
         if (!this.adaptor.isSelectionBackwards()) {
           return this.adaptor.adjustAnchor(-1);

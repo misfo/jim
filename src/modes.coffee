@@ -113,9 +113,10 @@ exports.visual =
       @command.visualExec this
       @command = null
 
-    # if the direction of the selection changes in characterwise visual mode we have
-    # to make sure that the anchor character stays selected
-    unless @mode.linewise
+    # if we haven't changed out of characterwise visual mode and the direction
+    # of the selection changes we have to make sure that the anchor character
+    # stays selected
+    if @mode.name is 'visual' and not @mode.linewise
       if wasBackwards
         @adaptor.adjustAnchor -1 if not @adaptor.isSelectionBackwards()
       else
