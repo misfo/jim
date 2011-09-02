@@ -222,19 +222,14 @@ class JimUndoManager extends UndoManager
       return false unless delta.action is 'insertText'
       not startPosition or delta.range.isEnd startPosition...
 
-    for i in [(@$undoStack.length - 2)..0]
-      break if typeof @$undoStack[i] is 'string'
-      for j in [(@$undoStack[i].length - 1)..0]
-        for k in [(@$undoStack[i][j].deltas.length - 1)..0]
-          item = @$undoStack[i][j]
-          delta = item.deltas[k]
-          if item is 'jim:insert:start' or item is 'jim:insert:afterSwitch'
-            return string: stringParts.join(''), contiguous: true
-          else if isContiguousInsert delta
-            stringParts.unshift delta.text
-            startPosition = [delta.range.start.row, delta.range.start.column]
-          else
-            return string: stringParts.join(''), contiguous: false
+    for l in @$undoStack[..@$undoStack.length-2].reverse()
+      break if typeof l is 'string'
+      [{deltas:[delta],group}] = l
+      if isContiguousInsert delta
+        stringParts.unshift delta.text
+        startPosition = [delta.range.start.row, delta.range.start.column]
+      else
+        return string: stringParts.join(''), contiguous: false
     string: stringParts.join(''), contiguous: true
 
 require('pilot/dom').importCssString """

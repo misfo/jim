@@ -1695,7 +1695,7 @@ JimUndoManager = (function() {
     }
   };
   JimUndoManager.prototype.lastInsert = function() {
-    var delta, i, isContiguousInsert, item, j, k, startPosition, stringParts, _ref, _ref2, _ref3;
+    var delta, group, isContiguousInsert, l, startPosition, stringParts, _i, _len, _ref, _ref2;
     if (this.lastOnUndoStack() !== 'jim:insert:end') {
       return '';
     }
@@ -1708,29 +1708,21 @@ JimUndoManager = (function() {
       }
       return !startPosition || (_ref = delta.range).isEnd.apply(_ref, startPosition);
     };
-    for (i = _ref = this.$undoStack.length - 2; _ref <= 0 ? i <= 0 : i >= 0; _ref <= 0 ? i++ : i--) {
-      if (typeof this.$undoStack[i] === 'string') {
+    _ref = this.$undoStack.slice(0, (this.$undoStack.length - 2 + 1) || 9e9).reverse();
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      l = _ref[_i];
+      if (typeof l === 'string') {
         break;
       }
-      for (j = _ref2 = this.$undoStack[i].length - 1; _ref2 <= 0 ? j <= 0 : j >= 0; _ref2 <= 0 ? j++ : j--) {
-        for (k = _ref3 = this.$undoStack[i][j].deltas.length - 1; _ref3 <= 0 ? k <= 0 : k >= 0; _ref3 <= 0 ? k++ : k--) {
-          item = this.$undoStack[i][j];
-          delta = item.deltas[k];
-          if (item === 'jim:insert:start' || item === 'jim:insert:afterSwitch') {
-            return {
-              string: stringParts.join(''),
-              contiguous: true
-            };
-          } else if (isContiguousInsert(delta)) {
-            stringParts.unshift(delta.text);
-            startPosition = [delta.range.start.row, delta.range.start.column];
-          } else {
-            return {
-              string: stringParts.join(''),
-              contiguous: false
-            };
-          }
-        }
+      _ref2 = l[0], delta = _ref2.deltas[0], group = _ref2.group;
+      if (isContiguousInsert(delta)) {
+        stringParts.unshift(delta.text);
+        startPosition = [delta.range.start.row, delta.range.start.column];
+      } else {
+        return {
+          string: stringParts.join(''),
+          contiguous: false
+        };
       }
     }
     return {
