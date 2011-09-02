@@ -13,27 +13,6 @@ lastWordRegex = ///(#{wordRegex().source})\s*$///
 defaultMappings = {}
 map = (keys, motionClass) -> defaultMappings[keys] = motionClass
 
-wordCursorIsOn = (line, column) ->
-  leftOfCursor = line.substring 0, column
-  rightOfCursor = line.substring column
-  charsAhead = null
-
-  # If the item on the cursor isn't a word it goes to the next word or
-  # the next group of special characters if there isn't a word.
-  if /\W/.test line[column]
-    leftMatch = ['']
-    nextWord = /\w+/.exec rightOfCursor
-    rightMatch = if not nextWord
-      /[^\w\s]+/.exec rightOfCursor
-    else
-      nextWord
-    charsAhead = rightMatch.index
-  else
-    leftMatch = /\w*$/.exec leftOfCursor
-    rightMatch = /^\w*/.exec rightOfCursor
-
-  [leftMatch[0] + rightMatch[0], charsAhead]
-
 class Motion extends Command
   constructor: (@count = 1) ->
   isRepeatable: false
@@ -218,47 +197,56 @@ map 'L', class extends Motion
     line = jim.adaptor.lastFullyVisibleRow() + 2 - @count
     new GoToLineOrEnd(line).exec jim
 
-map '/', class extends Motion
-  exclusive: yes
-  exec: (jim) ->
-    timesLeft = @count
-    pattern = prompt("Find:")
-    jim.search = {pattern, backwards: no}
-    jim.adaptor.findNext pattern while timesLeft--
 
-map '?', class extends Motion
+map '/', class Search extends Motion
   exclusive: yes
+  getSearch: -> {pattern: prompt("Find:"), @backwards}
   exec: (jim) ->
-    timesLeft = @count
-    pattern = prompt("Find:")
-    jim.search = {pattern, backwards: yes}
-    jim.adaptor.findPrevious pattern while timesLeft--
+    jim.search = @getSearch jim
 
-map '*', class extends Motion
-  exclusive: yes
-  exec: (jim) ->
     timesLeft = @count
-    adaptor = jim.adaptor
-    [pattern, charsAhead] = wordCursorIsOn adaptor.lineText(), adaptor.column()
+    finder = if @backwards then 'findPrevious' else 'findNext'
+    jim.adaptor[finder] jim.search.pattern, jim.search.wholeWord while timesLeft--
+
+map '?', class SearchBackwards extends Search
+  backwards: yes
+
+map '*', class NearestWordSearch extends Search
+  getSearch: (jim) ->
+    [pattern, charsAhead] = wordCursorIsOn jim.adaptor.lineText(), jim.adaptor.column()
     if charsAhead
       # if we're searching for a word that's ahead of the cursor, ensure that
       # we the search starts at the word beyond that one
       new MoveRight(charsAhead).exec jim
     # match only whole word's unless searching for special chars
+    console.log 'pattern', pattern
     wholeWord = /^\w/.test pattern
-    jim.search = {pattern, backwards: no, wholeWord}
-    jim.adaptor.findNext pattern, wholeWord while timesLeft--
+    {pattern, wholeWord, @backwards}
 
-map '#', class extends Motion
-  exclusive: yes
-  exec: (jim) ->
-    timesLeft = @count
-    adaptor = jim.adaptor
-    [pattern, charsAhead] = wordCursorIsOn adaptor.lineText(), adaptor.column()
-    # match only whole word's unless searching for special chars
-    wholeWord = /^\w/.test pattern
-    jim.search = {pattern, backwards: yes, wholeWord}
-    jim.adaptor.findPrevious pattern, wholeWord while timesLeft--
+  wordCursorIsOn = (line, column) ->
+    leftOfCursor = line.substring 0, column
+    rightOfCursor = line.substring column
+    charsAhead = null
+
+    # If the item on the cursor isn't a word it goes to the next word or
+    # the next group of special characters if there isn't a word.
+    if /\W/.test line[column]
+      leftMatch = ['']
+      nextWord = /\w+/.exec rightOfCursor
+      rightMatch = if not nextWord
+        /[^\w\s]+/.exec rightOfCursor
+      else
+        nextWord
+      charsAhead = rightMatch.index
+    else
+      leftMatch = /\w*$/.exec leftOfCursor
+      rightMatch = /^\w*/.exec rightOfCursor
+
+    [leftMatch[0] + rightMatch[0], charsAhead]
+
+map '#', class NearestWordSearchBackwards extends NearestWordSearch
+  backwards: yes
+  
 
 map 'n', class extends Motion
   exclusive: yes

@@ -40,7 +40,7 @@ exports.repeatCountTimes = function(func) {
 
 require['./motions'] = (function() {
   var exports = {}, module = {};
-  var Command, GoToLine, GoToLineOrEnd, GoToNextChar, GoToPreviousChar, GoUpToNextChar, GoUpToPreviousChar, LinewiseCommandMotion, Motion, MoveBackBigWord, MoveBackWord, MoveDown, MoveLeft, MoveRight, MoveToBigWordEnd, MoveToEndOfLine, MoveToFirstNonBlank, MoveToNextBigWord, MoveToNextWord, MoveToWordEnd, MoveUp, WORDRegex, defaultMappings, lastWORDRegex, lastWordRegex, map, repeatCountTimes, wordCursorIsOn, wordRegex, _ref;
+  var Command, GoToLine, GoToLineOrEnd, GoToNextChar, GoToPreviousChar, GoUpToNextChar, GoUpToPreviousChar, LinewiseCommandMotion, Motion, MoveBackBigWord, MoveBackWord, MoveDown, MoveLeft, MoveRight, MoveToBigWordEnd, MoveToEndOfLine, MoveToFirstNonBlank, MoveToNextBigWord, MoveToNextWord, MoveToWordEnd, MoveUp, NearestWordSearch, NearestWordSearchBackwards, Search, SearchBackwards, WORDRegex, defaultMappings, lastWORDRegex, lastWordRegex, map, repeatCountTimes, wordRegex, _ref;
 var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
   for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
   function ctor() { this.constructor = child; }
@@ -61,22 +61,6 @@ lastWordRegex = RegExp("(" + (wordRegex().source) + ")\\s*$");
 defaultMappings = {};
 map = function(keys, motionClass) {
   return defaultMappings[keys] = motionClass;
-};
-wordCursorIsOn = function(line, column) {
-  var charsAhead, leftMatch, leftOfCursor, nextWord, rightMatch, rightOfCursor;
-  leftOfCursor = line.substring(0, column);
-  rightOfCursor = line.substring(column);
-  charsAhead = null;
-  if (/\W/.test(line[column])) {
-    leftMatch = [''];
-    nextWord = /\w+/.exec(rightOfCursor);
-    rightMatch = !nextWord ? /[^\w\s]+/.exec(rightOfCursor) : nextWord;
-    charsAhead = rightMatch.index;
-  } else {
-    leftMatch = /\w*$/.exec(leftOfCursor);
-    rightMatch = /^\w*/.exec(rightOfCursor);
-  }
-  return [leftMatch[0] + rightMatch[0], charsAhead];
 };
 Motion = (function() {
   __extends(Motion, Command);
@@ -383,102 +367,84 @@ map('L', (function() {
   };
   return _Class;
 })());
-map('/', (function() {
-  __extends(_Class, Motion);
-  function _Class() {
-    _Class.__super__.constructor.apply(this, arguments);
+map('/', Search = (function() {
+  __extends(Search, Motion);
+  function Search() {
+    Search.__super__.constructor.apply(this, arguments);
   }
-  _Class.prototype.exclusive = true;
-  _Class.prototype.exec = function(jim) {
-    var pattern, timesLeft, _results;
-    timesLeft = this.count;
-    pattern = prompt("Find:");
-    jim.search = {
-      pattern: pattern,
-      backwards: false
+  Search.prototype.exclusive = true;
+  Search.prototype.getSearch = function() {
+    return {
+      pattern: prompt("Find:"),
+      backwards: this.backwards
     };
+  };
+  Search.prototype.exec = function(jim) {
+    var finder, timesLeft, _results;
+    jim.search = this.getSearch(jim);
+    timesLeft = this.count;
+    finder = this.backwards ? 'findPrevious' : 'findNext';
     _results = [];
     while (timesLeft--) {
-      _results.push(jim.adaptor.findNext(pattern));
+      _results.push(jim.adaptor[finder](jim.search.pattern, jim.search.wholeWord));
     }
     return _results;
   };
-  return _Class;
+  return Search;
 })());
-map('?', (function() {
-  __extends(_Class, Motion);
-  function _Class() {
-    _Class.__super__.constructor.apply(this, arguments);
+map('?', SearchBackwards = (function() {
+  __extends(SearchBackwards, Search);
+  function SearchBackwards() {
+    SearchBackwards.__super__.constructor.apply(this, arguments);
   }
-  _Class.prototype.exclusive = true;
-  _Class.prototype.exec = function(jim) {
-    var pattern, timesLeft, _results;
-    timesLeft = this.count;
-    pattern = prompt("Find:");
-    jim.search = {
-      pattern: pattern,
-      backwards: true
-    };
-    _results = [];
-    while (timesLeft--) {
-      _results.push(jim.adaptor.findPrevious(pattern));
-    }
-    return _results;
-  };
-  return _Class;
+  SearchBackwards.prototype.backwards = true;
+  return SearchBackwards;
 })());
-map('*', (function() {
-  __extends(_Class, Motion);
-  function _Class() {
-    _Class.__super__.constructor.apply(this, arguments);
+map('*', NearestWordSearch = (function() {
+  var wordCursorIsOn;
+  __extends(NearestWordSearch, Search);
+  function NearestWordSearch() {
+    NearestWordSearch.__super__.constructor.apply(this, arguments);
   }
-  _Class.prototype.exclusive = true;
-  _Class.prototype.exec = function(jim) {
-    var adaptor, charsAhead, pattern, timesLeft, wholeWord, _ref2, _results;
-    timesLeft = this.count;
-    adaptor = jim.adaptor;
-    _ref2 = wordCursorIsOn(adaptor.lineText(), adaptor.column()), pattern = _ref2[0], charsAhead = _ref2[1];
+  NearestWordSearch.prototype.getSearch = function(jim) {
+    var charsAhead, pattern, wholeWord, _ref2;
+    _ref2 = wordCursorIsOn(jim.adaptor.lineText(), jim.adaptor.column()), pattern = _ref2[0], charsAhead = _ref2[1];
     if (charsAhead) {
       new MoveRight(charsAhead).exec(jim);
     }
+    console.log('pattern', pattern);
     wholeWord = /^\w/.test(pattern);
-    jim.search = {
+    return {
       pattern: pattern,
-      backwards: false,
-      wholeWord: wholeWord
+      wholeWord: wholeWord,
+      backwards: this.backwards
     };
-    _results = [];
-    while (timesLeft--) {
-      _results.push(jim.adaptor.findNext(pattern, wholeWord));
-    }
-    return _results;
   };
-  return _Class;
+  wordCursorIsOn = function(line, column) {
+    var charsAhead, leftMatch, leftOfCursor, nextWord, rightMatch, rightOfCursor;
+    leftOfCursor = line.substring(0, column);
+    rightOfCursor = line.substring(column);
+    charsAhead = null;
+    if (/\W/.test(line[column])) {
+      leftMatch = [''];
+      nextWord = /\w+/.exec(rightOfCursor);
+      rightMatch = !nextWord ? /[^\w\s]+/.exec(rightOfCursor) : nextWord;
+      charsAhead = rightMatch.index;
+    } else {
+      leftMatch = /\w*$/.exec(leftOfCursor);
+      rightMatch = /^\w*/.exec(rightOfCursor);
+    }
+    return [leftMatch[0] + rightMatch[0], charsAhead];
+  };
+  return NearestWordSearch;
 })());
-map('#', (function() {
-  __extends(_Class, Motion);
-  function _Class() {
-    _Class.__super__.constructor.apply(this, arguments);
+map('#', NearestWordSearchBackwards = (function() {
+  __extends(NearestWordSearchBackwards, NearestWordSearch);
+  function NearestWordSearchBackwards() {
+    NearestWordSearchBackwards.__super__.constructor.apply(this, arguments);
   }
-  _Class.prototype.exclusive = true;
-  _Class.prototype.exec = function(jim) {
-    var adaptor, charsAhead, pattern, timesLeft, wholeWord, _ref2, _results;
-    timesLeft = this.count;
-    adaptor = jim.adaptor;
-    _ref2 = wordCursorIsOn(adaptor.lineText(), adaptor.column()), pattern = _ref2[0], charsAhead = _ref2[1];
-    wholeWord = /^\w/.test(pattern);
-    jim.search = {
-      pattern: pattern,
-      backwards: true,
-      wholeWord: wholeWord
-    };
-    _results = [];
-    while (timesLeft--) {
-      _results.push(jim.adaptor.findPrevious(pattern, wholeWord));
-    }
-    return _results;
-  };
-  return _Class;
+  NearestWordSearchBackwards.prototype.backwards = true;
+  return NearestWordSearchBackwards;
 })());
 map('n', (function() {
   __extends(_Class, Motion);

@@ -14,6 +14,14 @@ test '/', ->
   @press 'n'
   deepEqual @adaptor.position(), [0, 31]
 
+test '?', ->
+  window.prompt = -> "value"
+  @press '?'
+  deepEqual @adaptor.position(), [9, 7]
+
+  @press 'n'
+  deepEqual @adaptor.position(), [4, 40]
+
 test '*', ->
   @adaptor.moveTo 0, 14
   @press '*'
