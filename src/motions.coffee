@@ -199,13 +199,17 @@ map 'L', class extends Motion
 
 
 map '/', class Search extends Motion
+  @runSearch: (jim, count, reverse) ->
+    return if not jim.search
+    {backwards, searchString, wholeWord} = jim.search
+    backwards = not backwards if reverse
+    jim.adaptor.search backwards, searchString, wholeWord while count--
+
   exclusive: yes
   getSearch: -> {searchString: prompt("Find:"), @backwards}
   exec: (jim) ->
     jim.search = @getSearch jim
-    {backwards, searchString, wholeWord} = jim.search
-    timesLeft = @count
-    jim.adaptor.search backwards, searchString, wholeWord while timesLeft--
+    Search.runSearch jim, @count
 
 map '?', class SearchBackwards extends Search
   backwards: yes
@@ -248,19 +252,11 @@ map '#', class NearestWordSearchBackwards extends NearestWordSearch
 
 map 'n', class extends Motion
   exclusive: yes
-  exec: (jim) ->
-    return if not jim.search
-    {backwards, searchString, wholeWord} = jim.search
-    timesLeft = @count
-    jim.adaptor.search backwards, searchString, wholeWord while timesLeft--
+  exec: (jim) -> Search.runSearch jim, @count
 
 map 'N', class extends Motion
   exclusive: yes
-  exec: (jim) ->
-    return if not jim.search
-    {backwards, searchString, wholeWord} = jim.search
-    timesLeft = @count
-    jim.adaptor.search not backwards, searchString, wholeWord while timesLeft--
+  exec: (jim) -> Search.runSearch jim, @count, true
 
 map 'f', class GoToNextChar extends Motion
   @followedBy: /./

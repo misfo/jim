@@ -372,6 +372,21 @@ map('/', Search = (function() {
   function Search() {
     Search.__super__.constructor.apply(this, arguments);
   }
+  Search.runSearch = function(jim, count, reverse) {
+    var backwards, searchString, wholeWord, _ref2, _results;
+    if (!jim.search) {
+      return;
+    }
+    _ref2 = jim.search, backwards = _ref2.backwards, searchString = _ref2.searchString, wholeWord = _ref2.wholeWord;
+    if (reverse) {
+      backwards = !backwards;
+    }
+    _results = [];
+    while (count--) {
+      _results.push(jim.adaptor.search(backwards, searchString, wholeWord));
+    }
+    return _results;
+  };
   Search.prototype.exclusive = true;
   Search.prototype.getSearch = function() {
     return {
@@ -380,15 +395,8 @@ map('/', Search = (function() {
     };
   };
   Search.prototype.exec = function(jim) {
-    var backwards, searchString, timesLeft, wholeWord, _ref2, _results;
     jim.search = this.getSearch(jim);
-    _ref2 = jim.search, backwards = _ref2.backwards, searchString = _ref2.searchString, wholeWord = _ref2.wholeWord;
-    timesLeft = this.count;
-    _results = [];
-    while (timesLeft--) {
-      _results.push(jim.adaptor.search(backwards, searchString, wholeWord));
-    }
-    return _results;
+    return Search.runSearch(jim, this.count);
   };
   return Search;
 })());
@@ -452,17 +460,7 @@ map('n', (function() {
   }
   _Class.prototype.exclusive = true;
   _Class.prototype.exec = function(jim) {
-    var backwards, searchString, timesLeft, wholeWord, _ref2, _results;
-    if (!jim.search) {
-      return;
-    }
-    _ref2 = jim.search, backwards = _ref2.backwards, searchString = _ref2.searchString, wholeWord = _ref2.wholeWord;
-    timesLeft = this.count;
-    _results = [];
-    while (timesLeft--) {
-      _results.push(jim.adaptor.search(backwards, searchString, wholeWord));
-    }
-    return _results;
+    return Search.runSearch(jim, this.count);
   };
   return _Class;
 })());
@@ -473,17 +471,7 @@ map('N', (function() {
   }
   _Class.prototype.exclusive = true;
   _Class.prototype.exec = function(jim) {
-    var backwards, searchString, timesLeft, wholeWord, _ref2, _results;
-    if (!jim.search) {
-      return;
-    }
-    _ref2 = jim.search, backwards = _ref2.backwards, searchString = _ref2.searchString, wholeWord = _ref2.wholeWord;
-    timesLeft = this.count;
-    _results = [];
-    while (timesLeft--) {
-      _results.push(jim.adaptor.search(!backwards, searchString, wholeWord));
-    }
-    return _results;
+    return Search.runSearch(jim, this.count, true);
   };
   return _Class;
 })());
