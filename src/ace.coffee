@@ -91,20 +91,17 @@ class Adaptor
   navigateFileEnd:   -> @editor.navigateFileEnd()
   navigateLineStart: -> @editor.navigateLineStart()
 
-  findNext: (pattern, wholeWord) ->
-    @editor.$search.set needle: pattern, backwards: false, wholeWord: !!wholeWord
+  search: (backwards, needle, wholeWord) ->
+    @editor.$search.set {backwards, needle, wholeWord}
+
     # move the cursor right so that it won't match what's already under the
     # cursor. move the cursor back afterwards if nothing's found
-    @editor.selection.moveCursorRight()
-    range = @editor.$search.find @editor.session
-    if range
+    @editor.selection.moveCursorRight() unless backwards
+
+    if range = @editor.$search.find @editor.session
       @moveTo range.start.row, range.start.column
-    else
+    else if not backwards
       @editor.selection.moveCursorLeft()
-  findPrevious: (pattern) ->
-    @editor.$search.set needle: pattern, backwards: true
-    range = @editor.$search.find @editor.session
-    @moveTo range.start.row, range.start.column if range
 
   deleteSelection: ->
     yank = @editor.getCopyText()

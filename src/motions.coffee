@@ -200,28 +200,26 @@ map 'L', class extends Motion
 
 map '/', class Search extends Motion
   exclusive: yes
-  getSearch: -> {pattern: prompt("Find:"), @backwards}
+  getSearch: -> {searchString: prompt("Find:"), @backwards}
   exec: (jim) ->
     jim.search = @getSearch jim
-
+    {backwards, searchString, wholeWord} = jim.search
     timesLeft = @count
-    finder = if @backwards then 'findPrevious' else 'findNext'
-    jim.adaptor[finder] jim.search.pattern, jim.search.wholeWord while timesLeft--
+    jim.adaptor.search backwards, searchString, wholeWord while timesLeft--
 
 map '?', class SearchBackwards extends Search
   backwards: yes
 
 map '*', class NearestWordSearch extends Search
   getSearch: (jim) ->
-    [pattern, charsAhead] = wordCursorIsOn jim.adaptor.lineText(), jim.adaptor.column()
+    [searchString, charsAhead] = wordCursorIsOn jim.adaptor.lineText(), jim.adaptor.column()
     if charsAhead
       # if we're searching for a word that's ahead of the cursor, ensure that
       # we the search starts at the word beyond that one
       new MoveRight(charsAhead).exec jim
     # match only whole word's unless searching for special chars
-    console.log 'pattern', pattern
-    wholeWord = /^\w/.test pattern
-    {pattern, wholeWord, @backwards}
+    wholeWord = /^\w/.test searchString
+    {searchString, wholeWord, @backwards}
 
   wordCursorIsOn = (line, column) ->
     leftOfCursor = line.substring 0, column
@@ -252,18 +250,17 @@ map 'n', class extends Motion
   exclusive: yes
   exec: (jim) ->
     return if not jim.search
+    {backwards, searchString, wholeWord} = jim.search
     timesLeft = @count
-    func = if jim.search.backwards then 'findPrevious' else 'findNext'
-    jim.adaptor[func] jim.search.pattern, jim.search.wholeWord while timesLeft--
+    jim.adaptor.search backwards, searchString, wholeWord while timesLeft--
 
 map 'N', class extends Motion
   exclusive: yes
   exec: (jim) ->
     return if not jim.search
+    {backwards, searchString, wholeWord} = jim.search
     timesLeft = @count
-    func = if jim.search.backwards then 'findNext' else 'findPrevious'
-    jim.adaptor[func] jim.search.pattern, jim.search.wholeWord while timesLeft--
-
+    jim.adaptor.search not backwards, searchString, wholeWord while timesLeft--
 
 map 'f', class GoToNextChar extends Motion
   @followedBy: /./

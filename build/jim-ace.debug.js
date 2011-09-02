@@ -375,18 +375,18 @@ map('/', Search = (function() {
   Search.prototype.exclusive = true;
   Search.prototype.getSearch = function() {
     return {
-      pattern: prompt("Find:"),
+      searchString: prompt("Find:"),
       backwards: this.backwards
     };
   };
   Search.prototype.exec = function(jim) {
-    var finder, timesLeft, _results;
+    var backwards, searchString, timesLeft, wholeWord, _ref2, _results;
     jim.search = this.getSearch(jim);
+    _ref2 = jim.search, backwards = _ref2.backwards, searchString = _ref2.searchString, wholeWord = _ref2.wholeWord;
     timesLeft = this.count;
-    finder = this.backwards ? 'findPrevious' : 'findNext';
     _results = [];
     while (timesLeft--) {
-      _results.push(jim.adaptor[finder](jim.search.pattern, jim.search.wholeWord));
+      _results.push(jim.adaptor.search(backwards, searchString, wholeWord));
     }
     return _results;
   };
@@ -407,15 +407,14 @@ map('*', NearestWordSearch = (function() {
     NearestWordSearch.__super__.constructor.apply(this, arguments);
   }
   NearestWordSearch.prototype.getSearch = function(jim) {
-    var charsAhead, pattern, wholeWord, _ref2;
-    _ref2 = wordCursorIsOn(jim.adaptor.lineText(), jim.adaptor.column()), pattern = _ref2[0], charsAhead = _ref2[1];
+    var charsAhead, searchString, wholeWord, _ref2;
+    _ref2 = wordCursorIsOn(jim.adaptor.lineText(), jim.adaptor.column()), searchString = _ref2[0], charsAhead = _ref2[1];
     if (charsAhead) {
       new MoveRight(charsAhead).exec(jim);
     }
-    console.log('pattern', pattern);
-    wholeWord = /^\w/.test(pattern);
+    wholeWord = /^\w/.test(searchString);
     return {
-      pattern: pattern,
+      searchString: searchString,
       wholeWord: wholeWord,
       backwards: this.backwards
     };
@@ -453,15 +452,15 @@ map('n', (function() {
   }
   _Class.prototype.exclusive = true;
   _Class.prototype.exec = function(jim) {
-    var func, timesLeft, _results;
+    var backwards, searchString, timesLeft, wholeWord, _ref2, _results;
     if (!jim.search) {
       return;
     }
+    _ref2 = jim.search, backwards = _ref2.backwards, searchString = _ref2.searchString, wholeWord = _ref2.wholeWord;
     timesLeft = this.count;
-    func = jim.search.backwards ? 'findPrevious' : 'findNext';
     _results = [];
     while (timesLeft--) {
-      _results.push(jim.adaptor[func](jim.search.pattern, jim.search.wholeWord));
+      _results.push(jim.adaptor.search(backwards, searchString, wholeWord));
     }
     return _results;
   };
@@ -474,15 +473,15 @@ map('N', (function() {
   }
   _Class.prototype.exclusive = true;
   _Class.prototype.exec = function(jim) {
-    var func, timesLeft, _results;
+    var backwards, searchString, timesLeft, wholeWord, _ref2, _results;
     if (!jim.search) {
       return;
     }
+    _ref2 = jim.search, backwards = _ref2.backwards, searchString = _ref2.searchString, wholeWord = _ref2.wholeWord;
     timesLeft = this.count;
-    func = jim.search.backwards ? 'findNext' : 'findPrevious';
     _results = [];
     while (timesLeft--) {
-      _results.push(jim.adaptor[func](jim.search.pattern, jim.search.wholeWord));
+      _results.push(jim.adaptor.search(!backwards, searchString, wholeWord));
     }
     return _results;
   };
@@ -1556,30 +1555,20 @@ Adaptor = (function() {
   Adaptor.prototype.navigateLineStart = function() {
     return this.editor.navigateLineStart();
   };
-  Adaptor.prototype.findNext = function(pattern, wholeWord) {
+  Adaptor.prototype.search = function(backwards, needle, wholeWord) {
     var range;
     this.editor.$search.set({
-      needle: pattern,
-      backwards: false,
-      wholeWord: !!wholeWord
+      backwards: backwards,
+      needle: needle,
+      wholeWord: wholeWord
     });
-    this.editor.selection.moveCursorRight();
-    range = this.editor.$search.find(this.editor.session);
-    if (range) {
-      return this.moveTo(range.start.row, range.start.column);
-    } else {
-      return this.editor.selection.moveCursorLeft();
+    if (!backwards) {
+      this.editor.selection.moveCursorRight();
     }
-  };
-  Adaptor.prototype.findPrevious = function(pattern) {
-    var range;
-    this.editor.$search.set({
-      needle: pattern,
-      backwards: true
-    });
-    range = this.editor.$search.find(this.editor.session);
-    if (range) {
+    if (range = this.editor.$search.find(this.editor.session)) {
       return this.moveTo(range.start.row, range.start.column);
+    } else if (!backwards) {
+      return this.editor.selection.moveCursorLeft();
     }
   };
   Adaptor.prototype.deleteSelection = function() {
