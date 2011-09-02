@@ -53,11 +53,20 @@ Then just open index.html and you're good to go.
 Chrome needs a special command line argument to allow XHRs to files:
 `google-chrome --allow-file-access-from-files`
 
-While developing, keep your CoffeeScript building in the background:
+To keep the files in `build/` building while you develop, you'll need CoffeeScript and uglify.js:
+
+```
+npm install coffee-script
+npm install uglify-js
+```
+
+
+Then build your files in the background:
 
 ```
 cake build:ace:watch
 ```
+
 
 Open test/test.html to run the tests
 
