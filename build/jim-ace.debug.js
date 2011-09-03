@@ -1695,18 +1695,35 @@ JimUndoManager = (function() {
     }
   };
   JimUndoManager.prototype.lastInsert = function() {
-    var delta, group, isContiguousInsert, l, startPosition, stringParts, _i, _len, _ref, _ref2;
+    var action, delta, group, isContiguousInsert, l, previousAction, removeDeletedChars, removedParts, startPosition, stringParts, _i, _len, _ref, _ref2;
     if (this.lastOnUndoStack() !== 'jim:insert:end') {
       return '';
     }
     startPosition = null;
+    previousAction = null;
     stringParts = [];
+    removedParts = [];
     isContiguousInsert = function(delta) {
       var _ref;
       if (delta.action !== 'insertText') {
         return false;
       }
       return !startPosition || (_ref = delta.range).isEnd.apply(_ref, startPosition);
+    };
+    removeDeletedChars = function() {
+      var del, str;
+      str = stringParts.join('');
+      del = removedParts.join('');
+      while (del) {
+        if (RegExp("" + del).test(str)) {
+          str = str.replace(del, '');
+          break;
+        } else {
+          removedParts = removedParts.slice(1);
+          del = removedParts.join('');
+        }
+      }
+      return str;
     };
     _ref = this.$undoStack.slice(0, (this.$undoStack.length - 2 + 1) || 9e9).reverse();
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -1715,18 +1732,27 @@ JimUndoManager = (function() {
         break;
       }
       _ref2 = l[0], delta = _ref2.deltas[0], group = _ref2.group;
-      if (isContiguousInsert(delta)) {
-        stringParts.unshift(delta.text);
+      action = delta.action;
+      if (isContiguousInsert(delta) || action === 'removeText' || action !== previousAction) {
+        if (action === 'removeText') {
+          removedParts.push(delta.text);
+        }
+        if (action === 'insertText') {
+          stringParts.unshift(delta.text);
+        }
         startPosition = [delta.range.start.row, delta.range.start.column];
+        previousAction = action;
       } else {
+        console.log(removedParts);
         return {
-          string: stringParts.join(''),
+          string: removeDeletedChars(),
           contiguous: false
         };
       }
     }
+    console.log(removedParts);
     return {
-      string: stringParts.join(''),
+      string: removeDeletedChars(),
       contiguous: true
     };
   };

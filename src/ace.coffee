@@ -217,20 +217,39 @@ class JimUndoManager extends UndoManager
     return '' if @lastOnUndoStack() isnt 'jim:insert:end'
 
     startPosition = null
+    previousAction = null
     stringParts = []
+    removedParts = []
     isContiguousInsert = (delta) ->
       return false unless delta.action is 'insertText'
       not startPosition or delta.range.isEnd startPosition...
+    removeDeletedChars = ->
+      str = stringParts.join ''
+      del = removedParts.join ''
+      while del
+        if ///#{del}///.test str
+          str = str.replace del, ''
+          break
+        else
+          removedParts = removedParts[1..]
+          del = removedParts.join ''
+      str
 
     for l in @$undoStack[..@$undoStack.length-2].reverse()
       break if typeof l is 'string'
       [{deltas:[delta],group}] = l
-      if isContiguousInsert delta
-        stringParts.unshift delta.text
+      action = delta.action
+      if isContiguousInsert(delta) or action is 'removeText' or action isnt previousAction
+        removedParts.push delta.text if action is 'removeText'
+
+        stringParts.unshift delta.text if action is 'insertText'
         startPosition = [delta.range.start.row, delta.range.start.column]
+        previousAction = action
       else
-        return string: stringParts.join(''), contiguous: false
-    string: stringParts.join(''), contiguous: true
+        console.log removedParts
+        return string: removeDeletedChars(), contiguous: false
+    console.log removedParts
+    string: removeDeletedChars(), contiguous: true
 
 require('pilot/dom').importCssString """
   .jim-normal-mode div.ace_cursor
