@@ -1743,14 +1743,12 @@ JimUndoManager = (function() {
         startPosition = [delta.range.start.row, delta.range.start.column];
         previousAction = action;
       } else {
-        console.log(removedParts);
         return {
           string: removeDeletedChars(),
           contiguous: false
         };
       }
     }
-    console.log(removedParts);
     return {
       string: removeDeletedChars(),
       contiguous: true

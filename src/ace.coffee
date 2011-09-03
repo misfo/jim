@@ -246,9 +246,7 @@ class JimUndoManager extends UndoManager
         startPosition = [delta.range.start.row, delta.range.start.column]
         previousAction = action
       else
-        console.log removedParts
         return string: removeDeletedChars(), contiguous: false
-    console.log removedParts
     string: removeDeletedChars(), contiguous: true
 
 require('pilot/dom').importCssString """
