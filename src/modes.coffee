@@ -16,12 +16,12 @@ exports.normal =
   onKeypress: (keys) ->
     # `@commandPart` is the current part of the command that's being typed.  For an
     # operation, the operator is one "part" and the motion is another. In normal or
-    # visual mode, `@commandPart` can one of the following in normal mode:
+    # visual mode, `@commandPart` can one of the following:
     #   * `{count}command`
     #   * `{count}motion`
     #   * `{count}operator`
     #   * chars expected to follow a command (e.g. when `r` is pressed, the next
-    #     `@commandPart` will be the char that's used in the replace)
+    #     `@commandPart` will be the char that's used as the replacement)
     @commandPart = (@commandPart or '') + keys
 
     if not @command
