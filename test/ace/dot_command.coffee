@@ -67,3 +67,9 @@ test 'repeating words that have some deletion', ->
   @press @backspace, @backspace, @backspace, @backspace, @backspace, @backspace, @backspace, @backspace
   @press @esc
   eq @adaptor.lastInsert().string, 'Will be.'
+
+  @press 'i bc', @esc, 'O', @esc, 'iabc', @down, @backspace, @backspace, 'bc', @esc
+  eq @adaptor.lastInsert().string, 'bc'
+
+  @press 'iabc\nbc', @backspace, @backspace, 'de', @esc
+  eq @adaptor.lastInsert().string, 'abc\nde'
