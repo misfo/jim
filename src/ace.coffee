@@ -217,22 +217,29 @@ class JimUndoManager extends UndoManager
     return '' if @lastOnUndoStack() isnt 'jim:insert:end'
 
     startPosition = null
+    prevRow = null
     stringParts = []
+    removedParts = []
     isContiguousInsert = (delta) ->
       return false unless delta.action is 'insertText'
       not startPosition or delta.range.isEnd startPosition...
+    isOnRow = (delta) -> not prevRow or delta.range.start.row is prevRow
 
     for i in [(@$undoStack.length - 2)..0]
       break if typeof @$undoStack[i] is 'string'
       for j in [(@$undoStack[i].length - 1)..0]
         for k in [(@$undoStack[i][j].deltas.length - 1)..0]
-          item = @$undoStack[i][j]
-          delta = item.deltas[k]
-          if item is 'jim:insert:start' or item is 'jim:insert:afterSwitch'
-            return string: stringParts.join(''), contiguous: true
-          else if isContiguousInsert delta
-            stringParts.unshift delta.text
+          delta = @$undoStack[i][j].deltas[k]
+          action = delta.action
+          if isContiguousInsert(delta) or isOnRow(delta)
+            removedParts.push delta.text if action is 'removeText'
+
             startPosition = [delta.range.start.row, delta.range.start.column]
+            if action is 'insertText'
+              continue if removedParts.length and delta.text is removedParts.pop()
+
+            stringParts.unshift delta.text if action is 'insertText'
+            prevRow = startPosition[0]
           else
             return string: stringParts.join(''), contiguous: false
     string: stringParts.join(''), contiguous: true
