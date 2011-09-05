@@ -1695,12 +1695,12 @@ JimUndoManager = (function() {
     }
   };
   JimUndoManager.prototype.lastInsert = function() {
-    var action, delta, i, isContiguousInsert, j, k, previousAction, removeDeletedChars, removedParts, startPosition, stringParts, _ref, _ref2, _ref3;
+    var action, delta, i, isContiguousInsert, isOnRow, j, k, prevRow, removedParts, startPosition, stringParts, _ref, _ref2, _ref3;
     if (this.lastOnUndoStack() !== 'jim:insert:end') {
       return '';
     }
     startPosition = null;
-    previousAction = null;
+    prevRow = null;
     stringParts = [];
     removedParts = [];
     isContiguousInsert = function(delta) {
@@ -1710,20 +1710,8 @@ JimUndoManager = (function() {
       }
       return !startPosition || (_ref = delta.range).isEnd.apply(_ref, startPosition);
     };
-    removeDeletedChars = function() {
-      var del, str;
-      str = stringParts.join('');
-      del = removedParts.join('');
-      while (del) {
-        if (RegExp("" + del).test(str)) {
-          str = str.replace(del, '');
-          break;
-        } else {
-          removedParts = removedParts.slice(1);
-          del = removedParts.join('');
-        }
-      }
-      return str;
+    isOnRow = function(delta) {
+      return !prevRow || delta.range.start.row === prevRow;
     };
     for (i = _ref = this.$undoStack.length - 2; _ref <= 0 ? i <= 0 : i >= 0; _ref <= 0 ? i++ : i--) {
       if (typeof this.$undoStack[i] === 'string') {
@@ -1733,18 +1721,23 @@ JimUndoManager = (function() {
         for (k = _ref3 = this.$undoStack[i][j].deltas.length - 1; _ref3 <= 0 ? k <= 0 : k >= 0; _ref3 <= 0 ? k++ : k--) {
           delta = this.$undoStack[i][j].deltas[k];
           action = delta.action;
-          if (isContiguousInsert(delta) || action === 'removeText' || action !== previousAction) {
+          if (isContiguousInsert(delta) || isOnRow(delta)) {
             if (action === 'removeText') {
               removedParts.push(delta.text);
+            }
+            startPosition = [delta.range.start.row, delta.range.start.column];
+            if (action === 'insertText') {
+              if (removedParts.length && delta.text === removedParts.pop()) {
+                continue;
+              }
             }
             if (action === 'insertText') {
               stringParts.unshift(delta.text);
             }
-            startPosition = [delta.range.start.row, delta.range.start.column];
-            previousAction = action;
+            prevRow = startPosition[0];
           } else {
             return {
-              string: removeDeletedChars(),
+              string: stringParts.join(''),
               contiguous: false
             };
           }
@@ -1752,7 +1745,7 @@ JimUndoManager = (function() {
       }
     }
     return {
-      string: removeDeletedChars(),
+      string: stringParts.join(''),
       contiguous: true
     };
   };

@@ -217,23 +217,13 @@ class JimUndoManager extends UndoManager
     return '' if @lastOnUndoStack() isnt 'jim:insert:end'
 
     startPosition = null
-    previousAction = null
+    prevRow = null
     stringParts = []
     removedParts = []
     isContiguousInsert = (delta) ->
       return false unless delta.action is 'insertText'
       not startPosition or delta.range.isEnd startPosition...
-    removeDeletedChars = ->
-      str = stringParts.join ''
-      del = removedParts.join ''
-      while del
-        if ///#{del}///.test str
-          str = str.replace del, ''
-          break
-        else
-          removedParts = removedParts[1..]
-          del = removedParts.join ''
-      str
+    isOnRow = (delta) -> not prevRow or delta.range.start.row is prevRow
 
     for i in [(@$undoStack.length - 2)..0]
       break if typeof @$undoStack[i] is 'string'
@@ -241,15 +231,18 @@ class JimUndoManager extends UndoManager
         for k in [(@$undoStack[i][j].deltas.length - 1)..0]
           delta = @$undoStack[i][j].deltas[k]
           action = delta.action
-          if isContiguousInsert(delta) or action is 'removeText' or action isnt previousAction
+          if isContiguousInsert(delta) or isOnRow(delta)
             removedParts.push delta.text if action is 'removeText'
 
-            stringParts.unshift delta.text if action is 'insertText'
             startPosition = [delta.range.start.row, delta.range.start.column]
-            previousAction = action
+            if action is 'insertText'
+              continue if removedParts.length and delta.text is removedParts.pop()
+
+            stringParts.unshift delta.text if action is 'insertText'
+            prevRow = startPosition[0]
           else
-            return string: removeDeletedChars(), contiguous: false
-    string: removeDeletedChars(), contiguous: true
+            return string: stringParts.join(''), contiguous: false
+    string: stringParts.join(''), contiguous: true
 
 require('pilot/dom').importCssString """
   .jim-normal-mode div.ace_cursor
