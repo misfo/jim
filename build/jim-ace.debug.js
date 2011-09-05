@@ -1695,7 +1695,7 @@ JimUndoManager = (function() {
     }
   };
   JimUndoManager.prototype.lastInsert = function() {
-    var action, delta, group, isContiguousInsert, l, previousAction, removeDeletedChars, removedParts, startPosition, stringParts, _i, _len, _ref, _ref2;
+    var action, delta, i, isContiguousInsert, j, k, previousAction, removeDeletedChars, removedParts, startPosition, stringParts, _ref, _ref2, _ref3;
     if (this.lastOnUndoStack() !== 'jim:insert:end') {
       return '';
     }
@@ -1725,28 +1725,30 @@ JimUndoManager = (function() {
       }
       return str;
     };
-    _ref = this.$undoStack.slice(0, (this.$undoStack.length - 2 + 1) || 9e9).reverse();
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      l = _ref[_i];
-      if (typeof l === 'string') {
+    for (i = _ref = this.$undoStack.length - 2; _ref <= 0 ? i <= 0 : i >= 0; _ref <= 0 ? i++ : i--) {
+      if (typeof this.$undoStack[i] === 'string') {
         break;
       }
-      _ref2 = l[0], delta = _ref2.deltas[0], group = _ref2.group;
-      action = delta.action;
-      if (isContiguousInsert(delta) || action === 'removeText' || action !== previousAction) {
-        if (action === 'removeText') {
-          removedParts.push(delta.text);
+      for (j = _ref2 = this.$undoStack[i].length - 1; _ref2 <= 0 ? j <= 0 : j >= 0; _ref2 <= 0 ? j++ : j--) {
+        for (k = _ref3 = this.$undoStack[i][j].deltas.length - 1; _ref3 <= 0 ? k <= 0 : k >= 0; _ref3 <= 0 ? k++ : k--) {
+          delta = this.$undoStack[i][j].deltas[k];
+          action = delta.action;
+          if (isContiguousInsert(delta) || action === 'removeText' || action !== previousAction) {
+            if (action === 'removeText') {
+              removedParts.push(delta.text);
+            }
+            if (action === 'insertText') {
+              stringParts.unshift(delta.text);
+            }
+            startPosition = [delta.range.start.row, delta.range.start.column];
+            previousAction = action;
+          } else {
+            return {
+              string: removeDeletedChars(),
+              contiguous: false
+            };
+          }
         }
-        if (action === 'insertText') {
-          stringParts.unshift(delta.text);
-        }
-        startPosition = [delta.range.start.row, delta.range.start.column];
-        previousAction = action;
-      } else {
-        return {
-          string: removeDeletedChars(),
-          contiguous: false
-        };
       }
     }
     return {

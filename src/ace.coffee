@@ -235,18 +235,20 @@ class JimUndoManager extends UndoManager
           del = removedParts.join ''
       str
 
-    for l in @$undoStack[..@$undoStack.length-2].reverse()
-      break if typeof l is 'string'
-      [{deltas:[delta],group}] = l
-      action = delta.action
-      if isContiguousInsert(delta) or action is 'removeText' or action isnt previousAction
-        removedParts.push delta.text if action is 'removeText'
+    for i in [(@$undoStack.length - 2)..0]
+      break if typeof @$undoStack[i] is 'string'
+      for j in [(@$undoStack[i].length - 1)..0]
+        for k in [(@$undoStack[i][j].deltas.length - 1)..0]
+          delta = @$undoStack[i][j].deltas[k]
+          action = delta.action
+          if isContiguousInsert(delta) or action is 'removeText' or action isnt previousAction
+            removedParts.push delta.text if action is 'removeText'
 
-        stringParts.unshift delta.text if action is 'insertText'
-        startPosition = [delta.range.start.row, delta.range.start.column]
-        previousAction = action
-      else
-        return string: removeDeletedChars(), contiguous: false
+            stringParts.unshift delta.text if action is 'insertText'
+            startPosition = [delta.range.start.row, delta.range.start.column]
+            previousAction = action
+          else
+            return string: removeDeletedChars(), contiguous: false
     string: removeDeletedChars(), contiguous: true
 
 require('pilot/dom').importCssString """
