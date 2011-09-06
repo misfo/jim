@@ -50,7 +50,17 @@ map 'e', class MoveToWordEnd extends Motion
     [row, column] = jim.adaptor.position()
     rightOfCursor = line.substring column
 
-    if column >= line.length - 1
+    matchOnLine = regex.exec rightOfCursor
+    if matchOnLine?[0].length <= 1
+      # if we're on top of the last char of a word we want to go to the next one
+      matchOnLine = regex.exec rightOfCursor
+
+    if matchOnLine
+      # go to the end of the word that's been matched
+      column += matchOnLine[0].length + matchOnLine.index - 1
+    else
+      # if there's no match on the current line go end of the next word, whatever line
+      # that may be
       loop
         line = jim.adaptor.lineText ++row
         firstMatchOnSubsequentLine = regex.exec line
@@ -60,16 +70,6 @@ map 'e', class MoveToWordEnd extends Motion
         else if row is jim.adaptor.lastRow()
           # there are no more non-blank characters, don't move the cursor
           return
-    else
-      thisMatch = regex.exec rightOfCursor
-      if thisMatch.index > 1 or thisMatch[0].length > 1
-        # go to the end of the WORD we're on top of
-        # or the next WORD if we're in whitespace
-        column += thisMatch[0].length + thisMatch.index - 1
-      else
-        # go to the end of the next WORD
-        nextMatch = regex.exec rightOfCursor
-        column += nextMatch.index + nextMatch[0].length - 1
 
     jim.adaptor.moveTo row, column
 

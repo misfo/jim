@@ -139,12 +139,18 @@ map('e', MoveToWordEnd = (function() {
     MoveToWordEnd.__super__.constructor.apply(this, arguments);
   }
   MoveToWordEnd.prototype.exec = repeatCountTimes(function(jim) {
-    var column, firstMatchOnSubsequentLine, line, nextMatch, regex, rightOfCursor, row, thisMatch, _ref2;
+    var column, firstMatchOnSubsequentLine, line, matchOnLine, regex, rightOfCursor, row, _ref2;
     regex = this.bigWord ? WORDRegex() : wordRegex();
     line = jim.adaptor.lineText();
     _ref2 = jim.adaptor.position(), row = _ref2[0], column = _ref2[1];
     rightOfCursor = line.substring(column);
-    if (column >= line.length - 1) {
+    matchOnLine = regex.exec(rightOfCursor);
+    if ((matchOnLine != null ? matchOnLine[0].length : void 0) <= 1) {
+      matchOnLine = regex.exec(rightOfCursor);
+    }
+    if (matchOnLine) {
+      column += matchOnLine[0].length + matchOnLine.index - 1;
+    } else {
       while (true) {
         line = jim.adaptor.lineText(++row);
         firstMatchOnSubsequentLine = regex.exec(line);
@@ -154,14 +160,6 @@ map('e', MoveToWordEnd = (function() {
         } else if (row === jim.adaptor.lastRow()) {
           return;
         }
-      }
-    } else {
-      thisMatch = regex.exec(rightOfCursor);
-      if (thisMatch.index > 1 || thisMatch[0].length > 1) {
-        column += thisMatch[0].length + thisMatch.index - 1;
-      } else {
-        nextMatch = regex.exec(rightOfCursor);
-        column += nextMatch.index + nextMatch[0].length - 1;
       }
     }
     return jim.adaptor.moveTo(row, column);
