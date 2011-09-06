@@ -13,6 +13,7 @@ lastWordRegex = ///(#{wordRegex().source})\s*$///
 defaultMappings = {}
 map = (keys, motionClass) -> defaultMappings[keys] = motionClass
 
+# base class for all motions
 class Motion extends Command
   constructor: (@count = 1) ->
   isRepeatable: false
