@@ -146,7 +146,7 @@ map 'b', class MoveBackWord extends Motion
 map 'B', class MoveBackBigWord extends MoveBackWord
   bigWord: yes
   
-map '0', class extends Motion
+map '0', class MoveToBeginningOfLine extends Motion
   exclusive: yes
   exec: (jim) -> jim.adaptor.moveTo jim.adaptor.row(), 0
 
@@ -177,13 +177,13 @@ map 'G', class GoToLineOrEnd extends GoToLine
     @count or= jim.adaptor.lastRow() + 1
     super
 
-map 'H', class extends Motion
+map 'H', class GoToFirstVisibleLine extends Motion
   linewise: yes
   exec: (jim) ->
     line = jim.adaptor.firstFullyVisibleRow() + @count
     new GoToLineOrEnd(line).exec jim
 
-map 'M', class extends Motion
+map 'M', class GoToMiddleLine extends Motion
   linewise: yes
   exec: (jim) ->
     topRow = jim.adaptor.firstFullyVisibleRow()
@@ -191,7 +191,7 @@ map 'M', class extends Motion
     linesFromTop = Math.floor(lines / 2)
     new GoToLineOrEnd(topRow + 1 + linesFromTop).exec jim
 
-map 'L', class extends Motion
+map 'L', class GoToLastVisibleLine extends Motion
   linewise: yes
   exec: (jim) ->
     line = jim.adaptor.lastFullyVisibleRow() + 2 - @count
@@ -250,11 +250,11 @@ map '#', class NearestWordSearchBackwards extends NearestWordSearch
   backwards: yes
   
 
-map 'n', class extends Motion
+map 'n', class SearchAgain extends Motion
   exclusive: yes
   exec: (jim) -> Search.runSearch jim, @count
 
-map 'N', class extends Motion
+map 'N', class SearchAgainReverse extends Motion
   exclusive: yes
   exec: (jim) -> Search.runSearch jim, @count, true
 

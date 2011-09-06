@@ -40,7 +40,7 @@ exports.repeatCountTimes = function(func) {
 
 require['./motions'] = (function() {
   var exports = {}, module = {};
-  var Command, GoToLine, GoToLineOrEnd, GoToNextChar, GoToPreviousChar, GoUpToNextChar, GoUpToPreviousChar, LinewiseCommandMotion, Motion, MoveBackBigWord, MoveBackWord, MoveDown, MoveLeft, MoveRight, MoveToBigWordEnd, MoveToEndOfLine, MoveToFirstNonBlank, MoveToNextBigWord, MoveToNextWord, MoveToWordEnd, MoveUp, NearestWordSearch, NearestWordSearchBackwards, Search, SearchBackwards, WORDRegex, defaultMappings, lastWORDRegex, lastWordRegex, map, repeatCountTimes, wordRegex, _ref;
+  var Command, GoToFirstVisibleLine, GoToLastVisibleLine, GoToLine, GoToLineOrEnd, GoToMiddleLine, GoToNextChar, GoToPreviousChar, GoUpToNextChar, GoUpToPreviousChar, LinewiseCommandMotion, Motion, MoveBackBigWord, MoveBackWord, MoveDown, MoveLeft, MoveRight, MoveToBeginningOfLine, MoveToBigWordEnd, MoveToEndOfLine, MoveToFirstNonBlank, MoveToNextBigWord, MoveToNextWord, MoveToWordEnd, MoveUp, NearestWordSearch, NearestWordSearchBackwards, Search, SearchAgain, SearchAgainReverse, SearchBackwards, WORDRegex, defaultMappings, lastWORDRegex, lastWordRegex, map, repeatCountTimes, wordRegex, _ref;
 var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
   for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
   function ctor() { this.constructor = child; }
@@ -260,16 +260,16 @@ map('B', MoveBackBigWord = (function() {
   MoveBackBigWord.prototype.bigWord = true;
   return MoveBackBigWord;
 })());
-map('0', (function() {
-  __extends(_Class, Motion);
-  function _Class() {
-    _Class.__super__.constructor.apply(this, arguments);
+map('0', MoveToBeginningOfLine = (function() {
+  __extends(MoveToBeginningOfLine, Motion);
+  function MoveToBeginningOfLine() {
+    MoveToBeginningOfLine.__super__.constructor.apply(this, arguments);
   }
-  _Class.prototype.exclusive = true;
-  _Class.prototype.exec = function(jim) {
+  MoveToBeginningOfLine.prototype.exclusive = true;
+  MoveToBeginningOfLine.prototype.exec = function(jim) {
     return jim.adaptor.moveTo(jim.adaptor.row(), 0);
   };
-  return _Class;
+  return MoveToBeginningOfLine;
 })());
 map('^', MoveToFirstNonBlank = (function() {
   __extends(MoveToFirstNonBlank, Motion);
@@ -326,46 +326,46 @@ map('G', GoToLineOrEnd = (function() {
   };
   return GoToLineOrEnd;
 })());
-map('H', (function() {
-  __extends(_Class, Motion);
-  function _Class() {
-    _Class.__super__.constructor.apply(this, arguments);
+map('H', GoToFirstVisibleLine = (function() {
+  __extends(GoToFirstVisibleLine, Motion);
+  function GoToFirstVisibleLine() {
+    GoToFirstVisibleLine.__super__.constructor.apply(this, arguments);
   }
-  _Class.prototype.linewise = true;
-  _Class.prototype.exec = function(jim) {
+  GoToFirstVisibleLine.prototype.linewise = true;
+  GoToFirstVisibleLine.prototype.exec = function(jim) {
     var line;
     line = jim.adaptor.firstFullyVisibleRow() + this.count;
     return new GoToLineOrEnd(line).exec(jim);
   };
-  return _Class;
+  return GoToFirstVisibleLine;
 })());
-map('M', (function() {
-  __extends(_Class, Motion);
-  function _Class() {
-    _Class.__super__.constructor.apply(this, arguments);
+map('M', GoToMiddleLine = (function() {
+  __extends(GoToMiddleLine, Motion);
+  function GoToMiddleLine() {
+    GoToMiddleLine.__super__.constructor.apply(this, arguments);
   }
-  _Class.prototype.linewise = true;
-  _Class.prototype.exec = function(jim) {
+  GoToMiddleLine.prototype.linewise = true;
+  GoToMiddleLine.prototype.exec = function(jim) {
     var lines, linesFromTop, topRow;
     topRow = jim.adaptor.firstFullyVisibleRow();
     lines = jim.adaptor.lastFullyVisibleRow() - topRow;
     linesFromTop = Math.floor(lines / 2);
     return new GoToLineOrEnd(topRow + 1 + linesFromTop).exec(jim);
   };
-  return _Class;
+  return GoToMiddleLine;
 })());
-map('L', (function() {
-  __extends(_Class, Motion);
-  function _Class() {
-    _Class.__super__.constructor.apply(this, arguments);
+map('L', GoToLastVisibleLine = (function() {
+  __extends(GoToLastVisibleLine, Motion);
+  function GoToLastVisibleLine() {
+    GoToLastVisibleLine.__super__.constructor.apply(this, arguments);
   }
-  _Class.prototype.linewise = true;
-  _Class.prototype.exec = function(jim) {
+  GoToLastVisibleLine.prototype.linewise = true;
+  GoToLastVisibleLine.prototype.exec = function(jim) {
     var line;
     line = jim.adaptor.lastFullyVisibleRow() + 2 - this.count;
     return new GoToLineOrEnd(line).exec(jim);
   };
-  return _Class;
+  return GoToLastVisibleLine;
 })());
 map('/', Search = (function() {
   __extends(Search, Motion);
@@ -453,27 +453,27 @@ map('#', NearestWordSearchBackwards = (function() {
   NearestWordSearchBackwards.prototype.backwards = true;
   return NearestWordSearchBackwards;
 })());
-map('n', (function() {
-  __extends(_Class, Motion);
-  function _Class() {
-    _Class.__super__.constructor.apply(this, arguments);
+map('n', SearchAgain = (function() {
+  __extends(SearchAgain, Motion);
+  function SearchAgain() {
+    SearchAgain.__super__.constructor.apply(this, arguments);
   }
-  _Class.prototype.exclusive = true;
-  _Class.prototype.exec = function(jim) {
+  SearchAgain.prototype.exclusive = true;
+  SearchAgain.prototype.exec = function(jim) {
     return Search.runSearch(jim, this.count);
   };
-  return _Class;
+  return SearchAgain;
 })());
-map('N', (function() {
-  __extends(_Class, Motion);
-  function _Class() {
-    _Class.__super__.constructor.apply(this, arguments);
+map('N', SearchAgainReverse = (function() {
+  __extends(SearchAgainReverse, Motion);
+  function SearchAgainReverse() {
+    SearchAgainReverse.__super__.constructor.apply(this, arguments);
   }
-  _Class.prototype.exclusive = true;
-  _Class.prototype.exec = function(jim) {
+  SearchAgainReverse.prototype.exclusive = true;
+  SearchAgainReverse.prototype.exec = function(jim) {
     return Search.runSearch(jim, this.count, true);
   };
-  return _Class;
+  return SearchAgainReverse;
 })());
 map('f', GoToNextChar = (function() {
   __extends(GoToNextChar, Motion);
@@ -702,7 +702,7 @@ module.exports = {
 
 require['./commands'] = (function() {
   var exports = {}, module = {};
-  var Change, ChangeChar, ChangeToEndOfLine, Command, Delete, DeleteChar, DeleteToEndOfLine, GoToLine, Insert, InsertAfter, InsertAtEndOfLine, InsertBeforeFirstNonBlank, JoinLines, JoinLinesNormalizingWhitespace, ModeSwitch, MoveDown, MoveLeft, MoveRight, MoveToEndOfLine, MoveToFirstNonBlank, OpenLine, OpenLineAbove, Paste, RepeatCommand, ReplaceSwitch, Undo, VisualLinewiseSwitch, VisualSwitch, defaultMappings, map, repeatCountTimes, _ref, _ref2, _ref3;
+  var Backspace, Change, ChangeChar, ChangeToEndOfLine, Command, Delete, DeleteChar, DeleteToEndOfLine, GoToLine, Insert, InsertAfter, InsertAtEndOfLine, InsertBeforeFirstNonBlank, JoinLines, JoinLinesNormalizingWhitespace, ModeSwitch, MoveDown, MoveLeft, MoveRight, MoveToEndOfLine, MoveToFirstNonBlank, OpenLine, OpenLineAbove, Paste, PasteBefore, RepeatCommand, ReplaceChar, ReplaceSwitch, Undo, VisualLinewiseSwitch, VisualSwitch, defaultMappings, map, repeatCountTimes, _ref, _ref2, _ref3;
 var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
   for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
   function ctor() { this.constructor = child; }
@@ -980,21 +980,21 @@ map('p', Paste = (function() {
   };
   return Paste;
 })());
-map('P', (function() {
-  __extends(_Class, Paste);
-  function _Class() {
-    _Class.__super__.constructor.apply(this, arguments);
+map('P', PasteBefore = (function() {
+  __extends(PasteBefore, Paste);
+  function PasteBefore() {
+    PasteBefore.__super__.constructor.apply(this, arguments);
   }
-  _Class.prototype.before = true;
-  return _Class;
+  PasteBefore.prototype.before = true;
+  return PasteBefore;
 })());
-map('r', (function() {
-  __extends(_Class, Command);
-  function _Class() {
-    _Class.__super__.constructor.apply(this, arguments);
+map('r', ReplaceChar = (function() {
+  __extends(ReplaceChar, Command);
+  function ReplaceChar() {
+    ReplaceChar.__super__.constructor.apply(this, arguments);
   }
-  _Class.followedBy = /[\s\S]+/;
-  _Class.prototype.exec = function(jim) {
+  ReplaceChar.followedBy = /[\s\S]+/;
+  ReplaceChar.prototype.exec = function(jim) {
     var replacementText;
     jim.adaptor.setSelectionAnchor();
     new MoveRight(this.count).exec(jim);
@@ -1003,7 +1003,7 @@ map('r', (function() {
     jim.adaptor.insert(replacementText);
     return new MoveLeft().exec(jim);
   };
-  return _Class;
+  return ReplaceChar;
 })());
 map('.', RepeatCommand = (function() {
   __extends(RepeatCommand, Command);
@@ -1066,15 +1066,15 @@ map('x', DeleteChar = (function() {
   };
   return DeleteChar;
 })());
-map('X', (function() {
-  __extends(_Class, Command);
-  function _Class() {
-    _Class.__super__.constructor.apply(this, arguments);
+map('X', Backspace = (function() {
+  __extends(Backspace, Command);
+  function Backspace() {
+    Backspace.__super__.constructor.apply(this, arguments);
   }
-  _Class.prototype.exec = function(jim) {
+  Backspace.prototype.exec = function(jim) {
     return new Delete(1, new MoveLeft(this.count)).exec(jim);
   };
-  return _Class;
+  return Backspace;
 })());
 module.exports = {
   defaultMappings: defaultMappings

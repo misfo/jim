@@ -183,11 +183,11 @@ map 'p', class Paste extends Command
     jim.setMode 'normal'
 
 # paste after the cursor (or after the line for linewise registers)
-map 'P', class extends Paste
+map 'P', class PasteBefore extends Paste
   before: yes
 
 # replace the char under the cursor with the key pressed after `r`
-map 'r', class extends Command
+map 'r', class ReplaceChar extends Command
   # [\s\S] so that it will match \n (windows' \r\n?)
   @followedBy: /[\s\S]+/
   exec: (jim) ->
@@ -249,7 +249,7 @@ map 'x', class DeleteChar extends Command
   exec: (jim) -> new Delete(1, new MoveRight @count).exec jim
   
 # delete the char before the cursor
-map 'X', class extends Command
+map 'X', class Backspace extends Command
   exec: (jim) -> new Delete(1, new MoveLeft @count).exec jim
 
 
