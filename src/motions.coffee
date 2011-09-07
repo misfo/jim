@@ -1,3 +1,7 @@
+# Motions are exactly that: motions.  They move the cursor but don't change the
+# document at all.  They can be used in normal or visual mode and can follow an
+# operator in normal mode to operate on the text that they move over.
+
 {Command, repeatCountTimes} = require './helpers'
 
 ## these return a new regex each time so that we always get a fresh lastIndex
@@ -10,6 +14,7 @@ wordRegex = -> /(\w+)|([^\w\s]+)/g
 lastWORDRegex = ///#{WORDRegex().source}\s*$///
 lastWordRegex = ///(#{wordRegex().source})\s*$///
 
+# accumulate the default mappings
 defaultMappings = {}
 map = (keys, motionClass) -> defaultMappings[keys] = motionClass
 
