@@ -25,12 +25,7 @@ class Operation extends Command
 
     @operate jim
 
-    if @repeatableInsert
-      jim.adaptor.insert @repeatableInsert.string
-    else
-      if @switchToMode is 'insert'
-        jim.afterInsertSwitch = true
-      jim.setMode @switchToMode if @switchToMode
+    jim.setMode @switchToMode
 
   exec: (jim) ->
     @startingPosition = jim.adaptor.position()
@@ -44,6 +39,15 @@ class Operation extends Command
 
 
 map 'c', class Change extends Operation
+  visualExec: (jim) ->
+    super
+
+    if @repeatableInsert
+      jim.adaptor.insert @repeatableInsert.string
+      jim.setMode 'normal'
+    else
+      jim.afterInsertSwitch = true
+
   operate: (jim) ->
     jim.adaptor.moveToEndOfPreviousLine() if @linewise
     jim.deleteSelection @motion?.exclusive, @linewise

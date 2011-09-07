@@ -594,16 +594,7 @@ Operation = (function() {
       jim.adaptor.includeCursorInSelection();
     }
     this.operate(jim);
-    if (this.repeatableInsert) {
-      return jim.adaptor.insert(this.repeatableInsert.string);
-    } else {
-      if (this.switchToMode === 'insert') {
-        jim.afterInsertSwitch = true;
-      }
-      if (this.switchToMode) {
-        return jim.setMode(this.switchToMode);
-      }
-    }
+    return jim.setMode(this.switchToMode);
   };
   Operation.prototype.exec = function(jim) {
     var _ref2;
@@ -626,6 +617,15 @@ map('c', Change = (function() {
   function Change() {
     Change.__super__.constructor.apply(this, arguments);
   }
+  Change.prototype.visualExec = function(jim) {
+    Change.__super__.visualExec.apply(this, arguments);
+    if (this.repeatableInsert) {
+      jim.adaptor.insert(this.repeatableInsert.string);
+      return jim.setMode('normal');
+    } else {
+      return jim.afterInsertSwitch = true;
+    }
+  };
   Change.prototype.operate = function(jim) {
     var _ref2;
     if (this.linewise) {
