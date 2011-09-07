@@ -586,20 +586,6 @@ Operation = (function() {
     return (_ref2 = this.motion) != null ? _ref2.isComplete() : void 0;
   };
   Operation.prototype.switchToMode = 'normal';
-  Operation.prototype.exec = function(jim) {
-    var _ref2;
-    this.startingPosition = jim.adaptor.position();
-    jim.adaptor.setSelectionAnchor();
-    if (this.count !== 1) {
-      this.motion.count *= this.count;
-      this.count = 1;
-    }
-    if ((_ref2 = this.linewise) == null) {
-      this.linewise = this.motion.linewise;
-    }
-    this.motion.exec(jim);
-    return this.visualExec(jim);
-  };
   Operation.prototype.visualExec = function(jim) {
     var _ref2;
     if (this.linewise) {
@@ -618,6 +604,20 @@ Operation = (function() {
         return jim.setMode(this.switchToMode);
       }
     }
+  };
+  Operation.prototype.exec = function(jim) {
+    var _ref2;
+    this.startingPosition = jim.adaptor.position();
+    jim.adaptor.setSelectionAnchor();
+    if (this.count !== 1) {
+      this.motion.count *= this.count;
+      this.count = 1;
+    }
+    if ((_ref2 = this.linewise) == null) {
+      this.linewise = this.motion.linewise;
+    }
+    this.motion.exec(jim);
+    return this.visualExec(jim);
   };
   return Operation;
 })();

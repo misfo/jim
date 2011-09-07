@@ -1,15 +1,37 @@
+# An operator followed by a motion is an operation.  For example, `ce` changes
+# all the text to the end of the current word since `c` is the change operator
+# and `e` is a motion that moves to the end of the word.
+
 {Command} = require './helpers'
 {GoToLine, MoveToFirstNonBlank, MoveToNextBigWord, MoveToNextWord, MoveToBigWordEnd, MoveToWordEnd} = require './motions'
 
 defaultMappings = {}
 map = (keys, operatorClass) -> defaultMappings[keys] = operatorClass
 
+# base class for all operations
 class Operation extends Command
   constructor: (@count = 1, @motion) ->
     @motion.operation = this if @motion
   isOperation: true
   isComplete: -> @motion?.isComplete()
   switchToMode: 'normal'
+
+  # Adjust the selection, if needed, and operate on that selection
+  visualExec: (jim) ->
+    if @linewise
+      jim.adaptor.makeLinewise()
+    else if not @motion?.exclusive
+      jim.adaptor.includeCursorInSelection()
+
+    @operate jim
+
+    if @repeatableInsert
+      jim.adaptor.insert @repeatableInsert.string
+    else
+      if @switchToMode is 'insert'
+        jim.afterInsertSwitch = true
+      jim.setMode @switchToMode if @switchToMode
+
   exec: (jim) ->
     @startingPosition = jim.adaptor.position()
     jim.adaptor.setSelectionAnchor()
@@ -19,19 +41,6 @@ class Operation extends Command
     @linewise ?= @motion.linewise
     @motion.exec jim
     @visualExec jim
-
-  visualExec: (jim) ->
-    if @linewise
-      jim.adaptor.makeLinewise()
-    else if not @motion?.exclusive
-      jim.adaptor.includeCursorInSelection()
-    @operate jim
-    if @repeatableInsert
-      jim.adaptor.insert @repeatableInsert.string
-    else
-      if @switchToMode is 'insert'
-        jim.afterInsertSwitch = true
-      jim.setMode @switchToMode if @switchToMode
 
 
 map 'c', class Change extends Operation
