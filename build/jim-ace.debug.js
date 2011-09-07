@@ -1714,18 +1714,35 @@ JimUndoManager = (function() {
     }
   };
   JimUndoManager.prototype.lastInsert = function() {
-    var delta, i, isContiguousInsert, item, j, k, startPosition, stringParts, _ref, _ref2, _ref3;
+    var action, cursorPosInsert, cursorPosRemove, delta, i, isContiguous, j, k, removedParts, stringParts, text, _i, _len, _ref, _ref2, _ref3, _ref4, _ref5;
     if (this.lastOnUndoStack() !== 'jim:insert:end') {
       return '';
     }
-    startPosition = null;
+    cursorPosInsert = null;
+    cursorPosRemove = null;
+    action = null;
     stringParts = [];
-    isContiguousInsert = function(delta) {
-      var _ref;
-      if (delta.action !== 'insertText') {
+    removedParts = [];
+    isContiguous = function(delta) {
+      var _ref, _ref2;
+      if (!/(insert|remove)/.test(delta.action)) {
         return false;
       }
-      return !startPosition || (_ref = delta.range).isEnd.apply(_ref, startPosition);
+      if (!action || action === delta.action) {
+        if (delta.action === 'insertText') {
+          return !cursorPosInsert || (_ref = delta.range).isEnd.apply(_ref, cursorPosInsert);
+        } else {
+          return !cursorPosRemove || (_ref2 = delta.range).isStart.apply(_ref2, cursorPosRemove);
+        }
+      } else {
+        if (delta.action === 'insertText' && (cursorPosInsert != null)) {
+          return delta.range.end.row === cursorPosInsert[0];
+        } else if (delta.action === 'removeText' && (cursorPosRemove != null)) {
+          return delta.range.end.row === cursorPosRemove[0];
+        } else {
+          return true;
+        }
+      }
     };
     for (i = _ref = this.$undoStack.length - 2; _ref <= 0 ? i <= 0 : i >= 0; _ref <= 0 ? i++ : i--) {
       if (typeof this.$undoStack[i] === 'string') {
@@ -1733,16 +1750,26 @@ JimUndoManager = (function() {
       }
       for (j = _ref2 = this.$undoStack[i].length - 1; _ref2 <= 0 ? j <= 0 : j >= 0; _ref2 <= 0 ? j++ : j--) {
         for (k = _ref3 = this.$undoStack[i][j].deltas.length - 1; _ref3 <= 0 ? k <= 0 : k >= 0; _ref3 <= 0 ? k++ : k--) {
-          item = this.$undoStack[i][j];
-          delta = item.deltas[k];
-          if (item === 'jim:insert:start' || item === 'jim:insert:afterSwitch') {
-            return {
-              string: stringParts.join(''),
-              contiguous: true
-            };
-          } else if (isContiguousInsert(delta)) {
-            stringParts.unshift(delta.text);
-            startPosition = [delta.range.start.row, delta.range.start.column];
+          delta = this.$undoStack[i][j].deltas[k];
+          if (isContiguous(delta)) {
+            action = delta.action;
+            if (action === 'removeText') {
+              cursorPosRemove = [delta.range.end.row, delta.range.end.column];
+              _ref4 = delta.text.split('');
+              for (_i = 0, _len = _ref4.length; _i < _len; _i++) {
+                text = _ref4[_i];
+                removedParts.push(text);
+              }
+            }
+            if (action === 'insertText') {
+              cursorPosInsert = [delta.range.start.row, delta.range.start.column];
+              if (removedParts.length && delta.text === removedParts.pop()) {
+                continue;
+              }
+              for (text = _ref5 = delta.text.length - 1; _ref5 <= 0 ? text <= 0 : text >= 0; _ref5 <= 0 ? text++ : text--) {
+                stringParts.unshift(delta.text[text]);
+              }
+            }
           } else {
             return {
               string: stringParts.join(''),

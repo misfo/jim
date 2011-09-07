@@ -55,3 +55,21 @@ test 'repeating linewise visual operators', ->
   eq @adaptor.lineText(1), '      return _.pluck(_.map(obj, function(value, index, list) {'
   eq @adaptor.lineText(2), '      return {'
   eq @adaptor.lineText(3), '      value : value,'
+
+test 'repeating words that have some deletion', ->
+  @press 'iExtra punctuation.!', @backspace, @esc
+  eq @adaptor.lastInsert().string, 'Extra punctuation.'
+
+  @press 'iI am misspelleed', @backspace, @backspace, 'd', @esc
+  eq @adaptor.lastInsert().string, 'I am misspelled'
+
+  @press 'iWill be. deleted'
+  @press @backspace, @backspace, @backspace, @backspace, @backspace, @backspace, @backspace, @backspace
+  @press @esc
+  eq @adaptor.lastInsert().string, 'Will be.'
+
+  @press 'i bc', @esc, 'O', @esc, 'iabc', @down, @backspace, @backspace, 'bc', @esc
+  eq @adaptor.lastInsert().string, 'bc'
+
+  @press 'iabc\nbc', @backspace, @backspace, 'de', @esc
+  eq @adaptor.lastInsert().string, 'abc\nde'
