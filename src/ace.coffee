@@ -216,30 +216,41 @@ class JimUndoManager extends UndoManager
   lastInsert: ->
     return '' if @lastOnUndoStack() isnt 'jim:insert:end'
 
-    startPosition = null
-    prevRow = null
+    cursorPosInsert = null
+    cursorPosRemove = null
+    action = null
     stringParts = []
     removedParts = []
-    isContiguousInsert = (delta) ->
-      return false unless delta.action is 'insertText'
-      not startPosition or delta.range.isEnd startPosition...
-    isOnRow = (delta) -> not prevRow or delta.range.start.row is prevRow
+    isContiguous = (delta) ->
+      return false unless /(insert|remove)/.test delta.action
+      if not action or action is delta.action
+        if delta.action is 'insertText'
+          not cursorPosInsert or delta.range.isEnd cursorPosInsert...
+        else
+          not cursorPosRemove or delta.range.isStart cursorPosRemove...
+      else
+        if delta.action is 'insertText' and cursorPosInsert?
+          delta.range.end.row is cursorPosInsert[0]
+        else if delta.action is 'removeText' and cursorPosRemove?
+          delta.range.end.row is cursorPosRemove[0]
+        else
+          true
 
     for i in [(@$undoStack.length - 2)..0]
       break if typeof @$undoStack[i] is 'string'
       for j in [(@$undoStack[i].length - 1)..0]
         for k in [(@$undoStack[i][j].deltas.length - 1)..0]
           delta = @$undoStack[i][j].deltas[k]
-          action = delta.action
-          if isContiguousInsert(delta) or isOnRow(delta)
-            removedParts.push delta.text if action is 'removeText'
+          if isContiguous(delta)
+            action = delta.action
+            if action is 'removeText'
+              cursorPosRemove = [delta.range.end.row, delta.range.end.column]
+              removedParts.push delta.text
 
-            startPosition = [delta.range.start.row, delta.range.start.column]
             if action is 'insertText'
+              cursorPosInsert = [delta.range.start.row, delta.range.start.column]
               continue if removedParts.length and delta.text is removedParts.pop()
-
-            stringParts.unshift delta.text if action is 'insertText'
-            prevRow = startPosition[0]
+              stringParts.unshift delta.text
           else
             return string: stringParts.join(''), contiguous: false
     string: stringParts.join(''), contiguous: true

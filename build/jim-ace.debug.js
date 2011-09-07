@@ -1695,23 +1695,35 @@ JimUndoManager = (function() {
     }
   };
   JimUndoManager.prototype.lastInsert = function() {
-    var action, delta, i, isContiguousInsert, isOnRow, j, k, prevRow, removedParts, startPosition, stringParts, _ref, _ref2, _ref3;
+    var action, cursorPosInsert, cursorPosRemove, delta, i, isContiguous, j, k, removedParts, stringParts, _ref, _ref2, _ref3;
     if (this.lastOnUndoStack() !== 'jim:insert:end') {
       return '';
     }
-    startPosition = null;
-    prevRow = null;
+    cursorPosInsert = null;
+    cursorPosRemove = null;
+    action = null;
     stringParts = [];
     removedParts = [];
-    isContiguousInsert = function(delta) {
-      var _ref;
-      if (delta.action !== 'insertText') {
+    isContiguous = function(delta) {
+      var _ref, _ref2;
+      if (!/(insert|remove)/.test(delta.action)) {
         return false;
       }
-      return !startPosition || (_ref = delta.range).isEnd.apply(_ref, startPosition);
-    };
-    isOnRow = function(delta) {
-      return !prevRow || delta.range.start.row === prevRow;
+      if (!action || action === delta.action) {
+        if (delta.action === 'insertText') {
+          return !cursorPosInsert || (_ref = delta.range).isEnd.apply(_ref, cursorPosInsert);
+        } else {
+          return !cursorPosRemove || (_ref2 = delta.range).isStart.apply(_ref2, cursorPosRemove);
+        }
+      } else {
+        if (delta.action === 'insertText' && (cursorPosInsert != null)) {
+          return delta.range.end.row === cursorPosInsert[0];
+        } else if (delta.action === 'removeText' && (cursorPosRemove != null)) {
+          return delta.range.end.row === cursorPosRemove[0];
+        } else {
+          return true;
+        }
+      }
     };
     for (i = _ref = this.$undoStack.length - 2; _ref <= 0 ? i <= 0 : i >= 0; _ref <= 0 ? i++ : i--) {
       if (typeof this.$undoStack[i] === 'string') {
@@ -1720,21 +1732,19 @@ JimUndoManager = (function() {
       for (j = _ref2 = this.$undoStack[i].length - 1; _ref2 <= 0 ? j <= 0 : j >= 0; _ref2 <= 0 ? j++ : j--) {
         for (k = _ref3 = this.$undoStack[i][j].deltas.length - 1; _ref3 <= 0 ? k <= 0 : k >= 0; _ref3 <= 0 ? k++ : k--) {
           delta = this.$undoStack[i][j].deltas[k];
-          action = delta.action;
-          if (isContiguousInsert(delta) || isOnRow(delta)) {
+          if (isContiguous(delta)) {
+            action = delta.action;
             if (action === 'removeText') {
+              cursorPosRemove = [delta.range.end.row, delta.range.end.column];
               removedParts.push(delta.text);
             }
-            startPosition = [delta.range.start.row, delta.range.start.column];
             if (action === 'insertText') {
+              cursorPosInsert = [delta.range.start.row, delta.range.start.column];
               if (removedParts.length && delta.text === removedParts.pop()) {
                 continue;
               }
-            }
-            if (action === 'insertText') {
               stringParts.unshift(delta.text);
             }
-            prevRow = startPosition[0];
           } else {
             return {
               string: stringParts.join(''),
