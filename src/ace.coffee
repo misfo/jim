@@ -1,9 +1,19 @@
+# All of Jim's Ace-specific code is in here.  The idea is that an `Adaptor` for
+# another editor could be written that implemented the same methods and presto!
+# Jim works in that editor, too!  It's probably not that simple, but we'll find
+# out...
+
 {UndoManager} = require 'ace/undomanager'
 Jim           = require './jim'
 
+# Each instance of `Jim` has an instance of an `Adaptor` on which it invokes
+# methods to move the cursor, change some text, etc.
 class Adaptor
+  # take an instance of Ace's editor
   constructor: (@editor) ->
 
+  # Returns true if the cusor is on or beyond the last character of the line. If
+  # `beyond` is true, return true only if the cursor is beyond the last char.
   atLineEnd = (editor, beyond) ->
     selectionLead = editor.selection.getSelectionLead()
     lineLength = editor.selection.doc.getLine(selectionLead.row).length
@@ -11,6 +21,8 @@ class Adaptor
 
   beyondLineEnd = (editor) -> atLineEnd(editor, true)
 
+  # Whenever Jim's mode changes, update the editor's `className` and push a
+  # "bookmark" onto the undo stack, if needed (explained below).
   onModeChange: (prevMode, newMode) ->
     for mode in ['insert', 'normal', 'visual']
       @editor[if mode is newMode.name then 'setStyle' else 'unsetStyle'] "jim-#{mode}-mode"
@@ -27,11 +39,21 @@ class Adaptor
     else if prevMode?.name is 'replace'
       @markUndoPoint 'jim:replace:end'
 
+  # Vim's undo is particularly useful because it's idea of an atomic edit is
+  # clear to the user.  One `Command` is undone each time `u` is pressed.  That
+  # means all text entered between hitting `i` and hitting `<esc>` is undone as
+  # one atomic edit.
+  #
+  # To match Vim's undo granularity, Jim pushes "bookmarks" onto the undo stack
+  # to indicate when an insert starts or ends, for example.  This helps us avoid
+  # having to record all keystrokes made while in insert or replace mode.
   markUndoPoint: (markName) ->
     @editor.session.getUndoManager().execute args: [markName, @editor.session]
 
+  # turns overwrite mode on or off (used for Jim's replace mode)
   setOverwriteMode: (active) -> @editor.setOverwrite active
 
+  # clears the selection, optionally positioning the at its beginning
   clearSelection: (beginning) ->
     if beginning and not @editor.selection.isBackwards()
       {row, column} = @editor.selection.getSelectionAnchor()
@@ -39,17 +61,21 @@ class Adaptor
     else
       @editor.clearSelection()
 
+  # undo the last `Command`
   undo: ->
     undoManager = @editor.session.getUndoManager()
     undoManager.jimUndo()
     @editor.clearSelection()
 
+  # see `JimUndoManager::lastInsert`
   lastInsert: -> @editor.session.getUndoManager().lastInsert()
 
+  ## getting the cursor's position in the document
   column:   -> @editor.selection.selectionLead.column
   row:      -> @editor.selection.selectionLead.row
   position: -> [@row(), @column()]
 
+  ## viewport-related methods
   firstFullyVisibleRow: -> @editor.renderer.getFirstFullyVisibleRow()
   lastFullyVisibleRow:  ->
     # Ace sometimes sees more rows then there are lines, this will
@@ -61,6 +87,10 @@ class Adaptor
     else
       lastVisibleRow
 
+  # Jim's block cursor is not considered by Ace to be part of the selection
+  # unless the selection is backwards.  This makes the cursor part of the
+  # selection.  Used just before the selection is acted upon, while an
+  # `Operation` with a non-`exclusive` `Motion` is executing, for example.
   includeCursorInSelection: ->
     if not @editor.selection.isBackwards()
       @editor.selection.selectRight() unless beyondLineEnd(@editor)
