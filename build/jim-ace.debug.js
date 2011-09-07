@@ -1772,12 +1772,12 @@ Jim.aceInit = function(editor) {
         return jim.onEscape();
       } else if (isCharacterKey(hashId, keyCode)) {
         if (jim.afterInsertSwitch) {
-          if (jim.modeName === 'insert') {
+          if (jim.mode.name === 'insert') {
             jim.adaptor.markUndoPoint('jim:insert:afterSwitch');
           }
           jim.afterInsertSwitch = false;
         }
-        if (jim.modeName === 'normal' && !jim.adaptor.emptySelection()) {
+        if (jim.mode.name === 'normal' && !jim.adaptor.emptySelection()) {
           jim.setMode('visual');
         }
         if (keyString.length > 1) {

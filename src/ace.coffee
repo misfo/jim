@@ -275,11 +275,11 @@ Jim.aceInit = (editor) ->
         jim.onEscape()
       else if isCharacterKey hashId, keyCode
         if jim.afterInsertSwitch
-          if jim.modeName is 'insert'
+          if jim.mode.name is 'insert'
             jim.adaptor.markUndoPoint 'jim:insert:afterSwitch'
           jim.afterInsertSwitch = false
 
-        if jim.modeName is 'normal' and not jim.adaptor.emptySelection()
+        if jim.mode.name is 'normal' and not jim.adaptor.emptySelection()
           # if a selection has been made with the mouse since the last
           # keypress in normal mode, switch to visual mode
           jim.setMode 'visual'
