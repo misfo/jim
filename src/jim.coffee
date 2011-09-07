@@ -29,11 +29,16 @@ class Jim
     else
       @mode = modeState or {}
       @mode.name = modeName
+      
+    @adaptor.onModeChange? prevMode, @mode
 
     switch prevMode?.name
-      when 'insert'  then @adaptor.moveLeft()
-      when 'replace' then @adaptor.setOverwriteMode off
-    @onModeChange? prevMode
+      when 'insert'
+        @adaptor.moveLeft()
+        # so the insert "remembers" how to repeat itself
+        @lastCommand.repeatableInsert = @adaptor.lastInsert()
+      when 'replace'
+        @adaptor.setOverwriteMode off
 
   # pressing escape blows away all the state
   onEscape: ->

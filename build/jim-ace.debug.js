@@ -1349,7 +1349,7 @@ Jim = (function() {
   }
   Jim.prototype.modes = require('./modes');
   Jim.prototype.setMode = function(modeName, modeState) {
-    var key, prevMode, value;
+    var key, prevMode, value, _base;
     if (this.debugMode) {
       console.log('setMode', modeName, modeState);
     }
@@ -1367,14 +1367,16 @@ Jim = (function() {
       this.mode = modeState || {};
       this.mode.name = modeName;
     }
+    if (typeof (_base = this.adaptor).onModeChange === "function") {
+      _base.onModeChange(prevMode, this.mode);
+    }
     switch (prevMode != null ? prevMode.name : void 0) {
       case 'insert':
         this.adaptor.moveLeft();
-        break;
+        return this.lastCommand.repeatableInsert = this.adaptor.lastInsert();
       case 'replace':
-        this.adaptor.setOverwriteMode(false);
+        return this.adaptor.setOverwriteMode(false);
     }
-    return typeof this.onModeChange === "function" ? this.onModeChange(prevMode) : void 0;
   };
   Jim.prototype.onEscape = function() {
     this.setMode('normal');
@@ -1424,6 +1426,30 @@ Adaptor = (function() {
   };
   beyondLineEnd = function(editor) {
     return atLineEnd(editor, true);
+  };
+  Adaptor.prototype.onModeChange = function(prevMode, newMode) {
+    var mode, _i, _len, _ref;
+    _ref = ['insert', 'normal', 'visual'];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      mode = _ref[_i];
+      this.editor[mode === newMode.name ? 'setStyle' : 'unsetStyle']("jim-" + mode + "-mode");
+    }
+    this.editor[newMode.name === 'visual' && newMode.linewise ? 'setStyle' : 'unsetStyle']('jim-visual-linewise-mode');
+    if (newMode.name === 'insert') {
+      this.markUndoPoint('jim:insert:start');
+    } else if ((prevMode != null ? prevMode.name : void 0) === 'insert') {
+      this.markUndoPoint('jim:insert:end');
+    }
+    if (newMode.name === 'replace') {
+      return this.markUndoPoint('jim:replace:start');
+    } else if ((prevMode != null ? prevMode.name : void 0) === 'replace') {
+      return this.markUndoPoint('jim:replace:end');
+    }
+  };
+  Adaptor.prototype.markUndoPoint = function(markName) {
+    return this.editor.session.getUndoManager().execute({
+      args: [markName, this.editor.session]
+    });
   };
   Adaptor.prototype.setOverwriteMode = function(active) {
     return this.editor.setOverwrite(active);
@@ -1648,11 +1674,6 @@ JimUndoManager = (function() {
   JimUndoManager.prototype.lastOnUndoStack = function() {
     return this.$undoStack[this.$undoStack.length - 1];
   };
-  JimUndoManager.prototype.markUndoPoint = function(doc, markName) {
-    return this.execute({
-      args: [markName, doc]
-    });
-  };
   JimUndoManager.prototype.silentUndo = function() {
     var deltas;
     deltas = this.$undoStack.pop();
@@ -1752,7 +1773,7 @@ Jim.aceInit = function(editor) {
       } else if (isCharacterKey(hashId, keyCode)) {
         if (jim.afterInsertSwitch) {
           if (jim.modeName === 'insert') {
-            undoManager.markUndoPoint(editor.session, 'jim:insert:afterSwitch');
+            jim.adaptor.markUndoPoint('jim:insert:afterSwitch');
           }
           jim.afterInsertSwitch = false;
         }
@@ -1777,27 +1798,9 @@ Jim.aceInit = function(editor) {
   editor.session.setUndoManager(undoManager);
   adaptor = new Adaptor(editor);
   jim = new Jim(adaptor);
-  jim.onModeChange = function(prevMode) {
-    var mode, _i, _len, _ref;
-    _ref = ['insert', 'normal', 'visual'];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      mode = _ref[_i];
-      editor[mode === this.mode.name ? 'setStyle' : 'unsetStyle']("jim-" + mode + "-mode");
-    }
-    editor[this.mode.name === 'visual' && this.mode.linewise ? 'setStyle' : 'unsetStyle']('jim-visual-linewise-mode');
-    if (this.mode.name === 'insert') {
-      undoManager.markUndoPoint(editor.session, 'jim:insert:start');
-    } else if ((prevMode != null ? prevMode.name : void 0) === 'insert') {
-      undoManager.markUndoPoint(editor.session, 'jim:insert:end');
-      this.lastCommand.repeatableInsert = this.adaptor.lastInsert();
-    }
-    if (this.mode.name === 'replace') {
-      return undoManager.markUndoPoint(editor.session, 'jim:replace:start');
-    } else if ((prevMode != null ? prevMode.name : void 0) === 'replace') {
-      return undoManager.markUndoPoint(editor.session, 'jim:replace:end');
-    }
-  };
-  jim.onModeChange();
+  adaptor.onModeChange(null, {
+    name: 'normal'
+  });
   return jim;
 };
   return module.exports || exports;

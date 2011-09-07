@@ -11,6 +11,25 @@ class Adaptor
 
   beyondLineEnd = (editor) -> atLineEnd(editor, true)
 
+  onModeChange: (prevMode, newMode) ->
+    for mode in ['insert', 'normal', 'visual']
+      @editor[if mode is newMode.name then 'setStyle' else 'unsetStyle'] "jim-#{mode}-mode"
+
+    @editor[if newMode.name is 'visual' and newMode.linewise then 'setStyle' else 'unsetStyle'] 'jim-visual-linewise-mode'
+
+    if newMode.name is 'insert'
+      @markUndoPoint 'jim:insert:start'
+    else if prevMode?.name is 'insert'
+      @markUndoPoint 'jim:insert:end'
+
+    if newMode.name is 'replace'
+      @markUndoPoint 'jim:replace:start'
+    else if prevMode?.name is 'replace'
+      @markUndoPoint 'jim:replace:end'
+
+  markUndoPoint: (markName) ->
+    @editor.session.getUndoManager().execute args: [markName, @editor.session]
+
   setOverwriteMode: (active) -> @editor.setOverwrite active
 
   clearSelection: (beginning) ->
@@ -179,9 +198,6 @@ class JimUndoManager extends UndoManager
 
   lastOnUndoStack: -> @$undoStack[@$undoStack.length-1]
 
-  markUndoPoint: (doc, markName) ->
-    @execute args: [markName, doc]
-
   silentUndo: ->
     deltas = @$undoStack.pop()
     @$redoStack.push deltas if deltas
@@ -260,7 +276,7 @@ Jim.aceInit = (editor) ->
       else if isCharacterKey hashId, keyCode
         if jim.afterInsertSwitch
           if jim.modeName is 'insert'
-            undoManager.markUndoPoint editor.session, 'jim:insert:afterSwitch'
+            jim.adaptor.markUndoPoint 'jim:insert:afterSwitch'
           jim.afterInsertSwitch = false
 
         if jim.modeName is 'normal' and not jim.adaptor.emptySelection()
@@ -284,26 +300,7 @@ Jim.aceInit = (editor) ->
   adaptor = new Adaptor editor
   jim = new Jim adaptor
 
-  # this is executed before the action is
-  jim.onModeChange = (prevMode) ->
-    for mode in ['insert', 'normal', 'visual']
-      editor[if mode is @mode.name then 'setStyle' else 'unsetStyle'] "jim-#{mode}-mode"
-
-    editor[if @mode.name is 'visual' and @mode.linewise then 'setStyle' else 'unsetStyle'] 'jim-visual-linewise-mode'
-
-    if @mode.name is 'insert'
-      undoManager.markUndoPoint editor.session, 'jim:insert:start'
-    else if prevMode?.name is 'insert'
-      undoManager.markUndoPoint editor.session, 'jim:insert:end'
-      # so the insert "remembers" how to repeat itself
-      @lastCommand.repeatableInsert = @adaptor.lastInsert()
-
-    if @mode.name is 'replace'
-      undoManager.markUndoPoint editor.session, 'jim:replace:start'
-    else if prevMode?.name is 'replace'
-      undoManager.markUndoPoint editor.session, 'jim:replace:end'
-
-
-  jim.onModeChange()
+  # to initialize the editor class names
+  adaptor.onModeChange null, name: 'normal'
 
   jim
