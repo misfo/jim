@@ -245,12 +245,14 @@ class JimUndoManager extends UndoManager
             action = delta.action
             if action is 'removeText'
               cursorPosRemove = [delta.range.end.row, delta.range.end.column]
-              removedParts.push delta.text
+              for text in delta.text.split('')
+                removedParts.push text
 
             if action is 'insertText'
               cursorPosInsert = [delta.range.start.row, delta.range.start.column]
               continue if removedParts.length and delta.text is removedParts.pop()
-              stringParts.unshift delta.text
+              for text in [(delta.text.length - 1)..0]
+                stringParts.unshift delta.text[text]
           else
             return string: stringParts.join(''), contiguous: false
     string: stringParts.join(''), contiguous: true

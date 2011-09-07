@@ -1695,7 +1695,7 @@ JimUndoManager = (function() {
     }
   };
   JimUndoManager.prototype.lastInsert = function() {
-    var action, cursorPosInsert, cursorPosRemove, delta, i, isContiguous, j, k, removedParts, stringParts, _ref, _ref2, _ref3;
+    var action, cursorPosInsert, cursorPosRemove, delta, i, isContiguous, j, k, removedParts, stringParts, text, _i, _len, _ref, _ref2, _ref3, _ref4, _ref5;
     if (this.lastOnUndoStack() !== 'jim:insert:end') {
       return '';
     }
@@ -1736,14 +1736,20 @@ JimUndoManager = (function() {
             action = delta.action;
             if (action === 'removeText') {
               cursorPosRemove = [delta.range.end.row, delta.range.end.column];
-              removedParts.push(delta.text);
+              _ref4 = delta.text.split('');
+              for (_i = 0, _len = _ref4.length; _i < _len; _i++) {
+                text = _ref4[_i];
+                removedParts.push(text);
+              }
             }
             if (action === 'insertText') {
               cursorPosInsert = [delta.range.start.row, delta.range.start.column];
               if (removedParts.length && delta.text === removedParts.pop()) {
                 continue;
               }
-              stringParts.unshift(delta.text);
+              for (text = _ref5 = delta.text.length - 1; _ref5 <= 0 ? text <= 0 : text >= 0; _ref5 <= 0 ? text++ : text--) {
+                stringParts.unshift(delta.text[text]);
+              }
             }
           } else {
             return {
