@@ -72,4 +72,4 @@ test 'repeating words that have some deletion', ->
   eq @adaptor.lastInsert().string, 'bc'
 
   @press 'iabc\nbc', @backspace, @backspace, 'de', @esc
-  eq @adaptor.lastInsert().string, 'abc\nde'
+  eq endings(@adaptor.lastInsert().string), 'abc\nde'
