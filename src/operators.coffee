@@ -27,6 +27,8 @@ class Operation extends Command
 
     jim.setMode @switchToMode
 
+  # Select the amount of text that the motion moves over and operate
+  # on that selection
   exec: (jim) ->
     @startingPosition = jim.adaptor.position()
     jim.adaptor.setSelectionAnchor()
@@ -38,14 +40,20 @@ class Operation extends Command
     @visualExec jim
 
 
+# Change the selected text or the text that `@motion` moves over (i.e. delete
+# the text and switch to insert mode)
 map 'c', class Change extends Operation
   visualExec: (jim) ->
     super
 
     if @repeatableInsert
+      # if we're repeating a `Change`, insert the text that was inserted now
+      # that we've deleted the selected text
       jim.adaptor.insert @repeatableInsert.string
       jim.setMode 'normal'
     else
+      # If we're not repeating, set this flag so that an undo mark can be push
+      # onto the undo stack before any text is inserted
       jim.afterInsertSwitch = true
 
   operate: (jim) ->
@@ -53,22 +61,26 @@ map 'c', class Change extends Operation
     jim.deleteSelection @motion?.exclusive, @linewise
   switchToMode: 'insert'
 
+# Delete the selection or the text that `@motion` moves over
 map 'd', class Delete extends Operation
   operate: (jim) ->
     jim.deleteSelection @motion?.exclusive, @linewise
     new MoveToFirstNonBlank().exec jim if @linewise
 
+# Yank the selection or the text that `@motion` moves over into a register
 map 'y', class Yank extends Operation
   operate: (jim) ->
     jim.yankSelection @motion?.exclusive, @linewise
     jim.adaptor.moveTo @startingPosition... if @startingPosition
 
+# Indent the selection or the text that `@motion` moves over
 map '>', class Indent extends Operation
   operate: (jim) ->
     [minRow, maxRow] = jim.adaptor.selectionRowRange()
     jim.adaptor.indentSelection()
     new GoToLine(minRow + 1).exec jim
 
+# Outdent the selection or the text that `@motion` moves over
 map '<', class Outdent extends Operation
   operate: (jim) ->
     [minRow, maxRow] = jim.adaptor.selectionRowRange()
