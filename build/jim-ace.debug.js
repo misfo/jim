@@ -407,14 +407,14 @@ map('?', SearchBackwards = (function() {
   return SearchBackwards;
 })());
 map('*', NearestWordSearch = (function() {
-  var wordCursorIsOn;
+  var nearestWord;
   __extends(NearestWordSearch, Search);
   function NearestWordSearch() {
     NearestWordSearch.__super__.constructor.apply(this, arguments);
   }
   NearestWordSearch.prototype.getSearch = function(jim) {
     var charsAhead, searchString, wholeWord, _ref2;
-    _ref2 = wordCursorIsOn(jim.adaptor.lineText(), jim.adaptor.column()), searchString = _ref2[0], charsAhead = _ref2[1];
+    _ref2 = nearestWord(jim), searchString = _ref2[0], charsAhead = _ref2[1];
     if (charsAhead) {
       new MoveRight(charsAhead).exec(jim);
     }
@@ -425,8 +425,10 @@ map('*', NearestWordSearch = (function() {
       backwards: this.backwards
     };
   };
-  wordCursorIsOn = function(line, column) {
-    var charsAhead, leftMatch, leftOfCursor, nextWord, rightMatch, rightOfCursor;
+  nearestWord = function(jim) {
+    var charsAhead, column, leftMatch, leftOfCursor, line, nextWord, rightMatch, rightOfCursor;
+    line = jim.adaptor.lineText();
+    column = jim.adaptor.column();
     leftOfCursor = line.substring(0, column);
     rightOfCursor = line.substring(column);
     charsAhead = null;
