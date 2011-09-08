@@ -95,19 +95,27 @@ class Adaptor
     if not @editor.selection.isBackwards()
       @editor.selection.selectRight() unless beyondLineEnd(@editor)
 
+  # inserts a new line at a zero-based row number
   insertNewLine: (row) ->
     @editor.session.doc.insertNewLine row: row, column: 0
 
+  # move anchor by `columnOffset` columns (can be negative)
   adjustAnchor: (columnOffset) ->
     {row, column} = @editor.selection.getSelectionAnchor()
     @editor.selection.setSelectionAnchor row, column + columnOffset
 
+  # if the anchor is ahead of the cursor, the selection is backwards
   isSelectionBackwards: -> @editor.selection.isBackwards()
 
+  # the last zero-based row number
   lastRow: -> @editor.session.getDocument().getLength() - 1
 
+  # the text that's on `lineNumber` or the current line
   lineText: (lineNumber) -> @editor.selection.doc.getLine lineNumber ? @row()
 
+  # makes a linewise selection `lines` long if specified or makes the current
+  # selection linewise (by pushing the lead and the anchor to the ends of their
+  # lines)
   makeLinewise: (lines) ->
     {selectionAnchor: {row: anchorRow}, selectionLead: {row: leadRow}} = @editor.selection
     [firstRow, lastRow] = if lines?
@@ -117,6 +125,7 @@ class Adaptor
     @editor.selection.setSelectionAnchor firstRow, 0
     @editor.selection.moveCursorTo lastRow + 1, 0
 
+  ## basic motions (won't clear the selection)
   moveUp:   -> @editor.selection.moveCursorBy -1, 0
   moveDown: -> @editor.selection.moveCursorBy 1, 0
   moveLeft: ->
@@ -126,8 +135,10 @@ class Adaptor
     dontMove = if beyond then beyondLineEnd(@editor) else atLineEnd(@editor)
     @editor.selection.moveCursorRight() unless dontMove
 
+  # move to a zero-based row and column
   moveTo: (row, column) -> @editor.moveCursorTo row, column
 
+  # puts cursor on the last column of the line
   moveToLineEnd: ->
     {row, column} = @editor.selection.selectionLead
     position = @editor.session.getDocumentLastRowColumnPosition row, column
@@ -137,9 +148,12 @@ class Adaptor
     previousRowLength = @editor.session.doc.getLine(previousRow).length
     @editor.selection.moveCursorTo previousRow, previousRowLength
 
+  # move to first/last line
   navigateFileEnd:   -> @editor.navigateFileEnd()
   navigateLineStart: -> @editor.navigateLineStart()
 
+  # moves the cursor to the fist char of the matching search or doesn't move at
+  # all
   search: (backwards, needle, wholeWord) ->
     @editor.$search.set {backwards, needle, wholeWord}
 
@@ -152,6 +166,7 @@ class Adaptor
     else if not backwards
       @editor.selection.moveCursorLeft()
 
+  # delete selected text and return it as a string
   deleteSelection: ->
     yank = @editor.getCopyText()
     @editor.session.remove @editor.getSelectionRange()
@@ -166,6 +181,7 @@ class Adaptor
     @editor.blockOutdent()
     @clearSelection()
 
+  # insert `text` before or `after` the cursor
   insert: (text, after) ->
     @editor.selection.moveCursorRight() if after and not beyondLineEnd(@editor)
     @editor.insert text if text
@@ -174,6 +190,7 @@ class Adaptor
 
   selectionText: -> @editor.getCopyText()
 
+  # set the selection anchor to the cusor's current position
   setSelectionAnchor: ->
     lead = @editor.selection.selectionLead
     @editor.selection.setSelectionAnchor lead.row, lead.column
@@ -194,6 +211,9 @@ class Adaptor
     [row, column]
 
 
+  # Selects the line ending at the end of the current line and any whitespace at
+  # the beginning of the next line if `andFollowingWhitespace` is specified.
+  # This is used for the line joining commands `gJ` and `J`.
   selectLineEnding: (andFollowingWhitespace) ->
     @editor.selection.moveCursorLineEnd()
     @editor.selection.selectRight()
@@ -201,11 +221,15 @@ class Adaptor
       firstNonBlank = /\S/.exec(@lineText())?.index or 0
       @moveTo @row(), firstNonBlank
 
+  # Returns the first and the last line that are part of the current selection
   selectionRowRange: ->
     [cursorRow, cursorColumn] = @position()
     {row: anchorRow} = @editor.selection.getSelectionAnchor()
     [Math.min(cursorRow, anchorRow), Math.max(cursorRow, anchorRow)]
 
+  # Returns the number of chars selected if the selection is one row. If the
+  # selection is multiple rows, it retuns the number of line endings selected
+  # and the number of chars selected on the last row of the selection
   characterwiseSelectionSize: ->
     {selectionAnchor, selectionLead} = @editor.selection
     rowsDown = selectionLead.row - selectionAnchor.row
@@ -216,6 +240,8 @@ class Adaptor
       trailingChars: (if rowsDown > 0 then selectionLead else selectionAnchor).column + 1
 
 
+# Ace's UndoManager is extended to handle undoing and repeating switches to
+# insert and replace mode
 class JimUndoManager extends UndoManager
   # override so that the default undo (button and keyboard shortcut)
   # will skip over Jim's bookmarks and behave as they usually do
@@ -223,11 +249,13 @@ class JimUndoManager extends UndoManager
     @silentUndo() if @isJimMark @lastOnUndoStack()
     super
 
+  # is this a bookmark we pushed onto the stack or an actual Ace undo entry
   isJimMark: (entry) ->
     typeof entry is 'string' and /^jim:/.test entry
 
   lastOnUndoStack: -> @$undoStack[@$undoStack.length-1]
 
+  # pop the item off the stack without doing anything with it
   silentUndo: ->
     deltas = @$undoStack.pop()
     @$redoStack.push deltas if deltas
@@ -236,6 +264,9 @@ class JimUndoManager extends UndoManager
     'jim:insert:end':  'jim:insert:start'
     'jim:replace:end': 'jim:replace:start'
 
+  # If the last command was an insert or a replace ensure that all undo items
+  # associated with that command are undone.  If not, just do a regular ace
+  # undo.
   jimUndo: ->
     lastDeltasOnStack = @lastOnUndoStack()
     if typeof lastDeltasOnStack is 'string' and startMark = @matchingMark[lastDeltasOnStack]
@@ -259,6 +290,13 @@ class JimUndoManager extends UndoManager
     else
       @undo()
 
+  # If the last command was an insert return all text that was inserted taking
+  # backspaces into account.
+  #
+  # If the cursor moved partway through the insert (with arrow keys or with the
+  # mouse), then only the last peice of contiguously inserted text is returned
+  # and `contiguous` is returned as `false`.  This is to match Vim's behavior
+  # when repeating non-contiguous inserts.
   lastInsert: ->
     return '' if @lastOnUndoStack() isnt 'jim:insert:end'
 
@@ -303,6 +341,8 @@ class JimUndoManager extends UndoManager
             return string: stringParts.join(''), contiguous: false
     string: stringParts.join(''), contiguous: true
 
+
+# cursor and selection styles that Jim uses
 require('pilot/dom').importCssString """
   .jim-normal-mode div.ace_cursor
   , .jim-visual-mode div.ace_cursor {
@@ -316,14 +356,20 @@ require('pilot/dom').importCssString """
   }
 """
 
+
+# Is the keyboard event a printable character key?
 isCharacterKey = (hashId, keyCode) -> hashId is 0 and not keyCode
 
+# Sets up Jim to handle the Ace `editor`'s keyboard events
 Jim.aceInit = (editor) ->
   editor.setKeyboardHandler
     handleKeyboard: (data, hashId, keyString, keyCode) ->
       if keyCode is 27 # esc
         jim.onEscape()
       else if isCharacterKey hashId, keyCode
+        # We've made some deletion as part of a change operation already and
+        # we're about to start the actual insert.  Mark this moment in the undo
+        # stack.
         if jim.afterInsertSwitch
           if jim.mode.name is 'insert'
             jim.adaptor.markUndoPoint 'jim:insert:afterSwitch'
@@ -353,4 +399,5 @@ Jim.aceInit = (editor) ->
   # to initialize the editor class names
   adaptor.onModeChange null, name: 'normal'
 
+  # returns `jim` if embedders wanna inspect its state or give it a high five
   jim
