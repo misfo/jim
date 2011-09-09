@@ -1,11 +1,11 @@
-# the base class for all commands
+# Define the base class for all commands.
 class exports.Command
   constructor: (@count = 1) ->
   isRepeatable: yes
+
+  # If the class specifies a regex for char(s) that should follow the command,
+  # then the command isn't complete until those char(s) have been matched.
   isComplete: ->
-    # if the class specifies a regex that should follow match
-    # some keys following the command and they haven't been
-    # matched yet, the command isn't complete
     if @constructor.followedBy then @followedBy else true
 
 # A bunch of commands can just repeat an action however many times their `@count`

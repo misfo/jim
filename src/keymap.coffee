@@ -1,10 +1,11 @@
 # This is a pretty standard key-to-command keymap except for a few details:
-# * It has some built-in [VJ]im-specific smarts about the concepts of motions and operators
-#   and if/how they should be available in each mode
+#
+# * It has some built-in Vim-like smarts about the concepts of motions and
+#   operators and if/how they should be available in each mode
 # * It differentiates between invalid commands (`gz`) and partial commands (`g`)
 class Keymap
 
-  # build an instance of Keymap with all the default keymappings
+  # Build an instance of Keymap with all the default keymappings.
   @getDefault: ->
     keymap = new Keymap
     keymap.mapCommand keys, commandClass for own keys, commandClass of require('./commands').defaultMappings
@@ -17,13 +18,13 @@ class Keymap
     @motions = {}
     @visualCommands = {}
 
-    # use objects to de-dup
+    # Use some objects to de-duplicate repeated partial commands.
     @partialCommands = {}
     @partialMotions = {}
     @partialVisualCommands = {}
 
   # Map the `comandClass` to the `keys` sequence.  Map it as a visual command as well
-  # if the class has a ::visualExec method
+  # if the class has a `::visualExec`.
   mapCommand: (keys, commandClass) ->
     if commandClass::exec
       @commands[keys] = commandClass
@@ -34,7 +35,7 @@ class Keymap
       if keys.length is 2
         @partialVisualCommands[keys[0]] = true
 
-  # Map `motionClass` to the `keys` sequence
+  # Map `motionClass` to the `keys` sequence.
   mapMotion: (keys, motionClass) ->
     @commands[keys] = motionClass
     @motions[keys] = motionClass
@@ -44,7 +45,7 @@ class Keymap
       @partialCommands[keys[0]] = true
       @partialVisualCommands[keys[0]] = true
 
-  # Map `operatorClass` to the `keys` sequence
+  # Map `operatorClass` to the `keys` sequence.
   mapOperator: (keys, operatorClass) ->
     @commands[keys] = operatorClass
     @visualCommands[keys] = operatorClass
@@ -52,17 +53,20 @@ class Keymap
       @partialCommands[keys[0]] = true
       @partialVisualCommands[keys[0]] = true
 
-  # Build a regex that will match any key sequence, splitting the preceding count captured
-  # into the first capture group, the command/motion/operator into second, and will capture
-  # text in the third only if we're not matching a *partial* command/motion/operator
+  # Build a regex that will match any key sequence, splitting it into the
+  # following capture groups:
+  #
+  # 1. The preceding count
+  # 2. The command/motion/operator
+  # 3. Any chars beyond a *partial* command/motion/operator. If this group
+  #    captures *any* characters, we know the command is not a partial
+  #    command for which we should continue accepting keystrokes.
   buildPartialCommandRegex = (partialCommands) ->
     ///
       ^
       ([1-9]\d*)?
       (
         [#{(char for own char, nothing of partialCommands).join ''}]?
-        # if the group below captures something, we know the outer group is
-        # is more than just a partial command (could be invalid, though)
         ([\s\S]*)
       )?
       $

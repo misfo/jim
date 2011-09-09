@@ -6,7 +6,9 @@
 {UndoManager} = require 'ace/undomanager'
 Jim           = require './jim'
 
-#### Ace's editor adaptor
+# Ace's editor adaptor
+# --------------------
+#
 # Each instance of `Jim` has an instance of an `Adaptor` on which it invokes
 # methods to move the cursor, change some text, etc.
 class Adaptor
@@ -80,7 +82,7 @@ class Adaptor
   # Return the first row that is fully visible in the viewport.
   firstFullyVisibleRow: -> @editor.renderer.getFirstFullyVisibleRow()
 
-  # Return the last row in the document that is full visible in the viewport.
+  # Return the last row in the document that is fully visible in the viewport.
   lastFullyVisibleRow:  ->
     lastVisibleRow = @editor.renderer.getLastFullyVisibleRow()
     Math.min @lastRow(), lastVisibleRow
@@ -237,7 +239,9 @@ class Adaptor
       trailingChars: (if rowsDown > 0 then selectionLead else selectionAnchor).column + 1
 
 
-#### Jim's undo manager
+# Jim's undo manager
+# ------------------
+#
 # Ace's `UndoManager` is extended to handle undoing and repeating switches to
 # insert and replace mode.
 class JimUndoManager extends UndoManager
@@ -340,7 +344,9 @@ class JimUndoManager extends UndoManager
     string: stringParts.join(''), contiguous: true
 
 
-#### Cursor and selection styles
+# Cursor and selection styles
+# ---------------------------
+#
 # Make Ace's cursor be block-style when Jim is in normal mode and make
 # selections span the editor's entire width when in linewise visual mode.
 require('pilot/dom').importCssString """
@@ -357,7 +363,8 @@ require('pilot/dom').importCssString """
 """
 
 
-#### Hooking into Ace
+# Hooking into Ace
+# ----------------
 
 # Is the keyboard event a printable character key?
 isCharacterKey = (hashId, keyCode) -> hashId is 0 and not keyCode
