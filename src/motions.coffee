@@ -4,7 +4,7 @@
 
 {Command, repeatCountTimes} = require './helpers'
 
-## these return a new regex each time so that we always get a fresh lastIndex
+# these return a new regex each time so that we always get a fresh lastIndex
 # a string of non-whitespace characters
 WORDRegex = -> /\S+/g 
 # a string of word characters (i.e. [A-Za-z0-9_]) OR a string of non-whitespace non-word characters (i.e. special chars)
