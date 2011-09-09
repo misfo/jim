@@ -1,4 +1,4 @@
-# This is a pretty standard key-to-command Keymap except for a few details:
+# This is a pretty standard key-to-command keymap except for a few details:
 # * It has some built-in [VJ]im-specific smarts about the concepts of motions and operators
 #   and if/how they should be available in each mode
 # * It differentiates between invalid commands (`gz`) and partial commands (`g`)
