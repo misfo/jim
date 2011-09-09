@@ -77,17 +77,13 @@ class Adaptor
   row:      -> @editor.selection.selectionLead.row
   position: -> [@row(), @column()]
 
-  # Define viewport-related methods.
+  # Return the first row that is fully visible in the viewport.
   firstFullyVisibleRow: -> @editor.renderer.getFirstFullyVisibleRow()
+
+  # Return the last row in the document that is full visible in the viewport.
   lastFullyVisibleRow:  ->
-    # Ace sometimes sees more rows then there are lines, this will
-    # keep that in check.
-    totalLines = @editor.selection.doc.$lines.length
     lastVisibleRow = @editor.renderer.getLastFullyVisibleRow()
-    if totalLines < lastVisibleRow
-      totalLines
-    else
-      lastVisibleRow
+    Math.min @lastRow(), lastVisibleRow
 
   # Before we act on a non-backwards selection, Jim's block cursor is not
   # considered by Ace to be part of the selection.  Make the cursor part of the

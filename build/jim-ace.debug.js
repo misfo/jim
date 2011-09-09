@@ -1487,14 +1487,9 @@ Adaptor = (function() {
     return this.editor.renderer.getFirstFullyVisibleRow();
   };
   Adaptor.prototype.lastFullyVisibleRow = function() {
-    var lastVisibleRow, totalLines;
-    totalLines = this.editor.selection.doc.$lines.length;
+    var lastVisibleRow;
     lastVisibleRow = this.editor.renderer.getLastFullyVisibleRow();
-    if (totalLines < lastVisibleRow) {
-      return totalLines;
-    } else {
-      return lastVisibleRow;
-    }
+    return Math.min(this.lastRow(), lastVisibleRow);
   };
   Adaptor.prototype.includeCursorInSelection = function() {
     if (!this.editor.selection.isBackwards()) {
