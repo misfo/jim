@@ -4,16 +4,6 @@
 
 {Command, repeatCountTimes} = require './helpers'
 
-# these return a new regex each time so that we always get a fresh lastIndex
-# a string of non-whitespace characters
-WORDRegex = -> /\S+/g 
-# a string of word characters (i.e. [A-Za-z0-9_]) OR a string of non-whitespace non-word characters (i.e. special chars)
-wordRegex = -> /(\w+)|([^\w\s]+)/g
-
-# used to find the last instance of the above regexes (there may be a better way of doing this...)
-lastWORDRegex = ///#{WORDRegex().source}\s*$///
-lastWordRegex = ///(#{wordRegex().source})\s*$///
-
 # accumulate the default mappings
 defaultMappings = {}
 map = (keys, motionClass) -> defaultMappings[keys] = motionClass
@@ -35,6 +25,8 @@ class LinewiseCommandMotion extends Motion
     if additionalLines = @count - 1
       new MoveDown(additionalLines).exec jim
 
+# Basic directional motions
+# -------------------------
 map 'h', class MoveLeft extends Motion
   exclusive: yes
   exec: repeatCountTimes (jim) -> jim.adaptor.moveLeft()
@@ -47,6 +39,17 @@ map 'k', class MoveUp extends Motion
 map 'l', class MoveRight extends Motion
   exclusive: yes
   exec: repeatCountTimes (jim) -> jim.adaptor.moveRight @operation?
+
+
+# Word motions
+# ------------
+
+# these return a new regex each time so that we always get a fresh lastIndex
+# a string of non-whitespace characters
+WORDRegex = -> /\S+/g 
+# a string of word characters (i.e. [A-Za-z0-9_]) OR a string of non-whitespace non-word characters (i.e. special chars)
+wordRegex = -> /(\w+)|([^\w\s]+)/g
+
 
 # move to the end of the current word or the end of the next word if on the end of a
 # word
@@ -129,6 +132,10 @@ map 'W', class MoveToNextBigWord extends MoveToNextWord
   bigWord: yes
 
 
+# Build regexes to find the last instance of a word.
+lastWORDRegex = ///#{WORDRegex().source}\s*$///
+lastWordRegex = ///(#{wordRegex().source})\s*$///
+
 # move to the last beginning of a word
 map 'b', class MoveBackWord extends Motion
   exclusive: yes
@@ -156,6 +163,10 @@ map 'b', class MoveBackWord extends Motion
 map 'B', class MoveBackBigWord extends MoveBackWord
   bigWord: yes
   
+
+# Other left/right motions
+# ------------------------
+
 # move to the first column on the line
 map '0', class MoveToBeginningOfLine extends Motion
   exclusive: yes
@@ -175,6 +186,10 @@ map '$', class MoveToEndOfLine extends Motion
     additionalLines = @count - 1
     new MoveDown(additionalLines).exec jim if additionalLines
     jim.adaptor.moveToLineEnd()
+
+
+# Jump motions
+# ------------
 
 # go to `{count}` line number or the first line
 map 'gg', class GoToLine extends Motion
@@ -215,6 +230,9 @@ map 'L', class GoToLastVisibleLine extends Motion
     line = jim.adaptor.lastFullyVisibleRow() + 2 - @count
     new GoToLineOrEnd(line).exec jim
 
+
+# Search motions
+# --------------
 
 # prompt the user for a search term and search forward for that
 map '/', class Search extends Motion
@@ -289,6 +307,10 @@ map 'N', class SearchAgainReverse extends Motion
   exclusive: yes
   exec: (jim) -> Search.runSearch jim, @count, true
 
+
+# Move-to-character motions
+# -------------------------
+
 # once followed by `{char}`, go to the next `{char}` on the line
 map 'f', class GoToNextChar extends Motion
   @followedBy: /./
@@ -327,6 +349,8 @@ map 'T', class GoUpToPreviousChar extends GoToPreviousChar
   beforeChar: yes
 
 
+# Exports
+# -------
 module.exports = {
   GoToLine, MoveDown, MoveLeft, MoveRight, MoveToEndOfLine, MoveToFirstNonBlank, LinewiseCommandMotion,
   MoveToNextBigWord, MoveToNextWord, MoveToBigWordEnd, MoveToWordEnd, defaultMappings

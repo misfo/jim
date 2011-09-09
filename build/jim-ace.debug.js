@@ -50,14 +50,6 @@ var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, par
   return child;
 };
 _ref = require('./helpers'), Command = _ref.Command, repeatCountTimes = _ref.repeatCountTimes;
-WORDRegex = function() {
-  return /\S+/g;
-};
-wordRegex = function() {
-  return /(\w+)|([^\w\s]+)/g;
-};
-lastWORDRegex = RegExp("" + (WORDRegex().source) + "\\s*$");
-lastWordRegex = RegExp("(" + (wordRegex().source) + ")\\s*$");
 defaultMappings = {};
 map = function(keys, motionClass) {
   return defaultMappings[keys] = motionClass;
@@ -133,6 +125,12 @@ map('l', MoveRight = (function() {
   });
   return MoveRight;
 })());
+WORDRegex = function() {
+  return /\S+/g;
+};
+wordRegex = function() {
+  return /(\w+)|([^\w\s]+)/g;
+};
 map('e', MoveToWordEnd = (function() {
   __extends(MoveToWordEnd, Motion);
   function MoveToWordEnd() {
@@ -223,6 +221,8 @@ map('W', MoveToNextBigWord = (function() {
   MoveToNextBigWord.prototype.bigWord = true;
   return MoveToNextBigWord;
 })());
+lastWORDRegex = RegExp("" + (WORDRegex().source) + "\\s*$");
+lastWordRegex = RegExp("(" + (wordRegex().source) + ")\\s*$");
 map('b', MoveBackWord = (function() {
   __extends(MoveBackWord, Motion);
   function MoveBackWord() {
