@@ -4,9 +4,12 @@
 
 {Command, repeatCountTimes} = require './helpers'
 
-# accumulate the default mappings
+
+# The default key mappings are specified alongside the definitions of each
+# motion.  Accumulate the mappings so they can be exported.
 defaultMappings = {}
 map = (keys, motionClass) -> defaultMappings[keys] = motionClass
+
 
 # base class for all motions
 class Motion extends Command
@@ -18,12 +21,15 @@ class Motion extends Command
   # motions do the same thing in visual mode
   visualExec: (jim) -> @exec jim
 
-# used for double operators `cc`, `2yy`, `3d4d`
+
+# Define an unmapped `Motion` that will be used for double operators (e.g. `cc`,
+# `2yy`, `3d4d`).
 class LinewiseCommandMotion extends Motion
   linewise: yes
   exec: (jim) ->
     if additionalLines = @count - 1
       new MoveDown(additionalLines).exec jim
+
 
 # Basic directional motions
 # -------------------------
@@ -44,15 +50,17 @@ map 'l', class MoveRight extends Motion
 # Word motions
 # ------------
 
-# these return a new regex each time so that we always get a fresh lastIndex
-# a string of non-whitespace characters
+# Return a new regex with a fresh lastIndex each time for use in word motions.
+# There are two different kinds of words:
+#
+# * A **WORD** is a string of non-whitespace characters.
+# * A **word** is a string of regex word characters (i.e. `[A-Za-z0-9_]`) *or* a
+#   string of non-whitespace non-word characters (i.e. special chars)
 WORDRegex = -> /\S+/g 
-# a string of word characters (i.e. [A-Za-z0-9_]) OR a string of non-whitespace non-word characters (i.e. special chars)
 wordRegex = -> /(\w+)|([^\w\s]+)/g
 
 
-# move to the end of the current word or the end of the next word if on the end of a
-# word
+# Move to the next end of a **word**.
 map 'e', class MoveToWordEnd extends Motion
   exec: repeatCountTimes (jim) ->
     regex = if @bigWord then WORDRegex() else wordRegex()
@@ -61,16 +69,20 @@ map 'e', class MoveToWordEnd extends Motion
     rightOfCursor = line.substring column
 
     matchOnLine = regex.exec rightOfCursor
+
+    # If we're on top of the last char of a word we want to match the next one.
     if matchOnLine?[0].length <= 1
-      # if we're on top of the last char of a word we want to go to the next one
       matchOnLine = regex.exec rightOfCursor
 
+    # If there's a match on the current line, go to the end of the word that's
+    # been matched.
     if matchOnLine
-      # go to the end of the word that's been matched
       column += matchOnLine[0].length + matchOnLine.index - 1
+
+    # If there's no match on the current line go end of the next word, whatever
+    # line that may be on.  If there are no more non-blank characters, don't
+    # move the cursor.
     else
-      # if there's no match on the current line go end of the next word, whatever line
-      # that may be
       loop
         line = jim.adaptor.lineText ++row
         firstMatchOnSubsequentLine = regex.exec line
@@ -78,16 +90,17 @@ map 'e', class MoveToWordEnd extends Motion
           column = firstMatchOnSubsequentLine[0].length + firstMatchOnSubsequentLine.index - 1
           break
         else if row is jim.adaptor.lastRow()
-          # there are no more non-blank characters, don't move the cursor
           return
 
+    # Move to the `row` and `column` that have been determined.
     jim.adaptor.moveTo row, column
 
+# Move to the next end of a **WORD**.
 map 'E', class MoveToBigWordEnd extends MoveToWordEnd
   bigWord: yes
 
 
-# move to the beginning of the next word
+# Move to the next beginning of a **word**.
 map 'w', class MoveToNextWord extends Motion
   exclusive: yes
   exec: (jim) ->
@@ -99,33 +112,41 @@ map 'w', class MoveToNextWord extends Motion
       rightOfCursor = line.substring column
 
       thisMatch = regex.exec rightOfCursor
-      if not thisMatch or not nextMatch = regex.exec rightOfCursor
-        # the next match isn't on this line, find it on the next
 
+      # If the next match isn't on this line, find it on the next.
+      if not thisMatch or not nextMatch = regex.exec rightOfCursor
+
+        # If the user typed `dw` on the last word of a line, for instance, just
+        # delete the rest of the word instead of deleting to the start of the
+        # word on the next line.
         if timesLeft is 0 and @operation
-          # one exception: e.g. `dw` on the last word of a line just deletes the rest
-          # of the word (instead of deleting to the start of the word on the next line)
           column = line.length
+
         else
           line = jim.adaptor.lineText ++row
           nextLineMatch = regex.exec line
           column = nextLineMatch?.index or 0
+
+      # `cw` actually behaves like `ce` instead of `dwi`. So if this motion is
+      # part of a `Change` operation, ensure that the last time the loop is
+      # executed we execute a `MoveToWordEnd` instead.
       else if timesLeft is 0 and @operation?.switchToMode is 'insert'
-        # this motion is part of a Change operation, this accounts for the exception
-        # that `cw` behaves like `ce` instead of `dwi`
         lastMotion = new MoveToWordEnd()
         lastMotion.bigWord = @bigWord
         lastMotion.exec jim
         @exclusive = no
         return
+
+      # If we've found the beginning of the next match and it's not already
+      # under the cursor, go to it.
       else if thisMatch?.index > 0
-        # We've found the beginning of the next match and it's not already
-        # under the cursor. Go to it
         column += thisMatch.index
+
+      # If we're on top of part of a word, go to the next one.
       else
-        # we're on top of part of a WORD, go to the next one
         column += nextMatch.index
 
+      # Move to the `row` and `column` that have been determined.
       jim.adaptor.moveTo row, column
 
 map 'W', class MoveToNextBigWord extends MoveToNextWord
@@ -158,6 +179,7 @@ map 'b', class MoveBackWord extends Motion
       match = regex.exec line
       column = match?.index or 0
 
+    # Move to the `row` and `column` that have been determined.
     jim.adaptor.moveTo row, column
 
 map 'B', class MoveBackBigWord extends MoveBackWord
