@@ -147,6 +147,7 @@ map 'w', class MoveToNextWord extends Motion
       # Move to the `row` and `column` that have been determined.
       jim.adaptor.moveTo row, column
 
+# Move to the next beginning of a **WORD**.
 map 'W', class MoveToNextBigWord extends MoveToNextWord
   bigWord: yes
 
@@ -155,7 +156,7 @@ map 'W', class MoveToNextBigWord extends MoveToNextWord
 lastWORDRegex = ///#{WORDRegex().source}\s*$///
 lastWordRegex = ///(#{wordRegex().source})\s*$///
 
-# move to the last beginning of a word
+# Move to the last beginning of a **word**.
 map 'b', class MoveBackWord extends Motion
   exclusive: yes
   exec: repeatCountTimes (jim) ->
@@ -167,12 +168,12 @@ map 'b', class MoveBackWord extends Motion
     match = regex.exec leftOfCursor
     if match
       column = match.index
+
+    # If there are no matches left of the cursor, go to the last word on the
+    # previous line.  Vim skips lines that are have only whitespace on them, but
+    # not completely empty lines.
     else
-      # there are no matches left of the cursor
-      # go to the last word on the previous line
       row--
-      # Vim skips lines that are only whitespace
-      # (but not completely empty lines)
       row-- while /^\s+$/.test(line = jim.adaptor.lineText row)
       match = regex.exec line
       column = match?.index or 0
@@ -180,6 +181,7 @@ map 'b', class MoveBackWord extends Motion
     # Move to the `row` and `column` that have been determined.
     jim.adaptor.moveTo row, column
 
+# Move to the last beginning of a **WORD**.
 map 'B', class MoveBackBigWord extends MoveBackWord
   bigWord: yes
   
@@ -187,12 +189,12 @@ map 'B', class MoveBackBigWord extends MoveBackWord
 # Other left/right motions
 # ------------------------
 
-# move to the first column on the line
+# Move to the first column on the line.
 map '0', class MoveToBeginningOfLine extends Motion
   exclusive: yes
   exec: (jim) -> jim.adaptor.moveTo jim.adaptor.row(), 0
 
-# move to the first non-blank character on the line
+# Move to the first non-blank character on the line.
 map '^', class MoveToFirstNonBlank extends Motion
   exec: (jim) ->
     row = jim.adaptor.row()
@@ -200,7 +202,7 @@ map '^', class MoveToFirstNonBlank extends Motion
     column = /\S/.exec(line)?.index or 0
     jim.adaptor.moveTo row, column
 
-# move to the last column on the line
+# Move to the last column on the line.
 map '$', class MoveToEndOfLine extends Motion
   exec: (jim) ->
     additionalLines = @count - 1
@@ -211,7 +213,7 @@ map '$', class MoveToEndOfLine extends Motion
 # Jump motions
 # ------------
 
-# go to `{count}` line number or the first line
+# Go to `{count}` line number or the first line.
 map 'gg', class GoToLine extends Motion
   linewise: yes
   exec: (jim) ->
@@ -220,21 +222,21 @@ map 'gg', class GoToLine extends Motion
     jim.adaptor.moveTo rowNumber, 0
     new MoveToFirstNonBlank().exec jim
 
-# go to `{count}` line number or the last line
+# Go to `{count}` line number or the last line.
 map 'G', class GoToLineOrEnd extends GoToLine
   constructor: (@count) ->
   exec: (jim) ->
     @count or= jim.adaptor.lastRow() + 1
     super
 
-# go to the first line that's visible in the viewport
+# Go to the first line that's visible in the viewport.
 map 'H', class GoToFirstVisibleLine extends Motion
   linewise: yes
   exec: (jim) ->
     line = jim.adaptor.firstFullyVisibleRow() + @count
     new GoToLineOrEnd(line).exec jim
 
-# go to the middle line of the lines that exist and are visible in the viewport
+# Go to the middle line of the lines that exist and are visible in the viewport.
 map 'M', class GoToMiddleLine extends Motion
   linewise: yes
   exec: (jim) ->
@@ -243,7 +245,7 @@ map 'M', class GoToMiddleLine extends Motion
     linesFromTop = Math.floor(lines / 2)
     new GoToLineOrEnd(topRow + 1 + linesFromTop).exec jim
 
-# go to the last line of the lines that exist and are visible in the viewport
+# Go to the last line of the lines that exist and are visible in the viewport.
 map 'L', class GoToLastVisibleLine extends Motion
   linewise: yes
   exec: (jim) ->
