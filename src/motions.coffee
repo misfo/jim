@@ -111,10 +111,13 @@ map 'w', class MoveToNextWord extends Motion
       [row, column] = jim.adaptor.position()
       rightOfCursor = line.substring column
 
-      thisMatch = regex.exec rightOfCursor
+      match = regex.exec rightOfCursor
 
-      # If the next match isn't on this line, find it on the next.
-      if not thisMatch or not nextMatch = regex.exec rightOfCursor
+      # If we're on top of part of a word, match the next one.
+      match = regex.exec rightOfCursor if match?.index is 0
+
+      # If the match isn't on this line, find it on the next.
+      if not match
 
         # If the user typed `dw` on the last word of a line, for instance, just
         # delete the rest of the word instead of deleting to the start of the
@@ -137,14 +140,9 @@ map 'w', class MoveToNextWord extends Motion
         @exclusive = no
         return
 
-      # If we've found the beginning of the next match and it's not already
-      # under the cursor, go to it.
-      else if thisMatch?.index > 0
-        column += thisMatch.index
-
-      # If we're on top of part of a word, go to the next one.
+      # If the match is on this line, go to the column.
       else
-        column += nextMatch.index
+        column += match.index
 
       # Move to the `row` and `column` that have been determined.
       jim.adaptor.moveTo row, column

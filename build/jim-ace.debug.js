@@ -179,7 +179,7 @@ map('w', MoveToNextWord = (function() {
   }
   MoveToNextWord.prototype.exclusive = true;
   MoveToNextWord.prototype.exec = function(jim) {
-    var column, lastMotion, line, nextLineMatch, nextMatch, regex, rightOfCursor, row, thisMatch, timesLeft, _ref2, _ref3, _results;
+    var column, lastMotion, line, match, nextLineMatch, regex, rightOfCursor, row, timesLeft, _ref2, _ref3, _results;
     timesLeft = this.count;
     _results = [];
     while (timesLeft--) {
@@ -187,8 +187,11 @@ map('w', MoveToNextWord = (function() {
       line = jim.adaptor.lineText();
       _ref2 = jim.adaptor.position(), row = _ref2[0], column = _ref2[1];
       rightOfCursor = line.substring(column);
-      thisMatch = regex.exec(rightOfCursor);
-      if (!thisMatch || !(nextMatch = regex.exec(rightOfCursor))) {
+      match = regex.exec(rightOfCursor);
+      if ((match != null ? match.index : void 0) === 0) {
+        match = regex.exec(rightOfCursor);
+      }
+      if (!match) {
         if (timesLeft === 0 && this.operation) {
           column = line.length;
         } else {
@@ -202,10 +205,8 @@ map('w', MoveToNextWord = (function() {
         lastMotion.exec(jim);
         this.exclusive = false;
         return;
-      } else if ((thisMatch != null ? thisMatch.index : void 0) > 0) {
-        column += thisMatch.index;
       } else {
-        column += nextMatch.index;
+        column += match.index;
       }
       _results.push(jim.adaptor.moveTo(row, column));
     }
