@@ -85,11 +85,10 @@ Then just open index.html and you're good to go.
 Chrome needs a special command line argument to allow XHRs to files:
 `google-chrome --allow-file-access-from-files`
 
-To keep the files in `build/` building while you develop, you'll need CoffeeScript and uglify.js:
+To keep the development js file built while you develop, you'll need CoffeeScript:
 
 ```
 npm install coffee-script
-npm install uglify-js
 ```
 
 
