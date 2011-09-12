@@ -24,6 +24,23 @@ Embed Jim with Ace in your app
 ```
 
 
+Annotated source
+----------------
+* [ace.coffee](http://misfo.github.com/jim/docs/ace.html) has all the Ace-specific
+  logic for hooking into its keyboard handling, moving the cursor, modifying the
+  document, etc.
+* [jim.coffee](http://misfo.github.com/jim/docs/jim.html) holds all of Jim's state.
+* [keymap.coffee](http://misfo.github.com/jim/docs/keymap.html), well, maps keys.
+* [modes.coffee](http://misfo.github.com/jim/docs/modes.html) defines each of the
+  modes' different key handling behaviors
+* Commands are defined in
+  [motions.coffee](http://misfo.github.com/jim/docs/motions.html),
+  [operators.coffee](http://misfo.github.com/jim/docs/operators.html), and
+  [commands.coffee](http://misfo.github.com/jim/docs/commands.html)
+* Odds and ends get thrown in
+  [helpers.coffee](http://misfo.github.com/jim/docs/helpers.html)
+
+
 What works so far
 -----------------
 * [modes](http://misfo.github.com/jim/docs/modes.html): normal, visual
