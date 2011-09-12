@@ -1,12 +1,8 @@
-Jim
-===
+**Jim** is a JavaScript library that adds a Vim mode to the excellent in-browser editor
+[Ace](http://ajaxorg.github.com/ace/).  Github uses Ace for its editor, so you can use
+the [Jim bookmarklet](http://misfo.github.com/jim) to Jimmy rig it with Vim-ness.
 
-> This is Vim's brain on JavaScript
-
-Okay, okay.  It's a smaller brain than Vim's. But as Vim's younger brutha, Jim
-keeps learning new things.  And yes, it's JavaScript compiled from Coffeescript.
-
-Try out Jim here:
+Try it out:
 [misfo.github.com/jim](http://misfo.github.com/jim)
 
 Jim can be easily plugged into Ace.  For an example, look at
