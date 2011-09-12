@@ -2,11 +2,26 @@
 [Ace](http://ajaxorg.github.com/ace/).  Github uses Ace for its editor, so you can use
 the [Jim bookmarklet](http://misfo.github.com/jim) to Jimmy rig it with Vim-ness.
 
-Try it out:
+
+Try it out
+----------
 [misfo.github.com/jim](http://misfo.github.com/jim)
 
-Jim can be easily plugged into Ace.  For an example, look at
-[index.html](https://github.com/misfo/jim/blob/master/index.html)
+
+Embed Jim with Ace in your app
+------------------------------
+```html
+<script src="ace.js" type="text/javascript"></script>
+<script src="jim-ace.min.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    var editor = ace.edit('editor');
+    // configure Ace
+    Jim.aceInit(editor);
+  });
+</script>
+```
 
 
 What works so far
