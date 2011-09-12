@@ -1,0 +1,111 @@
+<!DOCTYPE html>  <html> <head>   <title>keymap.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="ace.html">                 ace.coffee               </a>                                           <a class="source" href="commands.html">                 commands.coffee               </a>                                           <a class="source" href="helpers.html">                 helpers.coffee               </a>                                           <a class="source" href="jim.html">                 jim.coffee               </a>                                           <a class="source" href="keymap.html">                 keymap.coffee               </a>                                           <a class="source" href="modes.html">                 modes.coffee               </a>                                           <a class="source" href="motions.html">                 motions.coffee               </a>                                           <a class="source" href="operators.html">                 operators.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               keymap.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>This is a pretty standard key-to-command keymap except for a few details:</p>
+
+<ul>
+<li>It has some built-in Vim-like smarts about the concepts of motions and
+operators and if/how they should be available in each mode</li>
+<li>It differentiates between invalid commands (<code>gz</code>) and partial commands (<code>g</code>)</li>
+</ul>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">class</span> <span class="nx">Keymap</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <h2>Building a Keymap</h2>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>Build an instance of <code>Keymap</code> with all the default keymappings.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="vi">@getDefault: </span><span class="o">-&gt;</span>
+    <span class="nv">keymap = </span><span class="k">new</span> <span class="nx">Keymap</span>
+    <span class="nx">keymap</span><span class="p">.</span><span class="nx">mapCommand</span> <span class="nx">keys</span><span class="p">,</span> <span class="nx">commandClass</span> <span class="k">for</span> <span class="nx">own</span> <span class="nx">keys</span><span class="p">,</span> <span class="nx">commandClass</span> <span class="k">of</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./commands&#39;</span><span class="p">).</span><span class="nx">defaultMappings</span>
+    <span class="nx">keymap</span><span class="p">.</span><span class="nx">mapOperator</span> <span class="nx">keys</span><span class="p">,</span> <span class="nx">operationClass</span> <span class="k">for</span> <span class="nx">own</span> <span class="nx">keys</span><span class="p">,</span> <span class="nx">operationClass</span> <span class="k">of</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./operators&#39;</span><span class="p">).</span><span class="nx">defaultMappings</span>
+    <span class="nx">keymap</span><span class="p">.</span><span class="nx">mapMotion</span> <span class="nx">keys</span><span class="p">,</span> <span class="nx">motionClass</span> <span class="k">for</span> <span class="nx">own</span> <span class="nx">keys</span><span class="p">,</span> <span class="nx">motionClass</span> <span class="k">of</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./motions&#39;</span><span class="p">).</span><span class="nx">defaultMappings</span>
+    <span class="nx">keymap</span>
+
+  <span class="nv">constructor: </span><span class="o">-&gt;</span>
+    <span class="vi">@commands = </span><span class="p">{}</span>
+    <span class="vi">@motions = </span><span class="p">{}</span>
+    <span class="vi">@visualCommands = </span><span class="p">{}</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>Use some objects to de-duplicate repeated partial commands.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="vi">@partialCommands = </span><span class="p">{}</span>
+    <span class="vi">@partialMotions = </span><span class="p">{}</span>
+    <span class="vi">@partialVisualCommands = </span><span class="p">{}</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <h2>Mapping commands</h2>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Map the <code>comandClass</code> to the <code>keys</code> sequence.  Map it as a visual command as well
+if the class has a <code>::visualExec</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">mapCommand: </span><span class="nf">(keys, commandClass) -&gt;</span>
+    <span class="k">if</span> <span class="nx">commandClass</span><span class="o">::</span><span class="nx">exec</span>
+      <span class="nx">@commands</span><span class="p">[</span><span class="nx">keys</span><span class="p">]</span> <span class="o">=</span> <span class="nx">commandClass</span>
+      <span class="k">if</span> <span class="nx">keys</span><span class="p">.</span><span class="nx">length</span> <span class="o">is</span> <span class="mi">2</span>
+        <span class="nx">@partialCommands</span><span class="p">[</span><span class="nx">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">true</span>
+    <span class="k">if</span> <span class="nx">commandClass</span><span class="o">::</span><span class="nx">visualExec</span>
+      <span class="nx">@visualCommands</span><span class="p">[</span><span class="nx">keys</span><span class="p">]</span> <span class="o">=</span> <span class="nx">commandClass</span>
+      <span class="k">if</span> <span class="nx">keys</span><span class="p">.</span><span class="nx">length</span> <span class="o">is</span> <span class="mi">2</span>
+        <span class="nx">@partialVisualCommands</span><span class="p">[</span><span class="nx">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>Map <code>motionClass</code> to the <code>keys</code> sequence.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">mapMotion: </span><span class="nf">(keys, motionClass) -&gt;</span>
+    <span class="nx">@commands</span><span class="p">[</span><span class="nx">keys</span><span class="p">]</span> <span class="o">=</span> <span class="nx">motionClass</span>
+    <span class="nx">@motions</span><span class="p">[</span><span class="nx">keys</span><span class="p">]</span> <span class="o">=</span> <span class="nx">motionClass</span>
+    <span class="nx">@visualCommands</span><span class="p">[</span><span class="nx">keys</span><span class="p">]</span> <span class="o">=</span> <span class="nx">motionClass</span>
+    <span class="k">if</span> <span class="nx">keys</span><span class="p">.</span><span class="nx">length</span> <span class="o">is</span> <span class="mi">2</span>
+      <span class="nx">@partialMotions</span><span class="p">[</span><span class="nx">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">true</span>
+      <span class="nx">@partialCommands</span><span class="p">[</span><span class="nx">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">true</span>
+      <span class="nx">@partialVisualCommands</span><span class="p">[</span><span class="nx">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Map <code>operatorClass</code> to the <code>keys</code> sequence.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">mapOperator: </span><span class="nf">(keys, operatorClass) -&gt;</span>
+    <span class="nx">@commands</span><span class="p">[</span><span class="nx">keys</span><span class="p">]</span> <span class="o">=</span> <span class="nx">operatorClass</span>
+    <span class="nx">@visualCommands</span><span class="p">[</span><span class="nx">keys</span><span class="p">]</span> <span class="o">=</span> <span class="nx">operatorClass</span>
+    <span class="k">if</span> <span class="nx">keys</span><span class="p">.</span><span class="nx">length</span> <span class="o">is</span> <span class="mi">2</span>
+      <span class="nx">@partialCommands</span><span class="p">[</span><span class="nx">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">true</span>
+      <span class="nx">@partialVisualCommands</span><span class="p">[</span><span class="nx">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <h2>Finding commands in the Keymap</h2>
+
+<p><code>commandFor</code>, <code>motionFor</code>, and <code>visualCommandFor</code> are defined for finding
+their respective <code>Command</code> types.  Each of these methods will return one of the
+following:</p>
+
+<ul>
+<li><code>true</code> if the <code>commandPart</code> passed in is a valid <em>partial</em> command.  For
+example, <code>Keymap.getDefault().commandFor('g')</code> will return <code>true</code> because
+it is the first part of what could be the valid command <code>gg</code>, among
+others.</li>
+<li><code>false</code> if the <code>commandPart</code> is not a valid partial <em>or</em> complete command.</li>
+<li>A <code>Command</code> if the <code>commandPart</code> is a valid, complete command.  The
+<code>Command</code> will have it's <code>count</code> populated if <code>commandPart</code> includes a
+count.</li>
+</ul>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>Build a regex that will help us split up the <code>commandPart</code> in each of the
+following methods.  The regex will match any key sequence, splitting it into
+the following captured groups:</p>
+
+<ol>
+<li>The preceding count</li>
+<li>The command/motion/operator</li>
+<li>Any chars beyond a <em>partial</em> command/motion/operator. If this group
+captures <em>anything</em>, we can stop accepting keystrokes for the command and
+execute it if it's valid.</li>
+</ol>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">buildPartialCommandRegex = </span><span class="nf">(partialCommands) -&gt;</span>
+    <span class="o">/</span><span class="err">//</span>
+      <span class="o">^</span>
+      <span class="p">([</span><span class="mi">1</span><span class="o">-</span><span class="mi">9</span><span class="p">]</span><span class="err">\</span><span class="nx">d</span><span class="o">*</span><span class="p">)</span><span class="o">?</span>
+      <span class="p">(</span>
+        <span class="p">[</span><span class="c1">#{(char for own char, nothing of partialCommands).join &#39;&#39;}]?</span>
+        <span class="p">([</span><span class="err">\</span><span class="nx">s</span><span class="err">\</span><span class="nx">S</span><span class="p">]</span><span class="o">*</span><span class="p">)</span>
+      <span class="p">)</span><span class="o">?</span>
+      <span class="nx">$</span>
+    <span class="err">///</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <p>Find a normal mode command, which could be a motion, an operator, or a
+"regular" normal mode command.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">commandFor: </span><span class="nf">(commandPart) -&gt;</span>
+    <span class="nx">@partialCommandRegex</span> <span class="o">or=</span> <span class="nx">buildPartialCommandRegex</span> <span class="nx">@partialCommands</span>
+    <span class="p">[</span><span class="nx">commandPart</span><span class="p">,</span> <span class="nx">count</span><span class="p">,</span> <span class="nx">command</span><span class="p">,</span> <span class="nx">beyondPartial</span><span class="p">]</span> <span class="o">=</span> <span class="nx">commandPart</span><span class="p">.</span><span class="nx">match</span> <span class="nx">@partialCommandRegex</span>
+
+    <span class="k">if</span> <span class="nx">beyondPartial</span>
+      <span class="k">if</span> <span class="nv">commandClass = </span><span class="nx">@commands</span><span class="p">[</span><span class="nx">command</span><span class="p">]</span>
+        <span class="k">new</span> <span class="nx">commandClass</span><span class="p">(</span><span class="nb">parseInt</span><span class="p">(</span><span class="nx">count</span><span class="p">)</span> <span class="o">or</span> <span class="kc">null</span><span class="p">)</span>
+      <span class="k">else</span>
+        <span class="kc">false</span>
+    <span class="k">else</span>
+      <span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <p>Find a motion.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">motionFor: </span><span class="nf">(commandPart, operatorPending) -&gt;</span>
+    <span class="nx">@partialMotionRegex</span> <span class="o">or=</span> <span class="nx">buildPartialCommandRegex</span> <span class="nx">@partialMotions</span>
+    <span class="p">[</span><span class="nx">commandPart</span><span class="p">,</span> <span class="nx">count</span><span class="p">,</span> <span class="nx">motion</span><span class="p">,</span> <span class="nx">beyondPartial</span><span class="p">]</span> <span class="o">=</span> <span class="nx">commandPart</span><span class="p">.</span><span class="nx">match</span> <span class="nx">@partialCommandRegex</span>
+
+    <span class="k">if</span> <span class="nx">beyondPartial</span>
+      <span class="k">if</span> <span class="nx">motion</span> <span class="o">is</span> <span class="nx">operatorPending</span></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <p>If we're finding <code>cc</code>, <code>yy</code>, etc, we return a "fake" linewise command.</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="p">{</span><span class="nx">LinewiseCommandMotion</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s1">&#39;./motions&#39;</span>
+        <span class="k">new</span> <span class="nx">LinewiseCommandMotion</span><span class="p">(</span><span class="nb">parseInt</span><span class="p">(</span><span class="nx">count</span><span class="p">)</span> <span class="o">or</span> <span class="kc">null</span><span class="p">)</span>
+
+      <span class="k">else</span> <span class="k">if</span> <span class="nv">motionClass = </span><span class="nx">@motions</span><span class="p">[</span><span class="nx">motion</span><span class="p">]</span>
+        <span class="k">new</span> <span class="nx">motionClass</span><span class="p">(</span><span class="nb">parseInt</span><span class="p">(</span><span class="nx">count</span><span class="p">)</span> <span class="o">or</span> <span class="kc">null</span><span class="p">)</span>
+      <span class="k">else</span>
+        <span class="kc">false</span>
+    <span class="k">else</span>
+      <span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <p>Find a visual mode command, which could be a motion, an operator, or a
+"regular" visual mode command.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">visualCommandFor: </span><span class="nf">(commandPart) -&gt;</span>
+    <span class="nx">@partialVisualCommandRegex</span> <span class="o">or=</span> <span class="nx">buildPartialCommandRegex</span> <span class="nx">@partialVisualCommands</span>
+    <span class="p">[</span><span class="nx">commandPart</span><span class="p">,</span> <span class="nx">count</span><span class="p">,</span> <span class="nx">command</span><span class="p">,</span> <span class="nx">beyondPartial</span><span class="p">]</span> <span class="o">=</span> <span class="nx">commandPart</span><span class="p">.</span><span class="nx">match</span> <span class="nx">@partialVisualCommandRegex</span>
+
+    <span class="k">if</span> <span class="nx">beyondPartial</span>
+      <span class="k">if</span> <span class="nv">commandClass = </span><span class="nx">@visualCommands</span><span class="p">[</span><span class="nx">command</span><span class="p">]</span>
+        <span class="k">new</span> <span class="nx">commandClass</span><span class="p">(</span><span class="nb">parseInt</span><span class="p">(</span><span class="nx">count</span><span class="p">)</span> <span class="o">or</span> <span class="kc">null</span><span class="p">)</span>
+      <span class="k">else</span>
+        <span class="kc">false</span>
+    <span class="k">else</span>
+      <span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-15">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-15">&#182;</a>               </div>               <h2>Exports</h2>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">module.exports = </span><span class="nx">Keymap</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
