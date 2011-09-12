@@ -14,8 +14,6 @@
 #   * chars expected to follow a command (e.g. when `r` is pressed, the next
 #     `@commandPart` will be the char that's used as the replacement)
 
-{MoveLeft, MoveDown} = require './motions'
-
 # Shame the user in the console for not knowing their Jim commands.
 invalidCommand = (type = 'command') ->
   console.log "invalid #{type}: #{@commandPart}"

@@ -4,8 +4,7 @@
 # `Command`s are passed an instance of `Jim` when they are executed which allows
 # them to change Jim's state and manipulate the editor (through the `@adaptor`).
 
-Keymap     = require './keymap'
-{GoToLine} = require './motions'
+Keymap = require './keymap'
 
 class Jim
   @VERSION: '0.2.0-pre'

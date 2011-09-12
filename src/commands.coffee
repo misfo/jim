@@ -4,8 +4,8 @@
 # normal mode.
 
 {Command, repeatCountTimes} = require './helpers'
-{Change, Delete} = require './operators'
-{GoToLine, MoveDown, MoveLeft, MoveRight, MoveToEndOfLine, MoveToFirstNonBlank} = require './motions'
+{Delete} = require './operators'
+{MoveLeft, MoveRight, MoveToEndOfLine, MoveToFirstNonBlank} = require './motions'
 
 # The default key mappings are specified alongside the definitions of each command.
 # Accumulate the mappings so they can be exported.
