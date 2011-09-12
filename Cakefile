@@ -49,7 +49,7 @@ task 'build:ace', 'build development version of Jim for use with Ace', ->
     })()
   """
 
-  filename = 'build/jim-ace.debug.js'
+  filename = 'build/jim-ace.development.js'
   fs.writeFileSync filename, "#{header}\n#{jsCode}"
   console.log "#{(new Date).toLocaleTimeString()} - built #{filename}"
 
