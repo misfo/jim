@@ -256,10 +256,11 @@ map 'L', class GoToLastVisibleLine extends Motion
 # Search motions
 # --------------
 
-# prompt the user for a search term and search forward for that
+# Prompt the user for a search term and search forward for it.
 map '/', class Search extends Motion
   # Given that `jim.search` has already been set, search for the `{count}`'th
-  # occurrence of the search.  Reverse `jim.search`'s direction if `reverse` is true
+  # occurrence of the search.  Reverse `jim.search`'s direction if `reverse` is
+  # true.
   @runSearch: (jim, count, reverse) ->
     return if not jim.search
     {backwards, searchString, wholeWord} = jim.search
@@ -272,25 +273,29 @@ map '/', class Search extends Motion
     jim.search = @getSearch jim
     Search.runSearch jim, @count
 
-# prompt the user for a search term and search backwards for that
+# Prompt the user for a search term and search backwards for it.
 map '?', class SearchBackwards extends Search
   backwards: yes
 
-# search fowards for the next occurrence of the nearest word
+# Search fowards for the next occurrence of the nearest word.
 map '*', class NearestWordSearch extends Search
   getSearch: (jim) ->
     [searchString, charsAhead] = nearestWord jim
-    if charsAhead
-      # if we're searching for a word that's ahead of the cursor, ensure that
-      # we the search starts at the word beyond that one
-      new MoveRight(charsAhead).exec jim
-    # match only whole word's unless searching for special chars
+
+    # If we're searching for a word that's ahead of the cursor, ensure that the
+    # search starts beyond it.
+    new MoveRight(charsAhead).exec jim if charsAhead
+
+    # Match only whole words unless searching for special chars.
     wholeWord = /^\w/.test searchString
+
     {searchString, wholeWord, @backwards}
 
-  # the word used for `*` and `#` is the first of the following that matches:
-  #     1. the word under or after the cursor (i.e. a `\w+` word)
-  #     2. the first non-blank (i.e. `\S+`) under or after the cursor
+  # The word used for `*` and `#` is the first of the following that matches on
+  # the line:
+  #
+  # 1. The `\w+` word under or after the cursor
+  # 2. The first string of non-blanks (i.e. `\S+`) under or after the cursor
   nearestWord = (jim) ->
     line = jim.adaptor.lineText()
     column = jim.adaptor.column()
@@ -298,8 +303,6 @@ map '*', class NearestWordSearch extends Search
     rightOfCursor = line.substring column
     charsAhead = null
 
-    # If the item on the cursor isn't a word it goes to the next word or
-    # the next group of special characters if there isn't a word.
     if /\W/.test line[column]
       leftMatch = ['']
       nextWord = /\w+/.exec rightOfCursor
@@ -314,17 +317,17 @@ map '*', class NearestWordSearch extends Search
 
     [leftMatch[0] + rightMatch[0], charsAhead]
 
-# search backwards for the next occurrence of the nearest word
+# Search backwards for the next occurrence of the nearest word.
 map '#', class NearestWordSearchBackwards extends NearestWordSearch
   backwards: yes
   
 
-# repeat the last search made
+# Repeat the last search.
 map 'n', class SearchAgain extends Motion
   exclusive: yes
   exec: (jim) -> Search.runSearch jim, @count
 
-# repeat the last search made, reversing the direction
+# Repeat the last search, reversing the direction.
 map 'N', class SearchAgainReverse extends Motion
   exclusive: yes
   exec: (jim) -> Search.runSearch jim, @count, true
@@ -332,8 +335,11 @@ map 'N', class SearchAgainReverse extends Motion
 
 # Move-to-character motions
 # -------------------------
+#
+# These motions are expected to get a be followed by a character keypress.  When
+# they are executed this character is stored as the command's `@followedBy`.
 
-# once followed by `{char}`, go to the next `{char}` on the line
+# Go to the next `@followedBy` char on the line.
 map 'f', class GoToNextChar extends Motion
   @followedBy: /./
   exec: (jim) ->
@@ -347,12 +353,12 @@ map 'f', class GoToNextChar extends Motion
       columnsRight-- if @beforeChar
       jim.adaptor.moveTo row, column + columnsRight
 
-# once followed by `{char}`, go to the char before the next `{char}` on the line
+# Go to the char before the next `@followedBy` char on the line.
 map 't', class GoUpToNextChar extends GoToNextChar
   beforeChar: yes
 
 
-# once followed by `{char}`, go to the previous `{char}` on the line
+# Go to the previous `@followedBy` char on the line.
 map 'F', class GoToPreviousChar extends Motion
   @followedBy: /./
   exec: (jim) ->
@@ -366,7 +372,7 @@ map 'F', class GoToPreviousChar extends Motion
       targetColumn++ if @beforeChar
       jim.adaptor.moveTo row, targetColumn
 
-# once followed by `{char}`, go to the char after the previous `{char}` on the line
+# Go to the char after the previous `@followedBy` char on the line.
 map 'T', class GoUpToPreviousChar extends GoToPreviousChar
   beforeChar: yes
 
