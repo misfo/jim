@@ -7,7 +7,7 @@
 Keymap = require './keymap'
 
 class Jim
-  @VERSION: '0.2.0-pre'
+  @VERSION: '0.2.0'
 
   constructor: (@adaptor) ->
     @command = null
