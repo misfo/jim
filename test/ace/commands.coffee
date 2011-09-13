@@ -200,3 +200,7 @@ test 'gJ', ->
   @press 'j4gJ'
   eq @adaptor.lineText(), '    return {      value : value,      criteria : iterator.call(context, value, index, list)    };'
   deepEqual @adaptor.position(), [1, 91]
+
+test 'ctrl-[ escapes', ->
+  @press 'i', 'ctrl-['
+  eq @jim.mode.name, 'normal'

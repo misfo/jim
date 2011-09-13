@@ -61,17 +61,25 @@
           @esc = 27
           @down = 40
           @backspace = 8
+          @lsquare = 217
           @press = (keyGroups...) ->
             for keys in keyGroups
               switch typeof keys
                 when 'number'
                   editor.onCommandKey {}, 0, keys
                 when 'string'
-                  for char in keys
-                    if /[A-Z!@#$%^&*()_+{}|:"<>?]/.test char
-                      # if it's a char that requires the shift key simulate the shift key event, too
-                      editor.onCommandKey {}, 4, 0
-                    editor.onTextInput char, true 
+                  if ctrlKeypress = keys.match /^ctrl-(.)$/
+                    editor.onCommandKey {}, 1, 0
+                    keyCode = switch ctrlKeypress[1]
+                      when "[" then @lsquare
+                    editor.keyBinding.onCommandKey {}, 1, keyCode, ctrlKeypress[1]
+                  else
+                    for char in keys
+                      if /[A-Z!@#$%^&*()_+{}|:"<>?]/.test char
+                        # if it's a char that requires the shift key simulate
+                        # the shift key event, too
+                        editor.onCommandKey {}, 4, 0
+                      editor.onTextInput char, true 
 
         CoffeeScript.load "#{name}.coffee" for name in [
           'ace/commands'

@@ -1791,7 +1791,7 @@ Jim.aceInit = function(editor) {
   editor.setKeyboardHandler({
     handleKeyboard: function(data, hashId, keyString, keyCode) {
       var passKeypressThrough;
-      if (keyCode === 27) {
+      if (keyCode === 27 || (hashId === 1 && keyString === '[')) {
         return jim.onEscape();
       } else if (isCharacterKey(hashId, keyCode)) {
         if (jim.afterInsertSwitch) {

@@ -373,7 +373,7 @@ isCharacterKey = (hashId, keyCode) -> hashId is 0 and not keyCode
 Jim.aceInit = (editor) ->
   editor.setKeyboardHandler
     handleKeyboard: (data, hashId, keyString, keyCode) ->
-      if keyCode is 27 # esc
+      if keyCode is 27 or (hashId is 1 and keyString is '[') # `esc` or `ctrl-[`
         jim.onEscape()
       else if isCharacterKey hashId, keyCode
         # We've made some deletion as part of a change operation already and
