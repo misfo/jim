@@ -125,6 +125,10 @@ map('l', MoveRight = (function() {
   });
   return MoveRight;
 })());
+map('left', MoveLeft);
+map('down', MoveDown);
+map('up', MoveUp);
+map('right', MoveRight);
 WORDRegex = function() {
   return /\S+/g;
 };
@@ -1123,13 +1127,13 @@ Keymap = (function() {
   Keymap.prototype.mapCommand = function(keys, commandClass) {
     if (commandClass.prototype.exec) {
       this.commands[keys] = commandClass;
-      if (keys.length === 2) {
+      if (keys.length === 2 && keys !== 'up') {
         this.partialCommands[keys[0]] = true;
       }
     }
     if (commandClass.prototype.visualExec) {
       this.visualCommands[keys] = commandClass;
-      if (keys.length === 2) {
+      if (keys.length === 2 && keys !== 'up') {
         return this.partialVisualCommands[keys[0]] = true;
       }
     }
@@ -1138,7 +1142,7 @@ Keymap = (function() {
     this.commands[keys] = motionClass;
     this.motions[keys] = motionClass;
     this.visualCommands[keys] = motionClass;
-    if (keys.length === 2) {
+    if (keys.length === 2 && keys !== 'up') {
       this.partialMotions[keys[0]] = true;
       this.partialCommands[keys[0]] = true;
       return this.partialVisualCommands[keys[0]] = true;
@@ -1147,7 +1151,7 @@ Keymap = (function() {
   Keymap.prototype.mapOperator = function(keys, operatorClass) {
     this.commands[keys] = operatorClass;
     this.visualCommands[keys] = operatorClass;
-    if (keys.length === 2) {
+    if (keys.length === 2 && keys !== 'up') {
       this.partialCommands[keys[0]] = true;
       return this.partialVisualCommands[keys[0]] = true;
     }
@@ -1403,7 +1407,7 @@ module.exports = Jim;
 
 require['./ace'] = (function() {
   var exports = {}, module = {};
-  var Adaptor, Jim, JimUndoManager, UndoManager, isCharacterKey;
+  var Adaptor, Jim, JimUndoManager, UndoManager, isCharacterKey, isSelectiveKeys;
 var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
   for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
   function ctor() { this.constructor = child; }
@@ -1786,6 +1790,9 @@ require('pilot/dom').importCssString(".jim-normal-mode div.ace_cursor\n, .jim-vi
 isCharacterKey = function(hashId, keyCode) {
   return hashId === 0 && !keyCode;
 };
+isSelectiveKeys = function(keyString) {
+  return /(up|down|left|right)/.test(keyString);
+};
 Jim.aceInit = function(editor) {
   var adaptor, jim, undoManager;
   editor.setKeyboardHandler({
@@ -1793,7 +1800,7 @@ Jim.aceInit = function(editor) {
       var passKeypressThrough;
       if (keyCode === 27 || (hashId === 1 && keyString === '[')) {
         return jim.onEscape();
-      } else if (isCharacterKey(hashId, keyCode)) {
+      } else if (isCharacterKey(hashId, keyCode) || isSelectiveKeys(keyString)) {
         if (jim.afterInsertSwitch) {
           if (jim.mode.name === 'insert') {
             jim.adaptor.markUndoPoint('jim:insert:afterSwitch');
@@ -1803,7 +1810,7 @@ Jim.aceInit = function(editor) {
         if (jim.mode.name === 'normal' && !jim.adaptor.emptySelection()) {
           jim.setMode('visual');
         }
-        if (keyString.length > 1) {
+        if (keyString.length > 1 && !isSelectiveKeys(keyString)) {
           keyString = keyString.charAt(0);
         }
         passKeypressThrough = jim.onKeypress(keyString);

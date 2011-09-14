@@ -46,6 +46,10 @@ map 'l', class MoveRight extends Motion
   exclusive: yes
   exec: repeatCountTimes (jim) -> jim.adaptor.moveRight @operation?
 
+map 'left', MoveLeft
+map 'down', MoveDown
+map 'up', MoveUp
+map 'right', MoveRight
 
 # Word motions
 # ------------

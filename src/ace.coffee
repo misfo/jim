@@ -369,13 +369,21 @@ require('pilot/dom').importCssString """
 # Is the keyboard event a printable character key?
 isCharacterKey = (hashId, keyCode) -> hashId is 0 and not keyCode
 
+# Is keyboard string a match for following regex?
+#
+# * Arrow keys (up, down, left, right)
+isSelectiveKeys = (keyString) ->
+  ///
+  (up|down|left|right) # Arrow keys
+  ///.test keyString
+
 # Set up Jim to handle the Ace `editor`'s keyboard events.
 Jim.aceInit = (editor) ->
   editor.setKeyboardHandler
     handleKeyboard: (data, hashId, keyString, keyCode) ->
       if keyCode is 27 or (hashId is 1 and keyString is '[') # `esc` or `ctrl-[`
         jim.onEscape()
-      else if isCharacterKey hashId, keyCode
+      else if isCharacterKey(hashId, keyCode) or isSelectiveKeys keyString
         # We've made some deletion as part of a change operation already and
         # we're about to start the actual insert.  Mark this moment in the undo
         # stack.
@@ -389,7 +397,7 @@ Jim.aceInit = (editor) ->
           # keypress in normal mode, switch to visual mode.
           jim.setMode 'visual'
 
-        if keyString.length > 1
+        if keyString.length > 1 and not isSelectiveKeys keyString
           #TODO handle this better, we're dropping keypresses here
           keyString = keyString.charAt 0
 
