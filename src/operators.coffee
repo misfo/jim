@@ -3,7 +3,7 @@
 # and `e` is a motion that moves to the end of the word.
 
 {Command} = require './helpers'
-{GoToLine, MoveToFirstNonBlank} = require './motions'
+{GoToLine, MoveToFirstNonBlank, MoveLeft} = require './motions'
 
 # The default key mappings are specified alongside the definitions of each
 # `Operation`.  Accumulate the mappings so they can be exported.
@@ -74,6 +74,12 @@ map 'd', class Delete extends Operation
   operate: (jim) ->
     jim.deleteSelection @motion?.exclusive, @linewise
     new MoveToFirstNonBlank().exec jim if @linewise
+
+# Move left in normal mode
+# Delete selections in visual mode
+map 'backspace', class extends MoveLeft
+  prevLine: yes
+  visualExec: (jim) -> Delete::visualExec jim
 
 # Yank into a register the selection or the text that `@motion` moves over.
 map 'y', class Yank extends Operation

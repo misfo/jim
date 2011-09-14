@@ -35,7 +35,10 @@ class LinewiseCommandMotion extends Motion
 # -------------------------
 map 'h', class MoveLeft extends Motion
   exclusive: yes
-  exec: repeatCountTimes (jim) -> jim.adaptor.moveLeft()
+  exec: repeatCountTimes (jim) ->
+    if @prevLine and jim.adaptor.column() is 0
+      jim.adaptor.moveToEndOfPreviousLine()
+    else jim.adaptor.moveLeft()
 map 'j', class MoveDown extends Motion
   linewise: yes
   exec: repeatCountTimes (jim) -> jim.adaptor.moveDown()
@@ -44,12 +47,20 @@ map 'k', class MoveUp extends Motion
   exec: repeatCountTimes (jim) -> jim.adaptor.moveUp()
 map 'l', class MoveRight extends Motion
   exclusive: yes
-  exec: repeatCountTimes (jim) -> jim.adaptor.moveRight @operation?
+  exec: repeatCountTimes (jim) ->
+    linelen = jim.adaptor.lineText().length - 1
+    column = jim.adaptor.column()
+    if @nextLine and column >= linelen
+      jim.adaptor.moveTo jim.adaptor.row() + 1, 0
+    else jim.adaptor.moveRight @operation?
 
 map 'left', MoveLeft
 map 'down', MoveDown
 map 'up', MoveUp
 map 'right', MoveRight
+
+map 'space', class extends MoveRight
+  nextLine: yes
 
 # Word motions
 # ------------

@@ -372,9 +372,11 @@ isCharacterKey = (hashId, keyCode) -> hashId is 0 and not keyCode
 # Is keyboard string a match for following regex?
 #
 # * Arrow keys (up, down, left, right)
+# * Space keys (space, backspace)
 isSelectiveKeys = (keyString) ->
   ///
-  (up|down|left|right) # Arrow keys
+  (up|down|left|right # Arrow keys
+  |(back)?space)      # Space keys
   ///.test keyString
 
 # Set up Jim to handle the Ace `editor`'s keyboard events.

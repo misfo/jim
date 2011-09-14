@@ -88,7 +88,11 @@ map('h', MoveLeft = (function() {
   }
   MoveLeft.prototype.exclusive = true;
   MoveLeft.prototype.exec = repeatCountTimes(function(jim) {
-    return jim.adaptor.moveLeft();
+    if (this.prevLine && jim.adaptor.column() === 0) {
+      return jim.adaptor.moveToEndOfPreviousLine();
+    } else {
+      return jim.adaptor.moveLeft();
+    }
   });
   return MoveLeft;
 })());
@@ -121,7 +125,14 @@ map('l', MoveRight = (function() {
   }
   MoveRight.prototype.exclusive = true;
   MoveRight.prototype.exec = repeatCountTimes(function(jim) {
-    return jim.adaptor.moveRight(this.operation != null);
+    var column, linelen;
+    linelen = jim.adaptor.lineText().length - 1;
+    column = jim.adaptor.column();
+    if (this.nextLine && column >= linelen) {
+      return jim.adaptor.moveTo(jim.adaptor.row() + 1, 0);
+    } else {
+      return jim.adaptor.moveRight(this.operation != null);
+    }
   });
   return MoveRight;
 })());
@@ -129,6 +140,14 @@ map('left', MoveLeft);
 map('down', MoveDown);
 map('up', MoveUp);
 map('right', MoveRight);
+map('space', (function() {
+  __extends(_Class, MoveRight);
+  function _Class() {
+    _Class.__super__.constructor.apply(this, arguments);
+  }
+  _Class.prototype.nextLine = true;
+  return _Class;
+})());
 WORDRegex = function() {
   return /\S+/g;
 };
@@ -563,7 +582,7 @@ module.exports = {
 
 require['./operators'] = (function() {
   var exports = {}, module = {};
-  var Change, Command, Delete, GoToLine, Indent, MoveToFirstNonBlank, Operation, Outdent, Yank, defaultMappings, map, _ref;
+  var Change, Command, Delete, GoToLine, Indent, MoveLeft, MoveToFirstNonBlank, Operation, Outdent, Yank, defaultMappings, map, _ref;
 var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
   for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
   function ctor() { this.constructor = child; }
@@ -573,7 +592,7 @@ var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, par
   return child;
 };
 Command = require('./helpers').Command;
-_ref = require('./motions'), GoToLine = _ref.GoToLine, MoveToFirstNonBlank = _ref.MoveToFirstNonBlank;
+_ref = require('./motions'), GoToLine = _ref.GoToLine, MoveToFirstNonBlank = _ref.MoveToFirstNonBlank, MoveLeft = _ref.MoveLeft;
 defaultMappings = {};
 map = function(keys, operationClass) {
   return defaultMappings[keys] = operationClass;
@@ -656,6 +675,17 @@ map('d', Delete = (function() {
     }
   };
   return Delete;
+})());
+map('backspace', (function() {
+  __extends(_Class, MoveLeft);
+  function _Class() {
+    _Class.__super__.constructor.apply(this, arguments);
+  }
+  _Class.prototype.prevLine = true;
+  _Class.prototype.visualExec = function(jim) {
+    return Delete.prototype.visualExec(jim);
+  };
+  return _Class;
 })());
 map('y', Yank = (function() {
   __extends(Yank, Operation);
@@ -1791,7 +1821,7 @@ isCharacterKey = function(hashId, keyCode) {
   return hashId === 0 && !keyCode;
 };
 isSelectiveKeys = function(keyString) {
-  return /(up|down|left|right)/.test(keyString);
+  return /(up|down|left|right|(back)?space)/.test(keyString);
 };
 Jim.aceInit = function(editor) {
   var adaptor, jim, undoManager;
