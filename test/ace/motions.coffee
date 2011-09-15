@@ -310,3 +310,31 @@ test 'L', ->
   
   @press 'L'
   deepEqual @adaptor.position(), [14, 0]
+
+test 'backspace', ->
+  @adaptor.moveTo 1, 0
+
+  @press '16', @backspace
+  deepEqual @adaptor.position(), [0, 30]
+
+  @press @backspace
+  deepEqual @adaptor.position(), [0, 29]
+
+  @press @backspace
+  deepEqual @adaptor.position(), [0, 28]
+
+  @press @backspace
+  deepEqual @adaptor.position(), [0, 27]
+
+test 'space', ->
+  @press '$', @space
+  deepEqual @adaptor.position(), [1, 0]
+
+  @press '5', @space
+  deepEqual @adaptor.position(), [1, 6]
+
+  @press @space
+  deepEqual @adaptor.position(), [1, 7]
+
+  @press @space
+  deepEqual @adaptor.position(), [1, 8]
