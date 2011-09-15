@@ -582,7 +582,7 @@ module.exports = {
 
 require['./operators'] = (function() {
   var exports = {}, module = {};
-  var Change, Command, Delete, GoToLine, Indent, MoveLeft, MoveToFirstNonBlank, Operation, Outdent, Yank, defaultMappings, map, _ref;
+  var Change, Command, Delete, GoToLine, Indent, MoveToFirstNonBlank, Operation, Outdent, Yank, defaultMappings, map, _ref;
 var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
   for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
   function ctor() { this.constructor = child; }
@@ -592,7 +592,7 @@ var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, par
   return child;
 };
 Command = require('./helpers').Command;
-_ref = require('./motions'), GoToLine = _ref.GoToLine, MoveToFirstNonBlank = _ref.MoveToFirstNonBlank, MoveLeft = _ref.MoveLeft;
+_ref = require('./motions'), GoToLine = _ref.GoToLine, MoveToFirstNonBlank = _ref.MoveToFirstNonBlank;
 defaultMappings = {};
 map = function(keys, operationClass) {
   return defaultMappings[keys] = operationClass;
@@ -675,17 +675,6 @@ map('d', Delete = (function() {
     }
   };
   return Delete;
-})());
-map('backspace', (function() {
-  __extends(_Class, MoveLeft);
-  function _Class() {
-    _Class.__super__.constructor.apply(this, arguments);
-  }
-  _Class.prototype.prevLine = true;
-  _Class.prototype.visualExec = function(jim) {
-    return Delete.prototype.visualExec(jim);
-  };
-  return _Class;
 })());
 map('y', Yank = (function() {
   __extends(Yank, Operation);
@@ -1110,6 +1099,17 @@ map('X', Backspace = (function() {
     return new Delete(1, new MoveLeft(this.count)).exec(jim);
   };
   return Backspace;
+})());
+map('backspace', (function() {
+  __extends(_Class, MoveLeft);
+  function _Class() {
+    _Class.__super__.constructor.apply(this, arguments);
+  }
+  _Class.prototype.prevLine = true;
+  _Class.prototype.visualExec = function(jim) {
+    return Delete.prototype.visualExec(jim);
+  };
+  return _Class;
 })());
 module.exports = {
   defaultMappings: defaultMappings
