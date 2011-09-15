@@ -1102,8 +1102,10 @@ map('X', Backspace = (function() {
     return new Delete(1, new MoveLeft(this.count)).exec(jim);
   };
   Backspace.prototype.visualExec = function(jim) {
-    Delete.prototype.linewise = true;
-    return Delete.prototype.visualExec(jim);
+    var del;
+    del = new Delete(this.count);
+    del.linewise = true;
+    return del.visualExec(jim);
   };
   return Backspace;
 })());

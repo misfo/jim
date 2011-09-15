@@ -138,4 +138,4 @@ test 'x, X, and delete with selection', ->
   eq endings(@jim.registers['"']), ' function(obj, iterator, context) {\n'
 
   @press 'jvl', @delete
-  eq endings(@jim.registers['"']), '    return {\n'
+  eq @jim.registers['"'], '  r'

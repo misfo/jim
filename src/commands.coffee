@@ -262,8 +262,9 @@ map 'x', class DeleteChar extends Command
 map 'X', class Backspace extends Command
   exec: (jim) -> new Delete(1, new MoveLeft @count).exec jim
   visualExec: (jim) ->
-    Delete::linewise = true
-    Delete::visualExec jim
+    del = new Delete(@count)
+    del.linewise = true
+    del.visualExec jim
 
 
 # Move left in normal mode
