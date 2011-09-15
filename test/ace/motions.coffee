@@ -13,6 +13,18 @@ test 'h', ->
   @press 'h'
   deepEqual @adaptor.position(), [1, 0]
 
+test 'left', ->
+  @adaptor.moveTo 1, 14
+
+  @press @left
+  deepEqual @adaptor.position(), [1, 13]
+  @press @left
+  deepEqual @adaptor.position(), [1, 12]
+  @press '12', @left
+  deepEqual @adaptor.position(), [1, 0]
+  @press @left
+  deepEqual @adaptor.position(), [1, 0]
+
 test 'j', ->
   @press 'j'
   deepEqual @adaptor.position(), [1, 0]
@@ -26,6 +38,14 @@ test 'j', ->
   #@press 'j'
   #deepEqual @adaptor.position(), [14, 0]
 
+test 'down', ->
+  @press @down
+  deepEqual @adaptor.position(), [1, 0]
+  @press @down
+  deepEqual @adaptor.position(), [2, 0]
+  @press '12', @down
+  deepEqual @adaptor.position(), [14, 0]
+
 test 'k', ->
   @adaptor.moveTo 5, 0
 
@@ -38,6 +58,18 @@ test 'k', ->
   @press 'k'
   deepEqual @adaptor.position(), [0, 0]
 
+test 'up', ->
+  @adaptor.moveTo 5, 0
+
+  @press @up
+  deepEqual @adaptor.position(), [4, 0]
+  @press @up
+  deepEqual @adaptor.position(), [3, 0]
+  @press '3', @up
+  deepEqual @adaptor.position(), [0, 0]
+  @press @up
+  deepEqual @adaptor.position(), [0, 0]
+
 test 'l', ->
   @press 'l'
   deepEqual @adaptor.position(), [0, 1]
@@ -46,6 +78,16 @@ test 'l', ->
   @press '42l'
   deepEqual @adaptor.position(), [0, 44]
   @press 'l'
+  deepEqual @adaptor.position(), [0, 44]
+
+test 'right', ->
+  @press @right
+  deepEqual @adaptor.position(), [0, 1]
+  @press @right
+  deepEqual @adaptor.position(), [0, 2]
+  @press '42', @right
+  deepEqual @adaptor.position(), [0, 44]
+  @press @right
   deepEqual @adaptor.position(), [0, 44]
 
 test 'E', ->
@@ -268,3 +310,31 @@ test 'L', ->
   
   @press 'L'
   deepEqual @adaptor.position(), [14, 0]
+
+test 'backspace', ->
+  @adaptor.moveTo 1, 0
+
+  @press '16', @backspace
+  deepEqual @adaptor.position(), [0, 30]
+
+  @press @backspace
+  deepEqual @adaptor.position(), [0, 29]
+
+  @press @backspace
+  deepEqual @adaptor.position(), [0, 28]
+
+  @press @backspace
+  deepEqual @adaptor.position(), [0, 27]
+
+test 'space', ->
+  @press '$', @space
+  deepEqual @adaptor.position(), [1, 0]
+
+  @press '5', @space
+  deepEqual @adaptor.position(), [1, 6]
+
+  @press @space
+  deepEqual @adaptor.position(), [1, 7]
+
+  @press @space
+  deepEqual @adaptor.position(), [1, 8]

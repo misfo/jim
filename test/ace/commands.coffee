@@ -204,3 +204,10 @@ test 'gJ', ->
 test 'ctrl-[ escapes', ->
   @press 'i', 'ctrl-['
   eq @jim.mode.name, 'normal'
+
+test 'delete', ->
+  @press @delete
+  eq @jim.registers['"'], '_'
+
+  @press @delete, @delete
+  eq @jim.registers['"'], 's'

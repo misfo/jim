@@ -59,8 +59,10 @@
 
           @adaptor = @jim.adaptor
           @esc = 27
-          @down = 40
+          [@left, @up, @right, @down] = [37..40]
+          @space = 32
           @backspace = 8
+          @delete= 46
           @lsquare = 217
           @press = (keyGroups...) ->
             for keys in keyGroups
