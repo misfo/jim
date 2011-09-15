@@ -256,10 +256,15 @@ map 'u', class Undo extends Command
 # Delete the char under the cursor.
 map 'x', class DeleteChar extends Command
   exec: (jim) -> new Delete(1, new MoveRight @count).exec jim
-  
+  visualExec: (jim) -> Delete::visualExec jim
+
 # Delete the char before the cursor.
 map 'X', class Backspace extends Command
   exec: (jim) -> new Delete(1, new MoveLeft @count).exec jim
+  visualExec: (jim) ->
+    Delete::linewise = true
+    Delete::visualExec jim
+
 
 # Move left in normal mode
 # Delete selections in visual mode
@@ -267,6 +272,7 @@ map 'backspace', class extends MoveLeft
   prevLine: yes
   visualExec: (jim) -> Delete::visualExec jim
 
+map 'delete', DeleteChar
 
 # Exports
 # -------

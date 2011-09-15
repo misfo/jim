@@ -1088,6 +1088,9 @@ map('x', DeleteChar = (function() {
   DeleteChar.prototype.exec = function(jim) {
     return new Delete(1, new MoveRight(this.count)).exec(jim);
   };
+  DeleteChar.prototype.visualExec = function(jim) {
+    return Delete.prototype.visualExec(jim);
+  };
   return DeleteChar;
 })());
 map('X', Backspace = (function() {
@@ -1097,6 +1100,10 @@ map('X', Backspace = (function() {
   }
   Backspace.prototype.exec = function(jim) {
     return new Delete(1, new MoveLeft(this.count)).exec(jim);
+  };
+  Backspace.prototype.visualExec = function(jim) {
+    Delete.prototype.linewise = true;
+    return Delete.prototype.visualExec(jim);
   };
   return Backspace;
 })());
@@ -1111,6 +1118,7 @@ map('backspace', (function() {
   };
   return _Class;
 })());
+map('delete', DeleteChar);
 module.exports = {
   defaultMappings: defaultMappings
 };
@@ -1821,7 +1829,7 @@ isCharacterKey = function(hashId, keyCode) {
   return hashId === 0 && !keyCode;
 };
 isSelectiveKeys = function(keyString) {
-  return /(up|down|left|right|(back)?space)/.test(keyString);
+  return /(up|down|left|right|(back)?space|delete)/.test(keyString);
 };
 Jim.aceInit = function(editor) {
   var adaptor, jim, undoManager;
