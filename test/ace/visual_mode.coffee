@@ -129,3 +129,13 @@ test 'selection with arrow keys', ->
 
   @press 'vw', @right, @right, 'Wy'
   eq @jim.registers['"'], 'criteria : iterator.call(context, v'
+
+test 'x, X, and delete with selection', ->
+  @press 'vWx'
+  eq @jim.registers['"'], '_.sortBy ='
+
+  @press 'vWX'
+  eq endings(@jim.registers['"']), ' function(obj, iterator, context) {\n'
+
+  @press 'jvl', @delete
+  eq endings(@jim.registers['"']), '    return {\n'
