@@ -88,7 +88,11 @@ map('h', MoveLeft = (function() {
   }
   MoveLeft.prototype.exclusive = true;
   MoveLeft.prototype.exec = repeatCountTimes(function(jim) {
-    return jim.adaptor.moveLeft();
+    if (this.prevLine && jim.adaptor.column() === 0) {
+      return jim.adaptor.moveToEndOfPreviousLine();
+    } else {
+      return jim.adaptor.moveLeft();
+    }
   });
   return MoveLeft;
 })());
@@ -121,9 +125,28 @@ map('l', MoveRight = (function() {
   }
   MoveRight.prototype.exclusive = true;
   MoveRight.prototype.exec = repeatCountTimes(function(jim) {
-    return jim.adaptor.moveRight(this.operation != null);
+    var column, linelen;
+    linelen = jim.adaptor.lineText().length - 1;
+    column = jim.adaptor.column();
+    if (this.nextLine && column >= linelen) {
+      return jim.adaptor.moveTo(jim.adaptor.row() + 1, 0);
+    } else {
+      return jim.adaptor.moveRight(this.operation != null);
+    }
   });
   return MoveRight;
+})());
+map('left', MoveLeft);
+map('down', MoveDown);
+map('up', MoveUp);
+map('right', MoveRight);
+map('space', (function() {
+  __extends(_Class, MoveRight);
+  function _Class() {
+    _Class.__super__.constructor.apply(this, arguments);
+  }
+  _Class.prototype.nextLine = true;
+  return _Class;
 })());
 WORDRegex = function() {
   return /\S+/g;
@@ -1065,6 +1088,9 @@ map('x', DeleteChar = (function() {
   DeleteChar.prototype.exec = function(jim) {
     return new Delete(1, new MoveRight(this.count)).exec(jim);
   };
+  DeleteChar.prototype.visualExec = function(jim) {
+    return Delete.prototype.visualExec(jim);
+  };
   return DeleteChar;
 })());
 map('X', Backspace = (function() {
@@ -1075,8 +1101,26 @@ map('X', Backspace = (function() {
   Backspace.prototype.exec = function(jim) {
     return new Delete(1, new MoveLeft(this.count)).exec(jim);
   };
+  Backspace.prototype.visualExec = function(jim) {
+    var del;
+    del = new Delete(this.count);
+    del.linewise = true;
+    return del.visualExec(jim);
+  };
   return Backspace;
 })());
+map('backspace', (function() {
+  __extends(_Class, MoveLeft);
+  function _Class() {
+    _Class.__super__.constructor.apply(this, arguments);
+  }
+  _Class.prototype.prevLine = true;
+  _Class.prototype.visualExec = function(jim) {
+    return Delete.prototype.visualExec(jim);
+  };
+  return _Class;
+})());
+map('delete', DeleteChar);
 module.exports = {
   defaultMappings: defaultMappings
 };
@@ -1123,13 +1167,13 @@ Keymap = (function() {
   Keymap.prototype.mapCommand = function(keys, commandClass) {
     if (commandClass.prototype.exec) {
       this.commands[keys] = commandClass;
-      if (keys.length === 2) {
+      if (keys.length === 2 && keys !== 'up') {
         this.partialCommands[keys[0]] = true;
       }
     }
     if (commandClass.prototype.visualExec) {
       this.visualCommands[keys] = commandClass;
-      if (keys.length === 2) {
+      if (keys.length === 2 && keys !== 'up') {
         return this.partialVisualCommands[keys[0]] = true;
       }
     }
@@ -1138,7 +1182,7 @@ Keymap = (function() {
     this.commands[keys] = motionClass;
     this.motions[keys] = motionClass;
     this.visualCommands[keys] = motionClass;
-    if (keys.length === 2) {
+    if (keys.length === 2 && keys !== 'up') {
       this.partialMotions[keys[0]] = true;
       this.partialCommands[keys[0]] = true;
       return this.partialVisualCommands[keys[0]] = true;
@@ -1147,7 +1191,7 @@ Keymap = (function() {
   Keymap.prototype.mapOperator = function(keys, operatorClass) {
     this.commands[keys] = operatorClass;
     this.visualCommands[keys] = operatorClass;
-    if (keys.length === 2) {
+    if (keys.length === 2 && keys !== 'up') {
       this.partialCommands[keys[0]] = true;
       return this.partialVisualCommands[keys[0]] = true;
     }
@@ -1403,7 +1447,7 @@ module.exports = Jim;
 
 require['./ace'] = (function() {
   var exports = {}, module = {};
-  var Adaptor, Jim, JimUndoManager, UndoManager, isCharacterKey;
+  var Adaptor, Jim, JimUndoManager, UndoManager, isCharacterKey, isSelectiveKeys;
 var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
   for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
   function ctor() { this.constructor = child; }
@@ -1786,6 +1830,9 @@ require('pilot/dom').importCssString(".jim-normal-mode div.ace_cursor\n, .jim-vi
 isCharacterKey = function(hashId, keyCode) {
   return hashId === 0 && !keyCode;
 };
+isSelectiveKeys = function(keyString) {
+  return /(up|down|left|right|(back)?space|delete)/.test(keyString);
+};
 Jim.aceInit = function(editor) {
   var adaptor, jim, undoManager;
   editor.setKeyboardHandler({
@@ -1793,7 +1840,7 @@ Jim.aceInit = function(editor) {
       var passKeypressThrough;
       if (keyCode === 27 || (hashId === 1 && keyString === '[')) {
         return jim.onEscape();
-      } else if (isCharacterKey(hashId, keyCode)) {
+      } else if (isCharacterKey(hashId, keyCode) || isSelectiveKeys(keyString)) {
         if (jim.afterInsertSwitch) {
           if (jim.mode.name === 'insert') {
             jim.adaptor.markUndoPoint('jim:insert:afterSwitch');
@@ -1803,7 +1850,7 @@ Jim.aceInit = function(editor) {
         if (jim.mode.name === 'normal' && !jim.adaptor.emptySelection()) {
           jim.setMode('visual');
         }
-        if (keyString.length > 1) {
+        if (keyString.length > 1 && !isSelectiveKeys(keyString)) {
           keyString = keyString.charAt(0);
         }
         passKeypressThrough = jim.onKeypress(keyString);

@@ -120,3 +120,22 @@ test 'toggle visual mode', ->
       return _.pluck(_.map(obj, function(value, index, list) {
 
   """
+
+test 'selection with arrow keys', ->
+  @press 'v', @down, @right, @up, @left, 'y'
+  eq @jim.registers['"'], '_.'
+
+  @adaptor.moveTo 4, 6
+
+  @press 'vw', @right, @right, 'Wy'
+  eq @jim.registers['"'], 'criteria : iterator.call(context, v'
+
+test 'x, X, and delete with selection', ->
+  @press 'vWx'
+  eq @jim.registers['"'], '_.sortBy ='
+
+  @press 'vWX'
+  eq endings(@jim.registers['"']), ' function(obj, iterator, context) {\n'
+
+  @press 'jvl', @delete
+  eq @jim.registers['"'], '  r'

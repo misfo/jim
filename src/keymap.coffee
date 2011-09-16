@@ -35,11 +35,11 @@ class Keymap
   mapCommand: (keys, commandClass) ->
     if commandClass::exec
       @commands[keys] = commandClass
-      if keys.length is 2
+      if keys.length is 2 and keys isnt 'up'
         @partialCommands[keys[0]] = true
     if commandClass::visualExec
       @visualCommands[keys] = commandClass
-      if keys.length is 2
+      if keys.length is 2 and keys isnt 'up'
         @partialVisualCommands[keys[0]] = true
 
   # Map `motionClass` to the `keys` sequence.
@@ -47,7 +47,7 @@ class Keymap
     @commands[keys] = motionClass
     @motions[keys] = motionClass
     @visualCommands[keys] = motionClass
-    if keys.length is 2
+    if keys.length is 2 and keys isnt 'up'
       @partialMotions[keys[0]] = true
       @partialCommands[keys[0]] = true
       @partialVisualCommands[keys[0]] = true
@@ -56,7 +56,7 @@ class Keymap
   mapOperator: (keys, operatorClass) ->
     @commands[keys] = operatorClass
     @visualCommands[keys] = operatorClass
-    if keys.length is 2
+    if keys.length is 2 and keys isnt 'up'
       @partialCommands[keys[0]] = true
       @partialVisualCommands[keys[0]] = true
 
