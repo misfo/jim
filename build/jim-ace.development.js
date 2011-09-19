@@ -8,6 +8,301 @@
 this.Jim = (function() {
   function require(path) { return path[0] === '.' ? require[path] : window.require(path); }
   
+require['./keymap'] = (function() {
+  var exports = {}, module = {};
+  var Keymap;
+var __hasProp = Object.prototype.hasOwnProperty;
+Keymap = (function() {
+  var buildPartialCommandRegex;
+  function Keymap() {
+    this.commands = {};
+    this.motions = {};
+    this.visualCommands = {};
+    this.partialCommands = {};
+    this.partialMotions = {};
+    this.partialVisualCommands = {};
+  }
+  Keymap.prototype.mapCommand = function(keys, commandClass) {
+    if (commandClass.prototype.exec) {
+      this.commands[keys] = commandClass;
+      if (keys.length === 2 && keys !== 'up') {
+        this.partialCommands[keys[0]] = true;
+      }
+    }
+    if (commandClass.prototype.visualExec) {
+      this.visualCommands[keys] = commandClass;
+      if (keys.length === 2 && keys !== 'up') {
+        return this.partialVisualCommands[keys[0]] = true;
+      }
+    }
+  };
+  Keymap.prototype.mapMotion = function(keys, motionClass) {
+    this.commands[keys] = motionClass;
+    this.motions[keys] = motionClass;
+    this.visualCommands[keys] = motionClass;
+    if (keys.length === 2 && keys !== 'up') {
+      this.partialMotions[keys[0]] = true;
+      this.partialCommands[keys[0]] = true;
+      return this.partialVisualCommands[keys[0]] = true;
+    }
+  };
+  Keymap.prototype.mapOperator = function(keys, operatorClass) {
+    this.commands[keys] = operatorClass;
+    this.visualCommands[keys] = operatorClass;
+    if (keys.length === 2 && keys !== 'up') {
+      this.partialCommands[keys[0]] = true;
+      return this.partialVisualCommands[keys[0]] = true;
+    }
+  };
+  buildPartialCommandRegex = function(partialCommands) {
+    var char, nothing;
+    return RegExp("^([1-9]\\d*)?([" + (((function() {
+      var _results;
+      _results = [];
+      for (char in partialCommands) {
+        if (!__hasProp.call(partialCommands, char)) continue;
+        nothing = partialCommands[char];
+        _results.push(char);
+      }
+      return _results;
+    })()).join('')) + "]?([\\s\\S]*))?$");
+  };
+  Keymap.prototype.commandFor = function(commandPart) {
+    var beyondPartial, command, commandClass, count, _ref;
+    this.partialCommandRegex || (this.partialCommandRegex = buildPartialCommandRegex(this.partialCommands));
+    _ref = commandPart.match(this.partialCommandRegex), commandPart = _ref[0], count = _ref[1], command = _ref[2], beyondPartial = _ref[3];
+    if (beyondPartial) {
+      if (commandClass = this.commands[command]) {
+        return new commandClass(parseInt(count) || null);
+      } else {
+        return false;
+      }
+    } else {
+      return true;
+    }
+  };
+  Keymap.prototype.motionFor = function(commandPart, operatorPending) {
+    var LinewiseCommandMotion, beyondPartial, count, motion, motionClass, _ref;
+    this.partialMotionRegex || (this.partialMotionRegex = buildPartialCommandRegex(this.partialMotions));
+    _ref = commandPart.match(this.partialCommandRegex), commandPart = _ref[0], count = _ref[1], motion = _ref[2], beyondPartial = _ref[3];
+    if (beyondPartial) {
+      if (motion === operatorPending) {
+        LinewiseCommandMotion = require('./motions').LinewiseCommandMotion;
+        return new LinewiseCommandMotion(parseInt(count) || null);
+      } else if (motionClass = this.motions[motion]) {
+        return new motionClass(parseInt(count) || null);
+      } else {
+        return false;
+      }
+    } else {
+      return true;
+    }
+  };
+  Keymap.prototype.visualCommandFor = function(commandPart) {
+    var beyondPartial, command, commandClass, count, _ref;
+    this.partialVisualCommandRegex || (this.partialVisualCommandRegex = buildPartialCommandRegex(this.partialVisualCommands));
+    _ref = commandPart.match(this.partialVisualCommandRegex), commandPart = _ref[0], count = _ref[1], command = _ref[2], beyondPartial = _ref[3];
+    if (beyondPartial) {
+      if (commandClass = this.visualCommands[command]) {
+        return new commandClass(parseInt(count) || null);
+      } else {
+        return false;
+      }
+    } else {
+      return true;
+    }
+  };
+  return Keymap;
+})();
+module.exports = Keymap;
+  return module.exports || exports;
+})();
+
+require['./modes'] = (function() {
+  var exports = {}, module = {};
+  var invalidCommand;
+invalidCommand = function(type) {
+  if (type == null) {
+    type = 'command';
+  }
+  console.log("invalid " + type + ": " + this.commandPart);
+  return this.onEscape();
+};
+exports.normal = {
+  onKeypress: function(keys) {
+    var command, motion, regex, _ref, _ref2;
+    this.commandPart = (this.commandPart || '') + keys;
+    if (!this.command) {
+      command = Jim.keymap.commandFor(this.commandPart);
+      if (command === false) {
+        invalidCommand.call(this);
+      } else if (command !== true) {
+        if (command.isOperation) {
+          this.operatorPending = this.commandPart.match(/[^\d]+$/)[0];
+        }
+        this.command = command;
+        this.commandPart = '';
+      }
+    } else if (this.command.constructor.followedBy) {
+      if (this.command.constructor.followedBy.test(this.commandPart)) {
+        this.command.followedBy = this.commandPart;
+      } else {
+        console.log("" + this.command + " didn't expect to be followed by \"" + this.commandPart + "\"");
+      }
+      this.commandPart = '';
+    } else if (this.command.isOperation) {
+      if (regex = (_ref = this.command.motion) != null ? _ref.constructor.followedBy : void 0) {
+        if (regex.test(this.commandPart)) {
+          this.command.motion.followedBy = this.commandPart;
+        } else {
+          console.log("" + this.command + " didn't expect to be followed by \"" + this.commandPart + "\"");
+        }
+      } else {
+        motion = Jim.keymap.motionFor(this.commandPart, this.operatorPending);
+        if (motion === false) {
+          invalidCommand.call(this, 'motion');
+        } else if (motion !== true) {
+          motion.operation = this.command;
+          this.command.motion = motion;
+          this.operatorPending = null;
+          this.commandPart = '';
+        }
+      }
+    }
+    if ((_ref2 = this.command) != null ? _ref2.isComplete() : void 0) {
+      this.command.exec(this);
+      if (this.command.isRepeatable) {
+        this.lastCommand = this.command;
+      }
+      return this.command = null;
+    }
+  }
+};
+exports.visual = {
+  onKeypress: function(newKeys) {
+    var command, maxRow, minRow, wasBackwards, _ref, _ref2, _ref3;
+    this.commandPart = (this.commandPart || '') + newKeys;
+    if (!this.command) {
+      command = Jim.keymap.visualCommandFor(this.commandPart);
+      if (command === false) {
+        invalidCommand.call(this);
+      } else if (command !== true) {
+        this.command = command;
+        this.commandPart = '';
+      }
+    } else if (this.command.constructor.followedBy) {
+      if (this.command.constructor.followedBy.test(this.commandPart)) {
+        this.command.followedBy = this.commandPart;
+      } else {
+        console.log("" + this.command + " didn't expect to be followed by \"" + this.commandPart + "\"");
+      }
+      this.commandPart = '';
+    }
+    wasBackwards = this.adaptor.isSelectionBackwards();
+    if (((_ref = this.command) != null ? _ref.isOperation : void 0) || ((_ref2 = this.command) != null ? _ref2.isComplete() : void 0)) {
+      if (this.command.isRepeatable) {
+        this.command.selectionSize = this.mode.name === 'visual' && this.mode.linewise ? ((_ref3 = this.adaptor.selectionRowRange(), minRow = _ref3[0], maxRow = _ref3[1], _ref3), {
+          lines: (maxRow - minRow) + 1
+        }) : this.adaptor.characterwiseSelectionSize();
+        this.command.linewise = this.mode.linewise;
+        this.lastCommand = this.command;
+      }
+      this.command.visualExec(this);
+      this.command = null;
+    }
+    if (this.mode.name === 'visual' && !this.mode.linewise) {
+      if (wasBackwards) {
+        if (!this.adaptor.isSelectionBackwards()) {
+          return this.adaptor.adjustAnchor(-1);
+        }
+      } else {
+        if (this.adaptor.isSelectionBackwards()) {
+          return this.adaptor.adjustAnchor(1);
+        }
+      }
+    }
+  }
+};
+exports.insert = {
+  onKeypress: function() {
+    return true;
+  }
+};
+exports.replace = {
+  onKeypress: function() {
+    return true;
+  }
+};
+  return module.exports || exports;
+})();
+
+require['./jim'] = (function() {
+  var exports = {}, module = {};
+  var Jim, Keymap;
+var __hasProp = Object.prototype.hasOwnProperty;
+Keymap = require('./keymap');
+Jim = (function() {
+  Jim.VERSION = '0.2.1-pre';
+  Jim.keymap = new Keymap;
+  function Jim(adaptor) {
+    this.adaptor = adaptor;
+    this.command = null;
+    this.registers = {};
+    this.setMode('normal');
+  }
+  Jim.prototype.modes = require('./modes');
+  Jim.prototype.setMode = function(modeName, modeState) {
+    var key, prevMode, value, _base;
+    if (this.debugMode) {
+      console.log('setMode', modeName, modeState);
+    }
+    prevMode = this.mode;
+    if (modeName === (prevMode != null ? prevMode.name : void 0)) {
+      if (!modeState) {
+        return;
+      }
+      for (key in modeState) {
+        if (!__hasProp.call(modeState, key)) continue;
+        value = modeState[key];
+        this.mode[key] = value;
+      }
+    } else {
+      this.mode = modeState || {};
+      this.mode.name = modeName;
+    }
+    if (typeof (_base = this.adaptor).onModeChange === "function") {
+      _base.onModeChange(prevMode, this.mode);
+    }
+    switch (prevMode != null ? prevMode.name : void 0) {
+      case 'insert':
+        this.adaptor.moveLeft();
+        return this.lastCommand.repeatableInsert = this.adaptor.lastInsert();
+      case 'replace':
+        return this.adaptor.setOverwriteMode(false);
+    }
+  };
+  Jim.prototype.onEscape = function() {
+    this.setMode('normal');
+    this.command = null;
+    this.commandPart = '';
+    return this.adaptor.clearSelection();
+  };
+  Jim.prototype.onKeypress = function(keys) {
+    return this.modes[this.mode.name].onKeypress.call(this, keys);
+  };
+  Jim.prototype.deleteSelection = function(exclusive, linewise) {
+    return this.registers['"'] = this.adaptor.deleteSelection(exclusive, linewise);
+  };
+  Jim.prototype.yankSelection = function(exclusive, linewise) {
+    this.registers['"'] = this.adaptor.selectionText(exclusive, linewise);
+    return this.adaptor.clearSelection(true);
+  };
+  return Jim;
+})();
+module.exports = Jim;
+  return module.exports || exports;
+})();
+
 require['./helpers'] = (function() {
   var exports = {}, module = {};
   exports.Command = (function() {
@@ -40,7 +335,7 @@ exports.repeatCountTimes = function(func) {
 
 require['./motions'] = (function() {
   var exports = {}, module = {};
-  var Command, GoToFirstVisibleLine, GoToLastVisibleLine, GoToLine, GoToLineOrEnd, GoToMiddleLine, GoToNextChar, GoToPreviousChar, GoUpToNextChar, GoUpToPreviousChar, LinewiseCommandMotion, Motion, MoveBackBigWord, MoveBackWord, MoveDown, MoveLeft, MoveRight, MoveToBeginningOfLine, MoveToBigWordEnd, MoveToEndOfLine, MoveToFirstNonBlank, MoveToNextBigWord, MoveToNextWord, MoveToWordEnd, MoveUp, NearestWordSearch, NearestWordSearchBackwards, Search, SearchAgain, SearchAgainReverse, SearchBackwards, WORDRegex, defaultMappings, lastWORDRegex, lastWordRegex, map, repeatCountTimes, wordRegex, _ref;
+  var Command, GoToFirstVisibleLine, GoToLastVisibleLine, GoToLine, GoToLineOrEnd, GoToMiddleLine, GoToNextChar, GoToPreviousChar, GoUpToNextChar, GoUpToPreviousChar, Jim, LinewiseCommandMotion, Motion, MoveBackBigWord, MoveBackWord, MoveDown, MoveLeft, MoveRight, MoveToBeginningOfLine, MoveToBigWordEnd, MoveToEndOfLine, MoveToFirstNonBlank, MoveToNextBigWord, MoveToNextWord, MoveToWordEnd, MoveUp, NearestWordSearch, NearestWordSearchBackwards, Search, SearchAgain, SearchAgainReverse, SearchBackwards, WORDRegex, lastWORDRegex, lastWordRegex, map, repeatCountTimes, wordRegex, _ref;
 var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
   for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
   function ctor() { this.constructor = child; }
@@ -50,9 +345,9 @@ var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, par
   return child;
 };
 _ref = require('./helpers'), Command = _ref.Command, repeatCountTimes = _ref.repeatCountTimes;
-defaultMappings = {};
+Jim = require('./jim');
 map = function(keys, motionClass) {
-  return defaultMappings[keys] = motionClass;
+  return Jim.keymap.mapMotion(keys, motionClass);
 };
 Motion = (function() {
   __extends(Motion, Command);
@@ -574,15 +869,14 @@ module.exports = {
   MoveToNextBigWord: MoveToNextBigWord,
   MoveToNextWord: MoveToNextWord,
   MoveToBigWordEnd: MoveToBigWordEnd,
-  MoveToWordEnd: MoveToWordEnd,
-  defaultMappings: defaultMappings
+  MoveToWordEnd: MoveToWordEnd
 };
   return module.exports || exports;
 })();
 
 require['./operators'] = (function() {
   var exports = {}, module = {};
-  var Change, Command, Delete, GoToLine, Indent, MoveToFirstNonBlank, Operation, Outdent, Yank, defaultMappings, map, _ref;
+  var Change, Command, Delete, GoToLine, Indent, Jim, MoveToFirstNonBlank, Operation, Outdent, Yank, map, _ref;
 var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
   for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
   function ctor() { this.constructor = child; }
@@ -593,9 +887,9 @@ var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, par
 };
 Command = require('./helpers').Command;
 _ref = require('./motions'), GoToLine = _ref.GoToLine, MoveToFirstNonBlank = _ref.MoveToFirstNonBlank;
-defaultMappings = {};
+Jim = require('./jim');
 map = function(keys, operationClass) {
-  return defaultMappings[keys] = operationClass;
+  return Jim.keymap.mapOperator(keys, operationClass);
 };
 Operation = (function() {
   __extends(Operation, Command);
@@ -718,15 +1012,14 @@ map('<', Outdent = (function() {
 })());
 module.exports = {
   Change: Change,
-  Delete: Delete,
-  defaultMappings: defaultMappings
+  Delete: Delete
 };
   return module.exports || exports;
 })();
 
 require['./commands'] = (function() {
   var exports = {}, module = {};
-  var Backspace, ChangeChar, ChangeToEndOfLine, Command, Delete, DeleteChar, DeleteToEndOfLine, Insert, InsertAfter, InsertAtEndOfLine, InsertBeforeFirstNonBlank, JoinLines, JoinLinesNormalizingWhitespace, ModeSwitch, MoveLeft, MoveRight, MoveToEndOfLine, MoveToFirstNonBlank, OpenLine, OpenLineAbove, Paste, PasteBefore, RepeatCommand, ReplaceChar, ReplaceSwitch, Undo, VisualLinewiseSwitch, VisualSwitch, defaultMappings, map, repeatCountTimes, _ref, _ref2;
+  var Backspace, ChangeChar, ChangeToEndOfLine, Command, Delete, DeleteChar, DeleteToEndOfLine, Insert, InsertAfter, InsertAtEndOfLine, InsertBeforeFirstNonBlank, Jim, JoinLines, JoinLinesNormalizingWhitespace, ModeSwitch, MoveLeft, MoveRight, MoveToEndOfLine, MoveToFirstNonBlank, OpenLine, OpenLineAbove, Paste, PasteBefore, RepeatCommand, ReplaceChar, ReplaceSwitch, Undo, VisualLinewiseSwitch, VisualSwitch, map, repeatCountTimes, _ref, _ref2;
 var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
   for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
   function ctor() { this.constructor = child; }
@@ -738,9 +1031,9 @@ var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, par
 _ref = require('./helpers'), Command = _ref.Command, repeatCountTimes = _ref.repeatCountTimes;
 Delete = require('./operators').Delete;
 _ref2 = require('./motions'), MoveLeft = _ref2.MoveLeft, MoveRight = _ref2.MoveRight, MoveToEndOfLine = _ref2.MoveToEndOfLine, MoveToFirstNonBlank = _ref2.MoveToFirstNonBlank;
-defaultMappings = {};
+Jim = require('./jim');
 map = function(keys, commandClass) {
-  return defaultMappings[keys] = commandClass;
+  return Jim.keymap.mapCommand(keys, commandClass);
 };
 ModeSwitch = (function() {
   __extends(ModeSwitch, Command);
@@ -1121,327 +1414,7 @@ map('backspace', (function() {
   return _Class;
 })());
 map('delete', DeleteChar);
-module.exports = {
-  defaultMappings: defaultMappings
-};
-  return module.exports || exports;
-})();
-
-require['./keymap'] = (function() {
-  var exports = {}, module = {};
-  var Keymap;
-var __hasProp = Object.prototype.hasOwnProperty;
-Keymap = (function() {
-  var buildPartialCommandRegex;
-  Keymap.getDefault = function() {
-    var commandClass, keymap, keys, motionClass, operationClass, _ref, _ref2, _ref3;
-    keymap = new Keymap;
-    _ref = require('./commands').defaultMappings;
-    for (keys in _ref) {
-      if (!__hasProp.call(_ref, keys)) continue;
-      commandClass = _ref[keys];
-      keymap.mapCommand(keys, commandClass);
-    }
-    _ref2 = require('./operators').defaultMappings;
-    for (keys in _ref2) {
-      if (!__hasProp.call(_ref2, keys)) continue;
-      operationClass = _ref2[keys];
-      keymap.mapOperator(keys, operationClass);
-    }
-    _ref3 = require('./motions').defaultMappings;
-    for (keys in _ref3) {
-      if (!__hasProp.call(_ref3, keys)) continue;
-      motionClass = _ref3[keys];
-      keymap.mapMotion(keys, motionClass);
-    }
-    return keymap;
-  };
-  function Keymap() {
-    this.commands = {};
-    this.motions = {};
-    this.visualCommands = {};
-    this.partialCommands = {};
-    this.partialMotions = {};
-    this.partialVisualCommands = {};
-  }
-  Keymap.prototype.mapCommand = function(keys, commandClass) {
-    if (commandClass.prototype.exec) {
-      this.commands[keys] = commandClass;
-      if (keys.length === 2 && keys !== 'up') {
-        this.partialCommands[keys[0]] = true;
-      }
-    }
-    if (commandClass.prototype.visualExec) {
-      this.visualCommands[keys] = commandClass;
-      if (keys.length === 2 && keys !== 'up') {
-        return this.partialVisualCommands[keys[0]] = true;
-      }
-    }
-  };
-  Keymap.prototype.mapMotion = function(keys, motionClass) {
-    this.commands[keys] = motionClass;
-    this.motions[keys] = motionClass;
-    this.visualCommands[keys] = motionClass;
-    if (keys.length === 2 && keys !== 'up') {
-      this.partialMotions[keys[0]] = true;
-      this.partialCommands[keys[0]] = true;
-      return this.partialVisualCommands[keys[0]] = true;
-    }
-  };
-  Keymap.prototype.mapOperator = function(keys, operatorClass) {
-    this.commands[keys] = operatorClass;
-    this.visualCommands[keys] = operatorClass;
-    if (keys.length === 2 && keys !== 'up') {
-      this.partialCommands[keys[0]] = true;
-      return this.partialVisualCommands[keys[0]] = true;
-    }
-  };
-  buildPartialCommandRegex = function(partialCommands) {
-    var char, nothing;
-    return RegExp("^([1-9]\\d*)?([" + (((function() {
-      var _results;
-      _results = [];
-      for (char in partialCommands) {
-        if (!__hasProp.call(partialCommands, char)) continue;
-        nothing = partialCommands[char];
-        _results.push(char);
-      }
-      return _results;
-    })()).join('')) + "]?([\\s\\S]*))?$");
-  };
-  Keymap.prototype.commandFor = function(commandPart) {
-    var beyondPartial, command, commandClass, count, _ref;
-    this.partialCommandRegex || (this.partialCommandRegex = buildPartialCommandRegex(this.partialCommands));
-    _ref = commandPart.match(this.partialCommandRegex), commandPart = _ref[0], count = _ref[1], command = _ref[2], beyondPartial = _ref[3];
-    if (beyondPartial) {
-      if (commandClass = this.commands[command]) {
-        return new commandClass(parseInt(count) || null);
-      } else {
-        return false;
-      }
-    } else {
-      return true;
-    }
-  };
-  Keymap.prototype.motionFor = function(commandPart, operatorPending) {
-    var LinewiseCommandMotion, beyondPartial, count, motion, motionClass, _ref;
-    this.partialMotionRegex || (this.partialMotionRegex = buildPartialCommandRegex(this.partialMotions));
-    _ref = commandPart.match(this.partialCommandRegex), commandPart = _ref[0], count = _ref[1], motion = _ref[2], beyondPartial = _ref[3];
-    if (beyondPartial) {
-      if (motion === operatorPending) {
-        LinewiseCommandMotion = require('./motions').LinewiseCommandMotion;
-        return new LinewiseCommandMotion(parseInt(count) || null);
-      } else if (motionClass = this.motions[motion]) {
-        return new motionClass(parseInt(count) || null);
-      } else {
-        return false;
-      }
-    } else {
-      return true;
-    }
-  };
-  Keymap.prototype.visualCommandFor = function(commandPart) {
-    var beyondPartial, command, commandClass, count, _ref;
-    this.partialVisualCommandRegex || (this.partialVisualCommandRegex = buildPartialCommandRegex(this.partialVisualCommands));
-    _ref = commandPart.match(this.partialVisualCommandRegex), commandPart = _ref[0], count = _ref[1], command = _ref[2], beyondPartial = _ref[3];
-    if (beyondPartial) {
-      if (commandClass = this.visualCommands[command]) {
-        return new commandClass(parseInt(count) || null);
-      } else {
-        return false;
-      }
-    } else {
-      return true;
-    }
-  };
-  return Keymap;
-})();
-module.exports = Keymap;
-  return module.exports || exports;
-})();
-
-require['./modes'] = (function() {
-  var exports = {}, module = {};
-  var invalidCommand;
-invalidCommand = function(type) {
-  if (type == null) {
-    type = 'command';
-  }
-  console.log("invalid " + type + ": " + this.commandPart);
-  return this.onEscape();
-};
-exports.normal = {
-  onKeypress: function(keys) {
-    var command, motion, regex, _ref, _ref2;
-    this.commandPart = (this.commandPart || '') + keys;
-    if (!this.command) {
-      command = this.keymap.commandFor(this.commandPart);
-      if (command === false) {
-        invalidCommand.call(this);
-      } else if (command !== true) {
-        if (command.isOperation) {
-          this.operatorPending = this.commandPart.match(/[^\d]+$/)[0];
-        }
-        this.command = command;
-        this.commandPart = '';
-      }
-    } else if (this.command.constructor.followedBy) {
-      if (this.command.constructor.followedBy.test(this.commandPart)) {
-        this.command.followedBy = this.commandPart;
-      } else {
-        console.log("" + this.command + " didn't expect to be followed by \"" + this.commandPart + "\"");
-      }
-      this.commandPart = '';
-    } else if (this.command.isOperation) {
-      if (regex = (_ref = this.command.motion) != null ? _ref.constructor.followedBy : void 0) {
-        if (regex.test(this.commandPart)) {
-          this.command.motion.followedBy = this.commandPart;
-        } else {
-          console.log("" + this.command + " didn't expect to be followed by \"" + this.commandPart + "\"");
-        }
-      } else {
-        motion = this.keymap.motionFor(this.commandPart, this.operatorPending);
-        if (motion === false) {
-          invalidCommand.call(this, 'motion');
-        } else if (motion !== true) {
-          motion.operation = this.command;
-          this.command.motion = motion;
-          this.operatorPending = null;
-          this.commandPart = '';
-        }
-      }
-    }
-    if ((_ref2 = this.command) != null ? _ref2.isComplete() : void 0) {
-      this.command.exec(this);
-      if (this.command.isRepeatable) {
-        this.lastCommand = this.command;
-      }
-      return this.command = null;
-    }
-  }
-};
-exports.visual = {
-  onKeypress: function(newKeys) {
-    var command, maxRow, minRow, wasBackwards, _ref, _ref2, _ref3;
-    this.commandPart = (this.commandPart || '') + newKeys;
-    if (!this.command) {
-      command = this.keymap.visualCommandFor(this.commandPart);
-      if (command === false) {
-        invalidCommand.call(this);
-      } else if (command !== true) {
-        this.command = command;
-        this.commandPart = '';
-      }
-    } else if (this.command.constructor.followedBy) {
-      if (this.command.constructor.followedBy.test(this.commandPart)) {
-        this.command.followedBy = this.commandPart;
-      } else {
-        console.log("" + this.command + " didn't expect to be followed by \"" + this.commandPart + "\"");
-      }
-      this.commandPart = '';
-    }
-    wasBackwards = this.adaptor.isSelectionBackwards();
-    if (((_ref = this.command) != null ? _ref.isOperation : void 0) || ((_ref2 = this.command) != null ? _ref2.isComplete() : void 0)) {
-      if (this.command.isRepeatable) {
-        this.command.selectionSize = this.mode.name === 'visual' && this.mode.linewise ? ((_ref3 = this.adaptor.selectionRowRange(), minRow = _ref3[0], maxRow = _ref3[1], _ref3), {
-          lines: (maxRow - minRow) + 1
-        }) : this.adaptor.characterwiseSelectionSize();
-        this.command.linewise = this.mode.linewise;
-        this.lastCommand = this.command;
-      }
-      this.command.visualExec(this);
-      this.command = null;
-    }
-    if (this.mode.name === 'visual' && !this.mode.linewise) {
-      if (wasBackwards) {
-        if (!this.adaptor.isSelectionBackwards()) {
-          return this.adaptor.adjustAnchor(-1);
-        }
-      } else {
-        if (this.adaptor.isSelectionBackwards()) {
-          return this.adaptor.adjustAnchor(1);
-        }
-      }
-    }
-  }
-};
-exports.insert = {
-  onKeypress: function() {
-    return true;
-  }
-};
-exports.replace = {
-  onKeypress: function() {
-    return true;
-  }
-};
-  return module.exports || exports;
-})();
-
-require['./jim'] = (function() {
-  var exports = {}, module = {};
-  var Jim, Keymap;
-var __hasProp = Object.prototype.hasOwnProperty;
-Keymap = require('./keymap');
-Jim = (function() {
-  Jim.VERSION = '0.2.1-pre';
-  function Jim(adaptor) {
-    this.adaptor = adaptor;
-    this.command = null;
-    this.registers = {};
-    this.keymap = Keymap.getDefault();
-    this.setMode('normal');
-  }
-  Jim.prototype.modes = require('./modes');
-  Jim.prototype.setMode = function(modeName, modeState) {
-    var key, prevMode, value, _base;
-    if (this.debugMode) {
-      console.log('setMode', modeName, modeState);
-    }
-    prevMode = this.mode;
-    if (modeName === (prevMode != null ? prevMode.name : void 0)) {
-      if (!modeState) {
-        return;
-      }
-      for (key in modeState) {
-        if (!__hasProp.call(modeState, key)) continue;
-        value = modeState[key];
-        this.mode[key] = value;
-      }
-    } else {
-      this.mode = modeState || {};
-      this.mode.name = modeName;
-    }
-    if (typeof (_base = this.adaptor).onModeChange === "function") {
-      _base.onModeChange(prevMode, this.mode);
-    }
-    switch (prevMode != null ? prevMode.name : void 0) {
-      case 'insert':
-        this.adaptor.moveLeft();
-        return this.lastCommand.repeatableInsert = this.adaptor.lastInsert();
-      case 'replace':
-        return this.adaptor.setOverwriteMode(false);
-    }
-  };
-  Jim.prototype.onEscape = function() {
-    this.setMode('normal');
-    this.command = null;
-    this.commandPart = '';
-    return this.adaptor.clearSelection();
-  };
-  Jim.prototype.onKeypress = function(keys) {
-    return this.modes[this.mode.name].onKeypress.call(this, keys);
-  };
-  Jim.prototype.deleteSelection = function(exclusive, linewise) {
-    return this.registers['"'] = this.adaptor.deleteSelection(exclusive, linewise);
-  };
-  Jim.prototype.yankSelection = function(exclusive, linewise) {
-    this.registers['"'] = this.adaptor.selectionText(exclusive, linewise);
-    return this.adaptor.clearSelection(true);
-  };
-  return Jim;
-})();
-module.exports = Jim;
+module.exports = {};
   return module.exports || exports;
 })();
 

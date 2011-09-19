@@ -6,11 +6,10 @@
 {Command, repeatCountTimes} = require './helpers'
 {Delete} = require './operators'
 {MoveLeft, MoveRight, MoveToEndOfLine, MoveToFirstNonBlank} = require './motions'
+Jim = require './jim'
 
 # The default key mappings are specified alongside the definitions of each command.
-# Accumulate the mappings so they can be exported.
-defaultMappings = {}
-map = (keys, commandClass) -> defaultMappings[keys] = commandClass
+map = (keys, commandClass) -> Jim.keymap.mapCommand keys, commandClass
 
 # Define a convenience class for commands that switch to another mode.
 class ModeSwitch extends Command
@@ -277,4 +276,4 @@ map 'delete', DeleteChar
 
 # Exports
 # -------
-module.exports = {defaultMappings}
+module.exports = {}

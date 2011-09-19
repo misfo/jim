@@ -4,11 +4,11 @@
 
 {Command} = require './helpers'
 {GoToLine, MoveToFirstNonBlank} = require './motions'
+Jim = require './jim'
 
 # The default key mappings are specified alongside the definitions of each
-# `Operation`.  Accumulate the mappings so they can be exported.
-defaultMappings = {}
-map = (keys, operationClass) -> defaultMappings[keys] = operationClass
+# `Operation`.
+map = (keys, operationClass) -> Jim.keymap.mapOperator keys, operationClass
 
 # Define the base class for all operations.
 class Operation extends Command
@@ -95,4 +95,4 @@ map '<', class Outdent extends Operation
     jim.adaptor.outdentSelection()
     new GoToLine(minRow + 1).exec jim
 
-module.exports = {Change, Delete, defaultMappings}
+module.exports = {Change, Delete}

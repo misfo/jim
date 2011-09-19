@@ -3,12 +3,12 @@
 # operator in normal mode to operate on the text that they move over.
 
 {Command, repeatCountTimes} = require './helpers'
+Jim = require './jim'
 
 
 # The default key mappings are specified alongside the definitions of each
 # motion.  Accumulate the mappings so they can be exported.
-defaultMappings = {}
-map = (keys, motionClass) -> defaultMappings[keys] = motionClass
+map = (keys, motionClass) -> Jim.keymap.mapMotion keys, motionClass
 
 
 # base class for all motions
@@ -396,5 +396,5 @@ map 'T', class GoUpToPreviousChar extends GoToPreviousChar
 # -------
 module.exports = {
   GoToLine, MoveDown, MoveLeft, MoveRight, MoveToEndOfLine, MoveToFirstNonBlank, LinewiseCommandMotion,
-  MoveToNextBigWord, MoveToNextWord, MoveToBigWordEnd, MoveToWordEnd, defaultMappings
+  MoveToNextBigWord, MoveToNextWord, MoveToBigWordEnd, MoveToWordEnd
 }

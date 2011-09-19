@@ -9,10 +9,11 @@ Keymap = require './keymap'
 class Jim
   @VERSION: '0.2.1-pre'
 
+  @keymap: new Keymap
+
   constructor: (@adaptor) ->
     @command = null
     @registers = {}
-    @keymap = Keymap.getDefault()
     @setMode 'normal'
 
   modes: require './modes'

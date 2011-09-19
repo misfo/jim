@@ -5,17 +5,6 @@
 # * It differentiates between invalid commands (`gz`) and partial commands (`g`)
 class Keymap
 
-  # Building a Keymap
-  # -----------------
-
-  # Build an instance of `Keymap` with all the default keymappings.
-  @getDefault: ->
-    keymap = new Keymap
-    keymap.mapCommand keys, commandClass for own keys, commandClass of require('./commands').defaultMappings
-    keymap.mapOperator keys, operationClass for own keys, operationClass of require('./operators').defaultMappings
-    keymap.mapMotion keys, motionClass for own keys, motionClass of require('./motions').defaultMappings
-    keymap
-
   constructor: ->
     @commands = {}
     @motions = {}

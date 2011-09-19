@@ -26,7 +26,7 @@ exports.normal =
     @commandPart = (@commandPart or '') + keys
 
     if not @command
-      command = @keymap.commandFor @commandPart
+      command = Jim.keymap.commandFor @commandPart
 
       if command is false
         invalidCommand.call this
@@ -58,7 +58,7 @@ exports.normal =
           console.log "#{@command} didn't expect to be followed by \"#{@commandPart}\""
 
       else
-        motion = @keymap.motionFor @commandPart, @operatorPending
+        motion = Jim.keymap.motionFor @commandPart, @operatorPending
 
         if motion is false
           invalidCommand.call this, 'motion'
@@ -86,7 +86,7 @@ exports.visual =
     @commandPart = (@commandPart or '') + newKeys
 
     if not @command
-      command = @keymap.visualCommandFor @commandPart
+      command = Jim.keymap.visualCommandFor @commandPart
 
       if command is false
         invalidCommand.call this
