@@ -22,30 +22,21 @@ class Motion extends Command
   visualExec: (jim) -> @exec jim
 
 
-# Define an unmapped `Motion` that will be used for double operators (e.g. `cc`,
-# `2yy`, `3d4d`).
-class LinewiseCommandMotion extends Motion
-  linewise: yes
-  exec: (jim) ->
-    if additionalLines = @count - 1
-      new MoveDown(additionalLines).exec jim
-
-
 # Basic directional motions
 # -------------------------
-map 'h', class MoveLeft extends Motion
+map ['h'], class MoveLeft extends Motion
   exclusive: yes
   exec: repeatCountTimes (jim) ->
     if @prevLine and jim.adaptor.column() is 0
       jim.adaptor.moveToEndOfPreviousLine()
     else jim.adaptor.moveLeft()
-map 'j', class MoveDown extends Motion
+map ['j'], class MoveDown extends Motion
   linewise: yes
   exec: repeatCountTimes (jim) -> jim.adaptor.moveDown()
-map 'k', class MoveUp extends Motion
+map ['k'], class MoveUp extends Motion
   linewise: yes
   exec: repeatCountTimes (jim) -> jim.adaptor.moveUp()
-map 'l', class MoveRight extends Motion
+map ['l'], class MoveRight extends Motion
   exclusive: yes
   exec: repeatCountTimes (jim) ->
     linelen = jim.adaptor.lineText().length - 1
@@ -54,12 +45,12 @@ map 'l', class MoveRight extends Motion
       jim.adaptor.moveTo jim.adaptor.row() + 1, 0
     else jim.adaptor.moveRight @operation?
 
-map 'left', MoveLeft
-map 'down', MoveDown
-map 'up', MoveUp
-map 'right', MoveRight
+map ['left'], MoveLeft
+map ['down'], MoveDown
+map ['up'], MoveUp
+map ['right'], MoveRight
 
-map 'space', class extends MoveRight
+map ['space'], class extends MoveRight
   nextLine: yes
 
 # Word motions
@@ -76,7 +67,7 @@ wordRegex = -> /(\w+)|([^\w\s]+)/g
 
 
 # Move to the next end of a **word**.
-map 'e', class MoveToWordEnd extends Motion
+map ['e'], class MoveToWordEnd extends Motion
   exec: repeatCountTimes (jim) ->
     regex = if @bigWord then WORDRegex() else wordRegex()
     line = jim.adaptor.lineText()
@@ -111,12 +102,12 @@ map 'e', class MoveToWordEnd extends Motion
     jim.adaptor.moveTo row, column
 
 # Move to the next end of a **WORD**.
-map 'E', class MoveToBigWordEnd extends MoveToWordEnd
+map ['E'], class MoveToBigWordEnd extends MoveToWordEnd
   bigWord: yes
 
 
 # Move to the next beginning of a **word**.
-map 'w', class MoveToNextWord extends Motion
+map ['w'], class MoveToNextWord extends Motion
   exclusive: yes
   exec: (jim) ->
     timesLeft = @count
@@ -163,7 +154,7 @@ map 'w', class MoveToNextWord extends Motion
       jim.adaptor.moveTo row, column
 
 # Move to the next beginning of a **WORD**.
-map 'W', class MoveToNextBigWord extends MoveToNextWord
+map ['W'], class MoveToNextBigWord extends MoveToNextWord
   bigWord: yes
 
 
@@ -172,7 +163,7 @@ lastWORDRegex = ///#{WORDRegex().source}\s*$///
 lastWordRegex = ///(#{wordRegex().source})\s*$///
 
 # Move to the last beginning of a **word**.
-map 'b', class MoveBackWord extends Motion
+map ['b'], class MoveBackWord extends Motion
   exclusive: yes
   exec: repeatCountTimes (jim) ->
     regex = if @bigWord then lastWORDRegex else lastWordRegex
@@ -197,7 +188,7 @@ map 'b', class MoveBackWord extends Motion
     jim.adaptor.moveTo row, column
 
 # Move to the last beginning of a **WORD**.
-map 'B', class MoveBackBigWord extends MoveBackWord
+map ['B'], class MoveBackBigWord extends MoveBackWord
   bigWord: yes
   
 
@@ -205,12 +196,12 @@ map 'B', class MoveBackBigWord extends MoveBackWord
 # ------------------------
 
 # Move to the first column on the line.
-map '0', class MoveToBeginningOfLine extends Motion
+map ['0'], class MoveToBeginningOfLine extends Motion
   exclusive: yes
   exec: (jim) -> jim.adaptor.moveTo jim.adaptor.row(), 0
 
 # Move to the first non-blank character on the line.
-map '^', class MoveToFirstNonBlank extends Motion
+map ['^'], class MoveToFirstNonBlank extends Motion
   exec: (jim) ->
     row = jim.adaptor.row()
     line = jim.adaptor.lineText row
@@ -218,7 +209,7 @@ map '^', class MoveToFirstNonBlank extends Motion
     jim.adaptor.moveTo row, column
 
 # Move to the last column on the line.
-map '$', class MoveToEndOfLine extends Motion
+map ['$'], class MoveToEndOfLine extends Motion
   exec: (jim) ->
     additionalLines = @count - 1
     new MoveDown(additionalLines).exec jim if additionalLines
@@ -229,7 +220,7 @@ map '$', class MoveToEndOfLine extends Motion
 # ------------
 
 # Go to `{count}` line number or the first line.
-map 'gg', class GoToLine extends Motion
+map ['g', 'g'], class GoToLine extends Motion
   linewise: yes
   exec: (jim) ->
     rowNumber = @count - 1
@@ -238,21 +229,21 @@ map 'gg', class GoToLine extends Motion
     new MoveToFirstNonBlank().exec jim
 
 # Go to `{count}` line number or the last line.
-map 'G', class GoToLineOrEnd extends GoToLine
+map ['G'], class GoToLineOrEnd extends GoToLine
   constructor: (@count) ->
   exec: (jim) ->
     @count or= jim.adaptor.lastRow() + 1
     super
 
 # Go to the first line that's visible in the viewport.
-map 'H', class GoToFirstVisibleLine extends Motion
+map ['H'], class GoToFirstVisibleLine extends Motion
   linewise: yes
   exec: (jim) ->
     line = jim.adaptor.firstFullyVisibleRow() + @count
     new GoToLineOrEnd(line).exec jim
 
 # Go to the middle line of the lines that exist and are visible in the viewport.
-map 'M', class GoToMiddleLine extends Motion
+map ['M'], class GoToMiddleLine extends Motion
   linewise: yes
   exec: (jim) ->
     topRow = jim.adaptor.firstFullyVisibleRow()
@@ -261,7 +252,7 @@ map 'M', class GoToMiddleLine extends Motion
     new GoToLineOrEnd(topRow + 1 + linesFromTop).exec jim
 
 # Go to the last line of the lines that exist and are visible in the viewport.
-map 'L', class GoToLastVisibleLine extends Motion
+map ['L'], class GoToLastVisibleLine extends Motion
   linewise: yes
   exec: (jim) ->
     line = jim.adaptor.lastFullyVisibleRow() + 2 - @count
@@ -272,7 +263,7 @@ map 'L', class GoToLastVisibleLine extends Motion
 # --------------
 
 # Prompt the user for a search term and search forward for it.
-map '/', class Search extends Motion
+map ['/'], class Search extends Motion
   # Given that `jim.search` has already been set, search for the `{count}`'th
   # occurrence of the search.  Reverse `jim.search`'s direction if `reverse` is
   # true.
@@ -289,11 +280,11 @@ map '/', class Search extends Motion
     Search.runSearch jim, @count
 
 # Prompt the user for a search term and search backwards for it.
-map '?', class SearchBackwards extends Search
+map ['?'], class SearchBackwards extends Search
   backwards: yes
 
 # Search fowards for the next occurrence of the nearest word.
-map '*', class NearestWordSearch extends Search
+map ['*'], class NearestWordSearch extends Search
   getSearch: (jim) ->
     [searchString, charsAhead] = nearestWord jim
 
@@ -333,17 +324,17 @@ map '*', class NearestWordSearch extends Search
     [leftMatch[0] + rightMatch[0], charsAhead]
 
 # Search backwards for the next occurrence of the nearest word.
-map '#', class NearestWordSearchBackwards extends NearestWordSearch
+map ['#'], class NearestWordSearchBackwards extends NearestWordSearch
   backwards: yes
   
 
 # Repeat the last search.
-map 'n', class SearchAgain extends Motion
+map ['n'], class SearchAgain extends Motion
   exclusive: yes
   exec: (jim) -> Search.runSearch jim, @count
 
 # Repeat the last search, reversing the direction.
-map 'N', class SearchAgainReverse extends Motion
+map ['N'], class SearchAgainReverse extends Motion
   exclusive: yes
   exec: (jim) -> Search.runSearch jim, @count, true
 
@@ -355,7 +346,7 @@ map 'N', class SearchAgainReverse extends Motion
 # they are executed this character is stored as the command's `@followedBy`.
 
 # Go to the next `@followedBy` char on the line.
-map 'f', class GoToNextChar extends Motion
+map ['f'], class GoToNextChar extends Motion
   @followedBy: /./
   exec: (jim) ->
     timesLeft = @count ? 1
@@ -369,12 +360,12 @@ map 'f', class GoToNextChar extends Motion
       jim.adaptor.moveTo row, column + columnsRight
 
 # Go to the char before the next `@followedBy` char on the line.
-map 't', class GoUpToNextChar extends GoToNextChar
+map ['t'], class GoUpToNextChar extends GoToNextChar
   beforeChar: yes
 
 
 # Go to the previous `@followedBy` char on the line.
-map 'F', class GoToPreviousChar extends Motion
+map ['F'], class GoToPreviousChar extends Motion
   @followedBy: /./
   exec: (jim) ->
     timesLeft = @count ? 1
@@ -388,13 +379,13 @@ map 'F', class GoToPreviousChar extends Motion
       jim.adaptor.moveTo row, targetColumn
 
 # Go to the char after the previous `@followedBy` char on the line.
-map 'T', class GoUpToPreviousChar extends GoToPreviousChar
+map ['T'], class GoUpToPreviousChar extends GoToPreviousChar
   beforeChar: yes
 
 
 # Exports
 # -------
 module.exports = {
-  GoToLine, MoveDown, MoveLeft, MoveRight, MoveToEndOfLine, MoveToFirstNonBlank, LinewiseCommandMotion,
+  Motion, GoToLine, MoveDown, MoveLeft, MoveRight, MoveToEndOfLine, MoveToFirstNonBlank,
   MoveToNextBigWord, MoveToNextWord, MoveToBigWordEnd, MoveToWordEnd
 }

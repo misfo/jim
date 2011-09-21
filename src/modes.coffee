@@ -4,123 +4,134 @@
 # keyboard handling is defined here.
 #
 # Each mode's `onkeypress` is executed in the context of an instance of `Jim`.
-# In normal and visual mode the current `@commandPart` is the current *part* of
-# the command that's being typed.  For an operation, the operator is one *part*
-# and the motion is another. `@commandPart` can one of the following:
-#
-#   * `{count}command`
-#   * `{count}motion`
-#   * `{count}operator`
-#   * chars expected to follow a command (e.g. when `r` is pressed, the next
-#     `@commandPart` will be the char that's used as the replacement)
+
+# Define an unmapped `Motion` that will be used for double operators (e.g. `cc`,
+# `2yy`, `3d4d`).
+class LinewiseCommandMotion
+  constructor: (@count = 1) ->
+  linewise: yes
+  isComplete: -> yes
+  exec: (jim) ->
+    additionalLines = @count - 1
+    jim.adaptor.moveDown() while additionalLines--
+
 
 # Shame the user in the console for not knowing their Jim commands.
 invalidCommand = (type = 'command') ->
-  console.log "invalid #{type}: #{@commandPart}"
+  console.log "invalid #{type}: #{@inputState}"
   @onEscape()
+
 
 # Normal mode (a.k.a. "command mode")
 # -----------------------------------
 exports.normal =
-  onKeypress: (keys) ->
-    @commandPart = (@commandPart or '') + keys
+  onKeypress: (key) ->
+    if /^[1-9]$/.test(key) or (key is "0" and @inputState.count.length)
+      @inputState.count += key
 
-    if not @command
-      command = Jim.keymap.commandFor @commandPart
+    else if not @inputState.command
+      commandClass = (@inputState.keymap or Jim.keymap.normal)[key]
 
-      if command is false
+      if not commandClass
         invalidCommand.call this
-      else if command isnt true
-        if command.isOperation
+
+      else if commandClass.prototype
+        @inputState.setCommand commandClass
+
+        if @inputState.command.isOperation
           # Hang onto the pending operator so that double-operators can
           # recognized (`cc`, `yy`, etc).
-          [@operatorPending] = @commandPart.match /[^\d]+$/
+          @inputState.operatorPending = key
 
-        @command = command
-        @commandPart = ''
-    else if @command.constructor.followedBy
+      else if commandClass
+        @inputState.keymap = commandClass
+
+    else if @inputState.command.constructor.followedBy
       # If we've got a command that expects a key to follow it, check if
-      # `@commandPart` is what it's expecting.
-      if @command.constructor.followedBy.test @commandPart
-        @command.followedBy = @commandPart
+      # the key is what it's expecting.
+      if @inputState.command.constructor.followedBy.test key
+        @inputState.command.followedBy = key
       else
-        console.log "#{@command} didn't expect to be followed by \"#{@commandPart}\""
+        console.log "#{@inputState.command} didn't expect to be followed by \"#{key}\""
 
-      @commandPart = ''
-    else if @command.isOperation
-      if regex = @command.motion?.constructor.followedBy
+    else if @inputState.operatorPending
+      if regex = @inputState.command.motion?.constructor.followedBy
 
         # If we've got a motion that expects a key to follow it, check if
-        # `@commandPart` is what it's expecting.
-        if regex.test @commandPart
-          @command.motion.followedBy = @commandPart
+        # the key is what it's expecting.
+        if regex.test key
+          @inputState.command.motion.followedBy = key
         else
-          console.log "#{@command} didn't expect to be followed by \"#{@commandPart}\""
+          console.log "#{@inputState.command} didn't expect to be followed by \"#{key}\""
 
       else
-        motion = Jim.keymap.motionFor @commandPart, @operatorPending
+        motionClass = if key is @inputState.operatorPending
+          LinewiseCommandMotion
+        else
+          (@inputState.keymap or Jim.keymap.operatorPending)[key]
 
-        if motion is false
-          invalidCommand.call this, 'motion'
-        else if motion isnt true
-          # Motions need a reference to the operation they're a part of since it
-          # sometimes changes the amount of text they move over (e.g. `cw`
-          # deletes less text than `dw`).
-          motion.operation = @command
+        if not motionClass
+          invalidCommand.call this
 
-          @command.motion = motion
-          @operatorPending = null
-          @commandPart = ''
+        else if motionClass.prototype
+          @inputState.setOperationMotion motionClass
+
+        else
+          @inputState.keymap = motion
 
     # Execute the command if it's complete, otherwise wait for more keys.
-    if @command?.isComplete()
-      @command.exec this
-      @lastCommand = @command if @command.isRepeatable
-      @command = null
+    if @inputState.command?.isComplete()
+      @inputState.command.exec this
+      @lastCommand = @inputState.command if @inputState.command.isRepeatable
+      @inputState.clear()
 
 
 # Visual mode
 # -----------
 exports.visual =
-  onKeypress: (newKeys) ->
-    @commandPart = (@commandPart or '') + newKeys
+  onKeypress: (key) ->
+    if /^[1-9]$/.test(key) or (key is "0" and @inputState.count.length)
+      @inputState.count += key
 
-    if not @command
-      command = Jim.keymap.visualCommandFor @commandPart
+    else if not @inputState.command
+      commandClass = (@inputState.keymap or Jim.keymap.visual)[key]
 
-      if command is false
+      if not commandClass
         invalidCommand.call this
-      else if command isnt true
-        @command = command
-        @commandPart = ''
-    else if @command.constructor.followedBy
+
+      else if commandClass.prototype
+        @inputState.setCommand commandClass
+
+      else
+        @inputState.keymap = commandClass
+
+    else if @inputState.command.constructor.followedBy
 
       # If we've got a motion that expects a key to follow it, check if
-      # `@commandPart` is what it's expecting.
-      if @command.constructor.followedBy.test @commandPart
-        @command.followedBy = @commandPart
+      # the key is what it's expecting.
+      if @inputState.command.constructor.followedBy.test key
+        @inputState.command.followedBy = key
       else
-        console.log "#{@command} didn't expect to be followed by \"#{@commandPart}\""
-      @commandPart = ''
+        console.log "#{@inputState.command} didn't expect to be followed by \"#{key}\""
 
     wasBackwards = @adaptor.isSelectionBackwards()
 
     # Operations are always "complete" in visual mode.
-    if @command?.isOperation or @command?.isComplete()
-      if @command.isRepeatable
+    if @inputState.command?.isOperation or @inputState.command?.isComplete()
+      if @inputState.command.isRepeatable
         # Save the selection's "size", which will be used if the command is
         # repeated.
-        @command.selectionSize = if @mode.name is 'visual' and @mode.linewise
+        @inputState.command.selectionSize = if @mode.name is 'visual' and @mode.linewise
           [minRow, maxRow] = @adaptor.selectionRowRange()
           lines: (maxRow - minRow) + 1
         else
           @adaptor.characterwiseSelectionSize()
-        @command.linewise = @mode.linewise
+        @inputState.command.linewise = @mode.linewise
 
-        @lastCommand = @command
+        @lastCommand = @inputState.command
 
-      @command.visualExec this
-      @command = null
+      @inputState.command.visualExec this
+      @inputState.clear()
 
     # If we haven't changed out of characterwise visual mode and the direction
     # of the selection changes, we have to make sure that the anchor character

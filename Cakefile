@@ -3,10 +3,10 @@ CoffeeScript = require 'coffee-script'
 
 sourceNames = [
   # in dependency order
+  'helpers'
   'keymap'
   'modes'
   'jim'
-  'helpers'
   'motions'
   'operators'
   'commands'
