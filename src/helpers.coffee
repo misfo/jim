@@ -17,7 +17,7 @@ class exports.InputState
   	@count = ''
   	@keymap = null
   	@operatorPending = null
-  
+
   setCommand: (commandClass) ->
   	@command = new commandClass(parseInt(@count) or null)
   	@count = ''

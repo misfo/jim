@@ -144,7 +144,11 @@ exports.normal = {
     } else if (!this.inputState.command) {
       commandClass = (this.inputState.keymap || Jim.keymap.normal)[key];
       if (!commandClass) {
-        invalidCommand.call(this);
+        if (key.length === 1) {
+          invalidCommand.call(this);
+        } else {
+          return true;
+        }
       } else if (commandClass.prototype) {
         this.inputState.setCommand(commandClass);
         if (this.inputState.command.isOperation) {
@@ -169,7 +173,11 @@ exports.normal = {
       } else {
         motionClass = key === this.inputState.operatorPending ? LinewiseCommandMotion : (this.inputState.keymap || Jim.keymap.operatorPending)[key];
         if (!motionClass) {
-          invalidCommand.call(this);
+          if (key.length === 1) {
+            invalidCommand.call(this);
+          } else {
+            return true;
+          }
         } else if (motionClass.prototype) {
           this.inputState.setOperationMotion(motionClass);
         } else {
@@ -194,7 +202,11 @@ exports.visual = {
     } else if (!this.inputState.command) {
       commandClass = (this.inputState.keymap || Jim.keymap.visual)[key];
       if (!commandClass) {
-        invalidCommand.call(this);
+        if (key.length === 1) {
+          invalidCommand.call(this);
+        } else {
+          return true;
+        }
       } else if (commandClass.prototype) {
         this.inputState.setCommand(commandClass);
       } else {
@@ -1385,7 +1397,7 @@ module.exports = {};
 
 require['./ace'] = (function() {
   var exports = {}, module = {};
-  var Adaptor, Jim, JimUndoManager, UndoManager, isCharacterKey, isSelectiveKeys;
+  var Adaptor, Jim, JimUndoManager, UndoManager;
 var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
   for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
   function ctor() { this.constructor = child; }
@@ -1765,12 +1777,6 @@ JimUndoManager = (function() {
   return JimUndoManager;
 })();
 require('pilot/dom').importCssString(".jim-normal-mode div.ace_cursor\n, .jim-visual-mode div.ace_cursor {\n  border: 0;\n  background-color: #91FF00;\n  opacity: 0.5;\n}\n.jim-visual-linewise-mode .ace_marker-layer .ace_selection {\n  left: 0 !important;\n  width: 100% !important;\n}");
-isCharacterKey = function(hashId, keyCode) {
-  return hashId === 0 && !keyCode;
-};
-isSelectiveKeys = function(keyString) {
-  return /(up|down|left|right|(back)?space|delete)/.test(keyString);
-};
 Jim.aceInit = function(editor) {
   var adaptor, jim, undoManager;
   editor.setKeyboardHandler({
@@ -1778,7 +1784,7 @@ Jim.aceInit = function(editor) {
       var passKeypressThrough;
       if (keyCode === 27 || (hashId === 1 && keyString === '[')) {
         return jim.onEscape();
-      } else if (isCharacterKey(hashId, keyCode) || isSelectiveKeys(keyString)) {
+      } else if (hashId === 0) {
         if (jim.afterInsertSwitch) {
           if (jim.mode.name === 'insert') {
             jim.adaptor.markUndoPoint('jim:insert:afterSwitch');
@@ -1788,7 +1794,7 @@ Jim.aceInit = function(editor) {
         if (jim.mode.name === 'normal' && !jim.adaptor.emptySelection()) {
           jim.setMode('visual');
         }
-        if (keyString.length > 1 && !isSelectiveKeys(keyString)) {
+        if (!keyCode && keyString.length > 1) {
           keyString = keyString.charAt(0);
         }
         passKeypressThrough = jim.onKeypress(keyString);

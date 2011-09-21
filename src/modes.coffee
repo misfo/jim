@@ -33,7 +33,10 @@ exports.normal =
       commandClass = (@inputState.keymap or Jim.keymap.normal)[key]
 
       if not commandClass
-        invalidCommand.call this
+        if key.length is 1
+          invalidCommand.call this
+        else
+          return true
 
       else if commandClass.prototype
         @inputState.setCommand commandClass
@@ -71,7 +74,10 @@ exports.normal =
           (@inputState.keymap or Jim.keymap.operatorPending)[key]
 
         if not motionClass
-          invalidCommand.call this
+          if key.length is 1
+            invalidCommand.call this
+          else
+            return true
 
         else if motionClass.prototype
           @inputState.setOperationMotion motionClass
@@ -97,7 +103,10 @@ exports.visual =
       commandClass = (@inputState.keymap or Jim.keymap.visual)[key]
 
       if not commandClass
-        invalidCommand.call this
+        if key.length is 1
+          invalidCommand.call this
+        else
+          return true
 
       else if commandClass.prototype
         @inputState.setCommand commandClass
