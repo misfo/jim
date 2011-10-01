@@ -94,11 +94,22 @@ map ['I'], class InsertBeforeFirstNonBlank extends Insert
   beforeSwitch: (jim) -> new MoveToFirstNonBlank().exec jim
 
 # Create a new line below the cursor and insert there.
+#
+# Move the cursor to other end of selected text. (visual mode)
 map ['o'], class OpenLine extends Insert
   beforeSwitch: (jim) ->
     row = jim.adaptor.row() + (if @above then 0 else 1)
     jim.adaptor.insertNewLine row
     jim.adaptor.moveTo row, 0
+  visualExec: (jim) ->
+    selection = jim.adaptor.editor.selection
+    {row:rowL, column:columnL} = selection.getSelectionLead()
+    {row:rowA, column:columnA} = selection.getSelectionAnchor()
+    if rowL < rowA or (rowL == rowA and columnL < columnA)
+      columnA -= 1
+      columnL += 1
+    selection.setSelectionAnchor(rowL, columnL)
+    jim.adaptor.moveTo(rowA, columnA)
 
 # Create a new line above the cursor and insert there.
 map ['O'], class OpenLineAbove extends OpenLine
