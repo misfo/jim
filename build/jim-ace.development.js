@@ -1155,7 +1155,7 @@ map(['o'], OpenLine = (function() {
     return jim.adaptor.moveTo(row, 0);
   };
   OpenLine.prototype.visualExec = function(jim) {
-    var columnA, columnL, rowA, rowL, selection, _ref3, _ref4;
+    var columnA, columnL, rowA, rowL, selection, _ref3, _ref4, _ref5;
     selection = jim.adaptor.editor.selection;
     _ref3 = selection.getSelectionLead(), rowL = _ref3.row, columnL = _ref3.column;
     _ref4 = selection.getSelectionAnchor(), rowA = _ref4.row, columnA = _ref4.column;
@@ -1166,8 +1166,11 @@ map(['o'], OpenLine = (function() {
       }
     } else {
       if (isNaN(columnA)) {
-        columnA = jim.adaptor.column();
+        _ref5 = jim.mode.anchor, rowA = _ref5[0], columnA = _ref5[1];
       }
+    }
+    if (rowL === rowA && columnL === columnA) {
+      return;
     }
     selection.setSelectionAnchor(rowL, columnL);
     return jim.adaptor.moveTo(rowA, columnA);

@@ -110,7 +110,10 @@ map ['o'], class OpenLine extends Insert
         columnA -= 1
         columnL += 1
     else
-      columnA = jim.adaptor.column() if isNaN columnA
+      [rowA, columnA] = jim.mode.anchor if isNaN columnA
+    # Prevent the selection from looking like it exited when achor and
+    # lead are the same
+    return if rowL is rowA and columnL is columnA
     selection.setSelectionAnchor(rowL, columnL)
     jim.adaptor.moveTo(rowA, columnA)
 
