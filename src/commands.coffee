@@ -111,7 +111,7 @@ map ['o'], class OpenLine extends Insert
         columnL += 1
     else
       [rowA, columnA] = jim.mode.anchor if isNaN columnA
-    # Prevent the selection from looking like it exited when achor and
+    # Prevent the selection from looking like it exited when anchor and
     # lead are the same
     return if rowL is rowA and columnL is columnA
     selection.setSelectionAnchor(rowL, columnL)
