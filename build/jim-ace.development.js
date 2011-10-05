@@ -1159,9 +1159,15 @@ map(['o'], OpenLine = (function() {
     selection = jim.adaptor.editor.selection;
     _ref3 = selection.getSelectionLead(), rowL = _ref3.row, columnL = _ref3.column;
     _ref4 = selection.getSelectionAnchor(), rowA = _ref4.row, columnA = _ref4.column;
-    if (rowL < rowA || (rowL === rowA && columnL < columnA)) {
-      columnA -= 1;
-      columnL += 1;
+    if (!jim.mode.linewise) {
+      if (rowL < rowA || (rowL === rowA && columnL < columnA)) {
+        columnA -= 1;
+        columnL += 1;
+      }
+    } else {
+      if (isNaN(columnA)) {
+        columnA = jim.adaptor.column();
+      }
     }
     selection.setSelectionAnchor(rowL, columnL);
     return jim.adaptor.moveTo(rowA, columnA);

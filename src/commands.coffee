@@ -105,9 +105,12 @@ map ['o'], class OpenLine extends Insert
     selection = jim.adaptor.editor.selection
     {row:rowL, column:columnL} = selection.getSelectionLead()
     {row:rowA, column:columnA} = selection.getSelectionAnchor()
-    if rowL < rowA or (rowL == rowA and columnL < columnA)
-      columnA -= 1
-      columnL += 1
+    if not jim.mode.linewise
+      if rowL < rowA or (rowL == rowA and columnL < columnA)
+        columnA -= 1
+        columnL += 1
+    else
+      columnA = jim.adaptor.column() if isNaN columnA
     selection.setSelectionAnchor(rowL, columnL)
     jim.adaptor.moveTo(rowA, columnA)
 
