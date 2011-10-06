@@ -1154,6 +1154,27 @@ map(['o'], OpenLine = (function() {
     jim.adaptor.insertNewLine(row);
     return jim.adaptor.moveTo(row, 0);
   };
+  OpenLine.prototype.visualExec = function(jim) {
+    var columnA, columnL, rowA, rowL, selection, _ref3, _ref4, _ref5;
+    selection = jim.adaptor.editor.selection;
+    _ref3 = selection.getSelectionLead(), rowL = _ref3.row, columnL = _ref3.column;
+    _ref4 = selection.getSelectionAnchor(), rowA = _ref4.row, columnA = _ref4.column;
+    if (!jim.mode.linewise) {
+      if (rowL < rowA || (rowL === rowA && columnL < columnA)) {
+        columnA -= 1;
+        columnL += 1;
+      }
+      selection.setSelectionAnchor(rowL, columnL);
+    } else {
+      if (isNaN(columnA)) {
+        _ref5 = jim.mode.anchor, rowA = _ref5[0], columnA = _ref5[1];
+      }
+      selection.selectionAnchor.column = columnL;
+      selection.selectionAnchor.row = rowL;
+      jim.mode.anchor = jim.adaptor.setLinewiseSelectionAnchor();
+    }
+    return jim.adaptor.moveTo(rowA, columnA);
+  };
   return OpenLine;
 })());
 map(['O'], OpenLineAbove = (function() {

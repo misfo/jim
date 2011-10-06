@@ -139,3 +139,23 @@ test 'x, X, and delete with selection', ->
 
   @press 'jvl', @delete
   eq @jim.registers['"'], '  r'
+
+test 'visual mode o', ->
+  @adaptor.moveTo 3, 6
+  @press 'vjo'
+  deepEqual @adaptor.position(), [3, 6]
+
+  @press 'o'
+  deepEqual @adaptor.position(), [4, 6]
+
+  @press 'o', @esc
+  deepEqual @adaptor.position(), [3, 6]
+
+  @press 'veo'
+  deepEqual @adaptor.position(), [3, 6]
+
+  @press 'o'
+  deepEqual @adaptor.position(), [3, 10]
+
+  @press 'o', @esc
+  deepEqual @adaptor.position(), [3, 6]
