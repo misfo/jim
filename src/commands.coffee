@@ -109,12 +109,12 @@ map ['o'], class OpenLine extends Insert
       if rowL < rowA or (rowL == rowA and columnL < columnA)
         columnA -= 1
         columnL += 1
+      selection.setSelectionAnchor(rowL, columnL)
     else
       [rowA, columnA] = jim.mode.anchor if isNaN columnA
-    # Prevent the selection from looking like it exited when anchor and
-    # lead are the same
-    return if rowL is rowA and columnL is columnA
-    selection.setSelectionAnchor(rowL, columnL)
+      selection.selectionAnchor.column = columnL
+      selection.selectionAnchor.row    = rowL
+      jim.mode.anchor = jim.adaptor.setLinewiseSelectionAnchor()
     jim.adaptor.moveTo(rowA, columnA)
 
 # Create a new line above the cursor and insert there.

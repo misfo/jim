@@ -1164,15 +1164,15 @@ map(['o'], OpenLine = (function() {
         columnA -= 1;
         columnL += 1;
       }
+      selection.setSelectionAnchor(rowL, columnL);
     } else {
       if (isNaN(columnA)) {
         _ref5 = jim.mode.anchor, rowA = _ref5[0], columnA = _ref5[1];
       }
+      selection.selectionAnchor.column = columnL;
+      selection.selectionAnchor.row = rowL;
+      jim.mode.anchor = jim.adaptor.setLinewiseSelectionAnchor();
     }
-    if (rowL === rowA && columnL === columnA) {
-      return;
-    }
-    selection.setSelectionAnchor(rowL, columnL);
     return jim.adaptor.moveTo(rowA, columnA);
   };
   return OpenLine;
