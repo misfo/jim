@@ -3,6 +3,20 @@
 the [Jim bookmarklet](http://misfo.github.com/jim) to Jimmy rig it with Vim-ness.
 
 
+Project status
+--------------
+Jim is **no longer maintained**.  Cloud9 IDE now has a built-in Vim mode, but it doesn't
+work with standalone Ace AFAIK, so fork away if you'd like to continue this project.
+
+I'm not terribly proud of how the code ended up.  Using classes for each of the commands
+is a textbook case of OO being over-applied.  For an idea of how to implement a Vim-mode
+The Right Way, take a look at
+[Sublime Text 2's Vintage mode](https://github.com/sublimehq/Vintage).  I use it on a
+daily basis and it works great. The way commands are "built" with keystrokes and then
+executed afterwards with one `ViEval` command turns out to be a far superior way to
+write a Vim mode.
+
+
 Try it out
 ----------
 [misfo.github.com/jim](http://misfo.github.com/jim)
